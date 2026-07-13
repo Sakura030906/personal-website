@@ -61,7 +61,7 @@ function response(body, type, init = {}) {
     ...init,
     headers: {
       "content-type": type,
-      "cache-control": type.startsWith("text/html")
+      "cache-control": type.startsWith("text/html") || type.startsWith("application/json")
         ? "public, max-age=0, must-revalidate"
         : "public, max-age=31536000, immutable",
       ...(init.headers || {})
@@ -91,6 +91,10 @@ export default {
     if (imageAssets[pathname]) {
       const asset = imageAssets[pathname];
       return response(decodeBase64(asset.body), asset.type);
+    }
+
+    if (pathname.includes(".")) {
+      return response("Not Found", "text/plain; charset=utf-8", { status: 404 });
     }
 
     return response(textAssets["/"].body, textAssets["/"].type, { status: 200 });
