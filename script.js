@@ -9,9 +9,11 @@ const fallbackContent = {
     summary:
       "2025 年毕业于江西师范大学计算机专业，目前在上海阅凡自动化科技有限公司担任 C# 工程师。正在系统学习并实践大模型应用开发，重点关注企业知识库、向量检索、Agent 工作流与 RAG 系统。",
     status: [],
+    focus: [],
     contacts: [],
   },
   about: { education: [], experience: [], values: [] },
+  siteModules: [],
   techStack: [],
   projects: [],
   posts: [],
@@ -19,7 +21,7 @@ const fallbackContent = {
   learningMap: [],
   reading: [],
   timeline: [],
-  aiShowcase: { title: "", summary: "", pipeline: [], status: "" },
+  aiShowcase: { title: "", summary: "", pipeline: [], status: "", capabilities: [], examples: [], roadmap: [] },
 };
 
 function escapeHtml(value) {
@@ -41,7 +43,7 @@ function slugify(value) {
 }
 
 function normalizeSlug(item, index, prefix = "item") {
-  return item.slug || slugify(item.title || item.name) || `${prefix}-${index + 1}`;
+  return item.slug || slugify(item.title || item.name || item.topic) || `${prefix}-${index + 1}`;
 }
 
 function calculateReadTime(content) {
@@ -53,6 +55,12 @@ function setText(selector, value) {
   document.querySelectorAll(selector).forEach((node) => {
     node.textContent = value ?? "";
   });
+}
+
+function inlineMarkdown(value) {
+  return escapeHtml(value)
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/`(.+?)`/g, "<code>$1</code>");
 }
 
 function markdownToHtml(markdown) {
@@ -133,12 +141,6 @@ function markdownToHtml(markdown) {
   return blocks.join("");
 }
 
-function inlineMarkdown(value) {
-  return escapeHtml(value)
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/`(.+?)`/g, "<code>$1</code>");
-}
-
 function renderPills(selector, items, className = "") {
   const target = document.querySelector(selector);
   if (!target) return;
@@ -156,8 +158,7 @@ function renderProfile(content) {
   setText('[data-profile="headline"]', profile.headline);
   setText('[data-profile="summary"]', profile.summary);
 
-  const contacts = document.querySelector("[data-contacts]");
-  contacts.innerHTML = (profile.contacts || [])
+  document.querySelector("[data-contacts]").innerHTML = (profile.contacts || [])
     .map((item) => {
       const href = item.href || "#";
       const isLink = href && href !== "#";
@@ -175,32 +176,58 @@ function renderProfile(content) {
       `,
     )
     .join("");
+
+  document.querySelector("[data-focus]").innerHTML = (profile.focus || [])
+    .map(
+      (item) => `
+        <article class="focus-card">
+          <span>${escapeHtml(item.label)}</span>
+          <h3>${escapeHtml(item.value)}</h3>
+          <p>${escapeHtml(item.note)}</p>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderSiteModules(content) {
+  document.querySelector("[data-site-modules]").innerHTML = (content.siteModules || [])
+    .map(
+      (item) => `
+        <article class="module-card">
+          <h3>${escapeHtml(item.title)}</h3>
+          <p>${escapeHtml(item.description)}</p>
+        </article>
+      `,
+    )
+    .join("");
 }
 
 function projectCard(project, index) {
   const slug = normalizeSlug(project, index, "project");
-  const links = [
-    project.github ? `<a href="${escapeHtml(project.github)}" target="_blank" rel="noreferrer">GitHub</a>` : "",
-    project.demo ? `<a href="${escapeHtml(project.demo)}" target="_blank" rel="noreferrer">Demo</a>` : "",
-  ]
-    .filter(Boolean)
-    .join("");
-
   return `
-    <article class="project-card" id="${escapeHtml(slug)}">
-      <div class="card-meta">
-        <span>${escapeHtml(project.status || "记录中")}</span>
-      </div>
+    <a class="project-card" href="#project-${escapeHtml(slug)}">
+      <div class="card-meta"><span>${escapeHtml(project.status || "记录中")}</span></div>
       <h3>${escapeHtml(project.name)}</h3>
       <p>${escapeHtml(project.summary || "")}</p>
       <div class="pill-list compact">
         ${(project.stack || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
       </div>
       <ul>
-        ${(project.details || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+        ${(project.details || []).slice(0, 3).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
       </ul>
-      ${links ? `<div class="card-links">${links}</div>` : ""}
-    </article>
+      <span class="read-more">查看项目详情</span>
+    </a>
+  `;
+}
+
+function detailList(title, items) {
+  if (!items?.length) return "";
+  return `
+    <section>
+      <h2>${escapeHtml(title)}</h2>
+      <ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+    </section>
   `;
 }
 
@@ -212,6 +239,48 @@ function renderProjects(content) {
 
   document.querySelector("[data-projects]").innerHTML = html;
   document.querySelector("[data-featured-projects]").innerHTML = projects.slice(0, 2).map(projectCard).join("");
+}
+
+function renderProjectDetail(content, slug) {
+  const projects = content.projects || [];
+  const index = projects.findIndex((project, current) => normalizeSlug(project, current, "project") === slug);
+  const project = projects[index];
+  const list = document.querySelector("[data-projects]");
+  const detail = document.querySelector("[data-project-detail]");
+
+  if (!project) {
+    list.hidden = false;
+    detail.hidden = true;
+    return;
+  }
+
+  list.hidden = true;
+  detail.hidden = false;
+  detail.innerHTML = `
+    <a class="back-link" href="#projects">返回项目列表</a>
+    <div class="detail-head">
+      <div>
+        <div class="card-meta"><span>${escapeHtml(project.status || "记录中")}</span></div>
+        <h1>${escapeHtml(project.name)}</h1>
+        <p>${escapeHtml(project.summary || "")}</p>
+      </div>
+      <div class="pill-list compact">${(project.stack || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>
+    </div>
+    <div class="detail-grid">
+      <section>
+        <h2>问题背景</h2>
+        <p>${escapeHtml(project.problem || "待补充。")}</p>
+      </section>
+      <section>
+        <h2>架构设想</h2>
+        <p>${escapeHtml(project.architecture || "待补充。")}</p>
+      </section>
+      ${detailList("核心模块", project.modules)}
+      ${detailList("项目要点", project.details)}
+      ${detailList("主要难点", project.challenges)}
+      ${detailList("下一步", project.nextSteps)}
+    </div>
+  `;
 }
 
 function postCard(post, index) {
@@ -246,19 +315,21 @@ function renderPosts(content) {
 
   const categories = [...new Set(posts.map((post) => post.category).filter(Boolean))];
   if (filters) {
-    filters.innerHTML = ["全部", ...categories].map((item) => `<button type="button" data-category-filter="${escapeHtml(item)}">${escapeHtml(item)}</button>`).join("");
+    filters.innerHTML = ["全部", ...categories]
+      .map((item) => `<button type="button" data-category-filter="${escapeHtml(item)}">${escapeHtml(item)}</button>`)
+      .join("");
     filters.querySelector("[data-category-filter]")?.classList.add("is-active");
-    filters.addEventListener("click", (event) => {
+    filters.onclick = (event) => {
       const button = event.target.closest("[data-category-filter]");
       if (!button) return;
       filters.querySelectorAll("button").forEach((node) => node.classList.remove("is-active"));
       button.classList.add("is-active");
       applyPostFilters();
-    });
+    };
   }
 
   if (search) {
-    search.addEventListener("input", applyPostFilters);
+    search.oninput = applyPostFilters;
   }
 }
 
@@ -266,7 +337,7 @@ function applyPostFilters() {
   const searchValue = document.querySelector("[data-post-search]")?.value.trim().toLowerCase() || "";
   const category = document.querySelector("[data-category-filter].is-active")?.dataset.categoryFilter || "全部";
 
-  document.querySelectorAll("[data-post-card]").forEach((card) => {
+  document.querySelectorAll("[data-posts] [data-post-card]").forEach((card) => {
     const text = `${card.dataset.title} ${card.dataset.category} ${card.dataset.tags}`.toLowerCase();
     const matchesSearch = !searchValue || text.includes(searchValue);
     const matchesCategory = category === "全部" || card.dataset.category === category;
@@ -312,11 +383,7 @@ function renderArticle(content, slug) {
       </div>
       <aside class="toc">
         <strong>目录</strong>
-        ${
-          headings.length
-            ? headings.map((heading) => `<span>${escapeHtml(heading)}</span>`).join("")
-            : "<span>正文</span>"
-        }
+        ${headings.length ? headings.map((heading) => `<span>${escapeHtml(heading)}</span>`).join("") : "<span>正文</span>"}
       </aside>
     </div>
   `;
@@ -324,17 +391,60 @@ function renderArticle(content, slug) {
 
 function renderKnowledge(content) {
   document.querySelector("[data-knowledge]").innerHTML = (content.knowledgeBase || [])
-    .map(
-      (group) => `
-        <article class="knowledge-card">
+    .map((group, index) => {
+      const slug = normalizeSlug(group, index, "knowledge");
+      return `
+        <a class="knowledge-card" href="#knowledge-${escapeHtml(slug)}">
           <h2>${escapeHtml(group.topic)}</h2>
+          <p>${escapeHtml(group.summary || "")}</p>
           <div class="pill-list soft">
             ${(group.items || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
           </div>
-        </article>
-      `,
-    )
+          <span class="read-more">查看知识节点</span>
+        </a>
+      `;
+    })
     .join("");
+}
+
+function renderKnowledgeDetail(content, slug) {
+  const groups = content.knowledgeBase || [];
+  const index = groups.findIndex((group, current) => normalizeSlug(group, current, "knowledge") === slug);
+  const group = groups[index];
+  const list = document.querySelector("[data-knowledge]");
+  const detail = document.querySelector("[data-knowledge-detail]");
+
+  if (!group) {
+    list.hidden = false;
+    detail.hidden = true;
+    return;
+  }
+
+  list.hidden = true;
+  detail.hidden = false;
+  detail.innerHTML = `
+    <a class="back-link" href="#knowledge">返回知识库</a>
+    <div class="detail-head">
+      <div>
+        <p class="kicker">Knowledge Node</p>
+        <h1>${escapeHtml(group.topic)}</h1>
+        <p>${escapeHtml(group.summary || "")}</p>
+      </div>
+      <div class="pill-list compact">${(group.items || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>
+    </div>
+    <div class="note-grid">
+      ${(group.notes || [])
+        .map(
+          (note) => `
+            <article class="note-card">
+              <h2>${escapeHtml(note.name)}</h2>
+              <p>${escapeHtml(note.description)}</p>
+            </article>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
 }
 
 function renderRoadmap(content) {
@@ -412,22 +522,181 @@ function renderTimeline(selector, items) {
 
 function renderAi(content) {
   const ai = content.aiShowcase || fallbackContent.aiShowcase;
-  document.querySelector("[data-ai-showcase]").innerHTML = `
+  const homeTarget = document.querySelector("[data-ai-showcase]");
+  homeTarget.innerHTML = `
     <div>
       <div class="card-meta"><span>${escapeHtml(ai.status || "规划中")}</span></div>
       <h3>${escapeHtml(ai.title)}</h3>
       <p>${escapeHtml(ai.summary)}</p>
     </div>
-    <div class="pipeline">
-      ${(ai.pipeline || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+    <div class="pipeline">${(ai.pipeline || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>
+  `;
+
+  document.querySelector("[data-ai-full]").innerHTML = `
+    <div class="section-title">
+      <p>Architecture</p>
+      <h2>${escapeHtml(ai.title)}</h2>
+    </div>
+    <p>${escapeHtml(ai.summary)}</p>
+    <div class="pipeline lab-pipeline">${(ai.pipeline || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>
+    ${detailList("演进路线", ai.roadmap)}
+  `;
+
+  document.querySelector("[data-ai-capabilities]").innerHTML = (ai.capabilities || [])
+    .map(
+      (item) => `
+        <article class="module-card">
+          <h3>${escapeHtml(item.title)}</h3>
+          <p>${escapeHtml(item.description)}</p>
+        </article>
+      `,
+    )
+    .join("");
+
+  const askButton = document.querySelector("[data-ai-ask]");
+  askButton.onclick = () => answerStaticQuestion(content);
+  document.querySelector("[data-ai-answer]").innerHTML = `
+    <strong>可以先试试：</strong>
+    <div class="suggestion-row">
+      ${(ai.examples || []).map((item) => `<button type="button" data-question="${escapeHtml(item.question)}">${escapeHtml(item.question)}</button>`).join("")}
     </div>
   `;
+  document.querySelector("[data-ai-answer]").onclick = (event) => {
+    const button = event.target.closest("[data-question]");
+    if (!button) return;
+    document.querySelector("[data-ai-question]").value = button.dataset.question;
+    answerStaticQuestion(content);
+  };
+}
+
+function flattenSearchContent(content) {
+  const entries = [];
+
+  (content.posts || []).forEach((post, index) => {
+    entries.push({
+      type: "文章",
+      title: post.title,
+      href: `#post-${normalizeSlug(post, index, "post")}`,
+      text: [post.title, post.category, post.summary, ...(post.tags || []), post.content].join(" "),
+    });
+  });
+
+  (content.projects || []).forEach((project, index) => {
+    entries.push({
+      type: "项目",
+      title: project.name,
+      href: `#project-${normalizeSlug(project, index, "project")}`,
+      text: [
+        project.name,
+        project.summary,
+        project.problem,
+        project.architecture,
+        ...(project.stack || []),
+        ...(project.details || []),
+        ...(project.challenges || []),
+        ...(project.nextSteps || []),
+      ].join(" "),
+    });
+  });
+
+  (content.knowledgeBase || []).forEach((group, index) => {
+    entries.push({
+      type: "知识库",
+      title: group.topic,
+      href: `#knowledge-${normalizeSlug(group, index, "knowledge")}`,
+      text: [
+        group.topic,
+        group.summary,
+        ...(group.items || []),
+        ...(group.notes || []).flatMap((note) => [note.name, note.description]),
+      ].join(" "),
+    });
+  });
+
+  (content.learningMap || []).forEach((layer) => {
+    entries.push({
+      type: "学习路线",
+      title: layer.layer,
+      href: "#roadmap",
+      text: [layer.layer, ...(layer.items || []).flatMap((item) => [item.name, item.status])].join(" "),
+    });
+  });
+
+  return entries;
+}
+
+function scoreEntry(entry, query) {
+  const text = entry.text.toLowerCase();
+  const normalizedQuery = query.toLowerCase();
+  const tokens = normalizedQuery
+    .split(/[\s,，。?？/、]+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2);
+  let score = text.includes(normalizedQuery) ? 8 : 0;
+  tokens.forEach((token) => {
+    if (text.includes(token)) score += 2;
+  });
+  return score;
+}
+
+function answerStaticQuestion(content) {
+  const query = document.querySelector("[data-ai-question]").value.trim();
+  const target = document.querySelector("[data-ai-answer]");
+  const examples = content.aiShowcase?.examples || [];
+
+  if (!query) {
+    target.innerHTML = "<p>先输入一个问题，例如：EduRAG 准备用哪些技术？</p>";
+    return;
+  }
+
+  const example = examples.find((item) => query.includes(item.question) || item.question.includes(query));
+  const ranked = flattenSearchContent(content)
+    .map((entry) => ({ ...entry, score: scoreEntry(entry, query) }))
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+
+  const answer = example
+    ? example.answer
+    : ranked.length
+      ? `我在站内内容里找到了 ${ranked.length} 条相关记录。当前版本是静态检索 Demo，不调用真实大模型；后续会把这些内容切块、向量化，并接入 RAG 问答。`
+      : "当前静态内容里没有找到明显匹配项。后续接入真实 RAG 后，可以通过语义检索覆盖更多表达方式。";
+
+  target.innerHTML = `
+    <strong>静态回答</strong>
+    <p>${escapeHtml(answer)}</p>
+    ${
+      ranked.length
+        ? `<div class="source-list">
+            <span>相关来源</span>
+            ${ranked.map((entry) => `<a href="${escapeHtml(entry.href)}">${escapeHtml(entry.type)} · ${escapeHtml(entry.title)}</a>`).join("")}
+          </div>`
+        : ""
+    }
+  `;
+}
+
+function resetDetailViews() {
+  const pairs = [
+    ["[data-posts]", "[data-post-article]"],
+    ["[data-projects]", "[data-project-detail]"],
+    ["[data-knowledge]", "[data-knowledge-detail]"],
+  ];
+
+  pairs.forEach(([listSelector, detailSelector]) => {
+    const list = document.querySelector(listSelector);
+    const detail = document.querySelector(detailSelector);
+    if (list) list.hidden = false;
+    if (detail) detail.hidden = true;
+  });
 }
 
 function setRoute(content) {
   const hash = window.location.hash.replace("#", "") || "home";
   const isPost = hash.startsWith("post-");
-  const route = isPost ? "posts" : hash;
+  const isProject = hash.startsWith("project-");
+  const isKnowledge = hash.startsWith("knowledge-");
+  const route = isPost ? "posts" : isProject ? "projects" : isKnowledge ? "knowledge" : hash;
 
   document.querySelectorAll("[data-route]").forEach((tab) => {
     tab.classList.toggle("is-active", tab.dataset.route === route);
@@ -437,22 +706,18 @@ function setRoute(content) {
     view.classList.toggle("is-active", view.dataset.view === route);
   });
 
-  const postList = document.querySelector("[data-posts]");
-  const postArticle = document.querySelector("[data-post-article]");
-  if (postList && postArticle) {
-    postList.hidden = false;
-    postArticle.hidden = true;
-  }
+  resetDetailViews();
 
-  if (isPost) {
-    renderArticle(content, hash.replace("post-", ""));
-  }
+  if (isPost) renderArticle(content, hash.replace("post-", ""));
+  if (isProject) renderProjectDetail(content, hash.replace("project-", ""));
+  if (isKnowledge) renderKnowledgeDetail(content, hash.replace("knowledge-", ""));
 
   window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function render(content) {
   renderProfile(content);
+  renderSiteModules(content);
   renderProjects(content);
   renderPosts(content);
   renderKnowledge(content);

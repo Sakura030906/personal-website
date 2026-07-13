@@ -9,7 +9,7 @@
     />
     <meta name="theme-color" content="#f4f6fb" />
     <title>晏宏翔 | AI Agent / RAG 方向</title>
-    <link rel="stylesheet" href="styles.css?v=12" />
+    <link rel="stylesheet" href="styles.css?v=13" />
   </head>
   <body>
     <main class="app-shell">
@@ -20,6 +20,7 @@
           <a class="tab" href="#projects" data-route="projects">🚀 项目</a>
           <a class="tab" href="#knowledge" data-route="knowledge">🧠 知识库</a>
           <a class="tab" href="#roadmap" data-route="roadmap">🗺️ 路线</a>
+          <a class="tab" href="#lab" data-route="lab">🤖 AI Lab</a>
           <a class="tab" href="#about" data-route="about">👤 关于</a>
         </nav>
       </header>
@@ -39,6 +40,22 @@
         </section>
 
         <section class="status-grid" data-status></section>
+
+        <section class="section-block">
+          <div class="section-title">
+            <p>Now</p>
+            <h2>当前重点</h2>
+          </div>
+          <div class="focus-grid" data-focus></div>
+        </section>
+
+        <section class="section-block">
+          <div class="section-title">
+            <p>Archive</p>
+            <h2>内容地图</h2>
+          </div>
+          <div class="module-grid" data-site-modules></div>
+        </section>
 
         <section class="section-block">
           <div class="section-title">
@@ -95,6 +112,7 @@
           <span>记录项目背景、技术选型、核心功能、踩坑记录和后续规划。</span>
         </div>
         <div class="project-grid" data-projects></div>
+        <article class="detail-panel" data-project-detail hidden></article>
       </section>
 
       <section class="view" data-view="knowledge">
@@ -104,6 +122,7 @@
           <span>区别于博客，这里沉淀概念树、模块关系和可复习的知识节点。</span>
         </div>
         <div class="knowledge-grid" data-knowledge></div>
+        <article class="detail-panel" data-knowledge-detail hidden></article>
       </section>
 
       <section class="view" data-view="roadmap">
@@ -129,6 +148,36 @@
             <div class="timeline-list" data-timeline></div>
           </div>
         </div>
+      </section>
+
+      <section class="view" data-view="lab">
+        <div class="page-head">
+          <p>AI Lab</p>
+          <h1>站内 AI 能力展示</h1>
+          <span>当前先用静态检索 Demo 验证交互方式，后续再接入真实 FastAPI + Milvus + LLM 服务。</span>
+        </div>
+        <section class="lab-layout">
+          <article class="lab-card" data-ai-full></article>
+          <article class="lab-card qa-card">
+            <div class="section-title">
+              <p>Demo</p>
+              <h2>站内检索问答</h2>
+            </div>
+            <label class="ask-box">
+              <span>输入一个关于项目、RAG、Agent 或学习路线的问题</span>
+              <textarea data-ai-question rows="4" placeholder="例如：EduRAG 准备用哪些技术？"></textarea>
+            </label>
+            <button class="primary-button" type="button" data-ai-ask>生成静态回答</button>
+            <div class="answer-box" data-ai-answer></div>
+          </article>
+        </section>
+        <section class="section-block">
+          <div class="section-title">
+            <p>Capability</p>
+            <h2>规划能力</h2>
+          </div>
+          <div class="module-grid" data-ai-capabilities></div>
+        </section>
       </section>
 
       <section class="view" data-view="about">
@@ -162,6 +211,6 @@
       </footer>
     </main>
 
-    <script src="script.js?v=12" defer></script>
+    <script src="script.js?v=13" defer></script>
   </body>
 </html>

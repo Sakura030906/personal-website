@@ -19,6 +19,23 @@
         "value": "完成 3 个可展示的 AI 项目"
       }
     ],
+    "focus": [
+      {
+        "label": "主线项目",
+        "value": "EduRAG 教育问答系统",
+        "note": "用完整 RAG Pipeline 验证文档检索、上下文构造和可追溯回答。"
+      },
+      {
+        "label": "学习重点",
+        "value": "Milvus / LangGraph / Agent Memory",
+        "note": "把向量检索、工具调用和状态管理串成可解释的工程链路。"
+      },
+      {
+        "label": "网站定位",
+        "value": "个人数字档案馆",
+        "note": "长期沉淀文章、项目、知识节点、学习路线和阶段复盘。"
+      }
+    ],
     "contacts": [
       {
         "label": "Email",
@@ -44,15 +61,34 @@
       {
         "title": "上海阅凡自动化科技有限公司",
         "meta": "C# 工程师 · 2025 - 至今",
-        "description": "参与自动化业务相关软件开发与维护，负责业务功能实现、问题定位和系统迭代。"
+        "description": "参与自动化业务相关软件开发与维护，负责业务功能实现、问题定位和系统迭代，积累了面向真实业务场景排查问题和交付功能的经验。"
       }
     ],
     "values": [
       "真实记录当前阶段，不把学习方向包装成已经完成的成果。",
       "重视长期积累：文章、项目、复盘和学习路线都要可持续更新。",
-      "用项目验证学习，把 Agent、RAG、数据库、缓存和工程部署串成完整能力。"
+      "用项目验证学习，把 Agent、RAG、数据库、缓存和工程部署串成完整能力。",
+      "先把可解释、可维护、可部署做好，再追求更复杂的模型能力。"
     ]
   },
+  "siteModules": [
+    {
+      "title": "技术博客",
+      "description": "记录 RAG、Agent、后端工程和学习复盘，文章会尽量写清楚背景、问题、方案和结果。"
+    },
+    {
+      "title": "项目作品集",
+      "description": "每个项目都保留背景、架构、技术选型、功能拆解、难点和下一步计划。"
+    },
+    {
+      "title": "学习档案",
+      "description": "把学习路线、阅读记录、年度节点整理成可复盘的成长记录。"
+    },
+    {
+      "title": "AI Lab",
+      "description": "展示站内 RAG / Agent 能力规划，并先用静态检索 Demo 验证交互方向。"
+    }
+  ],
   "techStack": [
     "C#",
     ".NET",
@@ -74,10 +110,23 @@
       "status": "规划中",
       "summary": "面向学习资料的 RAG 问答系统，计划结合 MySQL 结构化数据、Milvus 向量检索、Redis 缓存和 LLM 生成。",
       "stack": ["Python", "FastAPI", "Milvus", "Redis", "RAG"],
+      "problem": "学习资料、课程笔记和题库分散在不同文件中，普通搜索只能按关键词匹配，很难回答跨文档问题，也无法清楚说明答案来自哪里。",
+      "architecture": "前端提交问题后进入 FastAPI 服务，服务层完成查询改写、Embedding、Milvus 向量检索、结构化数据补充、Rerank、上下文组装和 LLM 生成，最后返回答案与引用来源。",
+      "modules": ["文档解析与切分", "Embedding 生成", "Milvus 向量检索", "Rerank 排序", "LLM 生成", "答案引用"],
       "details": [
         "目标：把课程资料、笔记和题库整理成可检索的知识库。",
         "核心模块：文档切分、Embedding、混合检索、Rerank、LLM 生成。",
         "后续可扩展为个人网站站内 AI 问答能力。"
+      ],
+      "challenges": [
+        "如何选择合适的 Chunk 粒度，避免答案上下文过碎或过长。",
+        "如何让回答可追溯，避免模型凭空生成无法验证的结论。",
+        "如何用缓存和检索策略控制响应时间。"
+      ],
+      "nextSteps": [
+        "完成最小 RAG Pipeline。",
+        "加入引用来源和检索日志。",
+        "整理一篇完整项目复盘文章。"
       ],
       "github": "",
       "demo": ""
@@ -88,9 +137,49 @@
       "status": "准备中",
       "summary": "用于理解 Agent 工作流、工具调用、记忆机制和任务编排的实验项目。",
       "stack": ["Agent", "Tool Calling", "Memory", "Workflow"],
+      "problem": "很多 Agent 示例只展示结果，不容易看清楚任务拆解、工具调用、上下文传递和失败恢复的过程。",
+      "architecture": "用轻量 Runtime 记录每一步计划、工具调用、输入输出、状态变化和校验结果，先从单工具任务开始，再扩展到多步骤工作流。",
+      "modules": ["任务规划", "工具注册", "调用日志", "状态管理", "结果校验"],
       "details": [
         "目标：从简单工具调用开始，逐步实现可组合的 Agent Runtime。",
         "重点关注：任务拆解、上下文管理、工具结果校验和执行日志。"
+      ],
+      "challenges": [
+        "如何避免 Agent 在不确定时继续执行错误步骤。",
+        "如何保留足够日志，方便复盘每一次工具调用。",
+        "如何区分短期上下文和长期记忆。"
+      ],
+      "nextSteps": [
+        "实现工具调用日志结构。",
+        "加入任务状态机。",
+        "写一篇 Agent Memory 学习笔记。"
+      ],
+      "github": "",
+      "demo": ""
+    },
+    {
+      "name": "个人网站 AI 化改造",
+      "slug": "portfolio-ai-lab",
+      "status": "进行中",
+      "summary": "把个人网站从展示页升级为可长期维护的数字档案，并逐步接入站内检索和问答能力。",
+      "stack": ["JavaScript", "JSON", "RAG 规划", "静态部署"],
+      "problem": "普通个人网站更新成本高，信息也比较分散；如果未来要做站内问答，需要从一开始就把文章、项目和知识库组织成结构化数据。",
+      "architecture": "当前阶段使用静态前台读取 JSON 内容，本地编辑器负责维护数据；下一阶段可把 JSON 迁移到 FastAPI / PostgreSQL，并把文章和知识库向量化。",
+      "modules": ["公开只读前台", "本地编辑器", "内容 JSON", "静态检索 Demo", "部署流程"],
+      "details": [
+        "公开站点只读，编辑器只在本地运行。",
+        "所有内容集中在 data/site.json，便于后续迁移数据库。",
+        "AI Lab 先实现静态检索 Demo，后续替换为真实 RAG 服务。"
+      ],
+      "challenges": [
+        "如何让网站不像商品页，而像真实、克制、可持续的个人档案。",
+        "如何在没有后端登录系统的情况下保证编辑入口不暴露到公网。",
+        "如何让当前静态结构未来能平滑升级到数据库和 AI 服务。"
+      ],
+      "nextSteps": [
+        "补充真实项目截图和 GitHub 链接。",
+        "把博客文章拆成可检索知识片段。",
+        "设计 FastAPI + Milvus 的站内问答接口。"
       ],
       "github": "",
       "demo": ""
@@ -104,25 +193,95 @@
       "date": "2026-07-13",
       "summary": "这个网站不只是展示页面，而是长期记录学习、项目、文章和 AI 实践的平台。",
       "tags": ["个人网站", "长期主义", "学习记录"],
-      "content": "我希望这个网站不只是一个简单的自我介绍页面，而是一个能长期更新的个人数字档案馆。\n\n它应该记录我是谁、我正在学习什么、做过什么项目、踩过哪些坑，也记录我对技术成长和职业方向的理解。\n\n目前我正在从 C# 工程开发转向大模型应用开发，重点关注 Agent、RAG、知识库和企业业务系统结合。这个网站本身也会逐步演化成一个 AI 项目展示平台。"
+      "content": "## 不是只做一张简历\n\n我希望这个网站不只是一个简单的自我介绍页面，而是一个能长期更新的个人数字档案馆。\n\n它应该记录我是谁、我正在学习什么、做过什么项目、踩过哪些坑，也记录我对技术成长和职业方向的理解。\n\n## 当前阶段\n\n目前我正在从 C# 工程开发转向大模型应用开发，重点关注 Agent、RAG、知识库和企业业务系统结合。这个网站本身也会逐步演化成一个 AI 项目展示平台。\n\n## 更新原则\n\n- 信息要真实，不把规划包装成已经完成的成果。\n- 项目要可复盘，保留问题、方案、结果和下一步。\n- 文章要能帮助未来的自己重新理解当时的判断。"
+    },
+    {
+      "title": "RAG 系统学习路线：从文档到可追溯回答",
+      "slug": "rag-learning-roadmap",
+      "category": "技术学习",
+      "date": "2026-07-13",
+      "summary": "用一个最小 RAG 项目串起文档解析、向量检索、Rerank、上下文构造和答案引用。",
+      "tags": ["RAG", "Milvus", "Embedding", "学习路线"],
+      "content": "## 为什么先学 RAG\n\nRAG 是大模型应用开发里很适合入门工程实践的方向。它既涉及模型能力，也涉及文档处理、数据库、缓存、检索策略、接口设计和可观测性。\n\n## 最小闭环\n\n一个最小 RAG 系统至少要包含这些步骤：\n\n- 文档解析：把 PDF、Markdown、网页或笔记转成干净文本。\n- 文本切分：根据语义或固定长度切成 Chunk。\n- 向量化：用 Embedding 模型生成向量。\n- 检索：用 Milvus 或 pgvector 找到相关片段。\n- 生成：把片段和问题一起交给模型生成答案。\n- 引用：返回答案时保留来源，方便验证。\n\n## 我会重点关注什么\n\n我不会只追求 Demo 能回答，而是会关注回答是否可追溯、检索日志是否清楚、错误是否能定位、系统是否方便扩展。"
+    },
+    {
+      "title": "C# 工程经验如何迁移到 AI 应用开发",
+      "slug": "csharp-to-ai-engineering",
+      "category": "工程思考",
+      "date": "2026-07-13",
+      "summary": "从业务功能实现、问题定位和系统维护出发，整理迁移到 AI 应用开发时可以复用的工程能力。",
+      "tags": ["C#", "工程能力", "AI 应用"],
+      "content": "## 可迁移的能力\n\nC# 工程经验并不会因为转向 AI 应用而失效。业务理解、接口设计、异常处理、日志排查、数据建模和交付意识，仍然是 AI 应用能否落地的关键。\n\n## 新增的能力栈\n\n转向 Agent 和 RAG 后，需要补齐的内容包括 Python 生态、向量数据库、Prompt 设计、工具调用、模型评估和检索质量调优。\n\n## 我的实践方式\n\n我会用项目把新旧能力连接起来：先做一个真实可运行的 RAG 系统，再加入 Agent 工作流，最后把这些能力沉淀到个人网站和技术博客中。"
     }
   ],
   "knowledgeBase": [
     {
       "topic": "RAG",
-      "items": ["Chunk", "Embedding", "Milvus", "Hybrid Search", "Rerank", "LLM 生成"]
+      "summary": "把外部知识检索结果作为上下文提供给大模型，让回答更贴近私有资料并保留来源。",
+      "items": ["Chunk", "Embedding", "Milvus", "Hybrid Search", "Rerank", "LLM 生成"],
+      "notes": [
+        {
+          "name": "Chunk",
+          "description": "文本切分单元，粒度会直接影响召回率和上下文质量。"
+        },
+        {
+          "name": "Rerank",
+          "description": "对初次召回结果重新排序，减少无关片段进入 Prompt。"
+        },
+        {
+          "name": "引用来源",
+          "description": "回答中保留文档、章节或片段来源，方便验证和调试。"
+        }
+      ]
     },
     {
       "topic": "Agent",
-      "items": ["Tool Calling", "Memory", "Workflow", "Planning", "MCP"]
+      "summary": "围绕任务规划、工具调用、状态管理和记忆机制构建可执行的大模型工作流。",
+      "items": ["Tool Calling", "Memory", "Workflow", "Planning", "MCP"],
+      "notes": [
+        {
+          "name": "Tool Calling",
+          "description": "让模型在需要时调用外部函数、数据库或服务。"
+        },
+        {
+          "name": "Memory",
+          "description": "区分会话内短期上下文和长期可检索记忆。"
+        },
+        {
+          "name": "Workflow",
+          "description": "把多步骤任务拆成可观察、可重试、可校验的流程。"
+        }
+      ]
     },
     {
       "topic": "Redis",
-      "items": ["缓存穿透", "缓存雪崩", "分布式锁", "持久化", "过期策略"]
+      "summary": "用于缓存、限流、分布式锁和异步任务状态管理，是后端系统性能优化的重要组件。",
+      "items": ["缓存穿透", "缓存雪崩", "分布式锁", "持久化", "过期策略"],
+      "notes": [
+        {
+          "name": "缓存穿透",
+          "description": "查询不存在的数据导致请求持续打到数据库，可用空值缓存或布隆过滤器缓解。"
+        },
+        {
+          "name": "分布式锁",
+          "description": "控制多实例并发访问共享资源，需要关注过期时间和释放安全。"
+        }
+      ]
     },
     {
       "topic": "Milvus",
-      "items": ["Collection", "Schema", "Index", "IVF_FLAT", "HNSW", "Hybrid Search"]
+      "summary": "向量数据库，用于存储和检索 Embedding，是 RAG 系统的核心基础设施之一。",
+      "items": ["Collection", "Schema", "Index", "IVF_FLAT", "HNSW", "Hybrid Search"],
+      "notes": [
+        {
+          "name": "Collection",
+          "description": "向量数据集合，需要提前设计字段、主键和向量维度。"
+        },
+        {
+          "name": "Index",
+          "description": "索引影响召回速度和质量，通常要结合数据规模调参。"
+        }
+      ]
     }
   ],
   "learningMap": [
@@ -131,14 +290,24 @@
       "items": [
         { "name": "Python", "status": "学习中" },
         { "name": "SQL", "status": "学习中" },
-        { "name": "Linux", "status": "学习中" }
+        { "name": "Linux", "status": "学习中" },
+        { "name": "HTTP / API", "status": "持续巩固" }
+      ]
+    },
+    {
+      "layer": "工程层",
+      "items": [
+        { "name": "FastAPI", "status": "学习中" },
+        { "name": "Docker", "status": "准备中" },
+        { "name": "日志与可观测性", "status": "准备中" }
       ]
     },
     {
       "layer": "机器学习层",
       "items": [
         { "name": "回归 / 分类", "status": "未开始" },
-        { "name": "集成学习", "status": "未开始" }
+        { "name": "集成学习", "status": "未开始" },
+        { "name": "模型评估", "status": "准备中" }
       ]
     },
     {
@@ -154,7 +323,8 @@
       "items": [
         { "name": "RAG Pipeline", "status": "学习中" },
         { "name": "Tool Calling", "status": "学习中" },
-        { "name": "Agent Memory", "status": "未开始" }
+        { "name": "Agent Memory", "status": "未开始" },
+        { "name": "LangGraph", "status": "准备中" }
       ]
     }
   ],
@@ -170,17 +340,53 @@
       "author": "Chip Huyen",
       "status": "想读",
       "note": "关注 ML 系统工程化。"
+    },
+    {
+      "title": "Fluent Python",
+      "author": "Luciano Ramalho",
+      "status": "想读",
+      "note": "用于提升 Python 工程能力。"
     }
   ],
   "timeline": [
+    { "time": "2021", "event": "进入江西师范大学计算机专业学习。" },
     { "time": "2025", "event": "毕业于江西师范大学计算机专业，加入上海阅凡自动化科技有限公司。" },
     { "time": "2026", "event": "系统转向 AI Agent / RAG 应用开发，开始沉淀技术博客和项目作品。" },
     { "time": "2026", "event": "计划完成 EduRAG、Agent Runtime 和个人站内 AI 助手 MVP。" }
   ],
   "aiShowcase": {
     "title": "站内 AI 助手规划",
-    "summary": "后续会把文章、知识库、项目文档切块并向量化，基于 Milvus / pgvector 做站内 RAG 问答。",
-    "pipeline": ["文章与笔记", "切块", "Embedding", "向量检索", "Rerank", "LLM 回答"],
-    "status": "规划中"
+    "summary": "后续会把文章、知识库、项目文档切块并向量化，基于 Milvus / pgvector 做站内 RAG 问答。当前版本先提供静态检索 Demo，用来验证内容结构和交互方式。",
+    "pipeline": ["文章与笔记", "切块", "Embedding", "向量检索", "Rerank", "LLM 回答", "引用来源"],
+    "status": "规划中",
+    "capabilities": [
+      {
+        "title": "站内内容检索",
+        "description": "从文章、项目、知识库和学习路线中找到相关内容，为后续 RAG 做数据准备。"
+      },
+      {
+        "title": "项目问答",
+        "description": "针对项目背景、架构、难点和下一步计划进行结构化回答。"
+      },
+      {
+        "title": "学习路线助手",
+        "description": "根据当前学习状态给出下一步主题，但不替代真实学习和实践。"
+      }
+    ],
+    "examples": [
+      {
+        "question": "EduRAG 准备用哪些技术？",
+        "answer": "计划使用 Python、FastAPI、Milvus、Redis 和 RAG Pipeline，重点实现文档切分、向量检索、Rerank、LLM 生成和引用来源。"
+      },
+      {
+        "question": "这个网站为什么要做 AI Lab？",
+        "answer": "因为它不仅是展示页，也会逐步沉淀文章、项目和知识库，并在后续接入站内问答能力。"
+      }
+    ],
+    "roadmap": [
+      "当前：静态内容检索 Demo。",
+      "下一步：把文章和知识库切块，生成 Embedding。",
+      "后续：接入 FastAPI + Milvus，实现真实站内 RAG 问答。"
+    ]
   }
 }

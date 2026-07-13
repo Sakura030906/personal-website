@@ -3,6 +3,8 @@ let state;
 const templates = {
   "profile.status": { label: "当前状态", value: "内容" },
   "profile.contacts": { label: "Email", value: "name@example.com", href: "mailto:name@example.com" },
+  "profile.focus": { label: "当前重点", value: "重点内容", note: "说明。" },
+  siteModules: { title: "模块名称", description: "模块说明。" },
   "about.education": {
     title: "学校名称",
     meta: "专业 · 学历 · 时间",
@@ -21,7 +23,12 @@ const templates = {
     status: "规划中",
     summary: "项目简介。",
     stack: ["Tech"],
+    problem: "问题背景。",
+    architecture: "架构设想。",
+    modules: ["模块"],
     details: ["项目要点"],
+    challenges: ["难点"],
+    nextSteps: ["下一步"],
     github: "",
     demo: "",
   },
@@ -34,7 +41,12 @@ const templates = {
     tags: ["学习"],
     content: "在这里写正文。\n\n支持简单 Markdown：## 小标题、- 列表、```代码块```。",
   },
-  knowledgeBase: { topic: "新主题", items: ["知识点"] },
+  knowledgeBase: {
+    topic: "新主题",
+    summary: "主题说明。",
+    items: ["知识点"],
+    notes: [{ name: "知识点", description: "说明。" }],
+  },
   learningMap: {
     layer: "新层级",
     items: [{ name: "学习项", status: "未开始" }],
@@ -42,11 +54,16 @@ const templates = {
   reading: { title: "书名", author: "作者", status: "想读", note: "阅读备注。" },
   timeline: { time: "2026", event: "新的阶段记录。" },
   "aiShowcase.pipeline": "新节点",
+  "aiShowcase.capabilities": { title: "能力名称", description: "能力说明。" },
+  "aiShowcase.examples": { question: "示例问题", answer: "示例回答。" },
+  "aiShowcase.roadmap": "下一步计划",
 };
 
 const listNames = [
   "profile.status",
   "profile.contacts",
+  "profile.focus",
+  "siteModules",
   "about.education",
   "about.experience",
   "about.values",
@@ -58,6 +75,9 @@ const listNames = [
   "reading",
   "timeline",
   "aiShowcase.pipeline",
+  "aiShowcase.capabilities",
+  "aiShowcase.examples",
+  "aiShowcase.roadmap",
 ];
 
 function getByPath(path) {
@@ -138,7 +158,7 @@ function renderList(path) {
       render();
     });
 
-    if (["about.values", "techStack", "aiShowcase.pipeline"].includes(path)) {
+    if (["about.values", "techStack", "aiShowcase.pipeline", "aiShowcase.roadmap"].includes(path)) {
       renderSimpleString(item, list, index);
     }
 
@@ -157,6 +177,28 @@ function renderList(path) {
       );
     }
 
+    if (path === "profile.focus") {
+      item.append(
+        field("标签", entry.label, (value) => (entry.label = value)),
+        field("重点", entry.value, (value) => (entry.value = value)),
+        field("说明", entry.note, (value) => (entry.note = value), 3),
+      );
+    }
+
+    if (path === "siteModules" || path === "aiShowcase.capabilities") {
+      item.append(
+        field("标题", entry.title, (value) => (entry.title = value)),
+        field("说明", entry.description, (value) => (entry.description = value), 3),
+      );
+    }
+
+    if (path === "aiShowcase.examples") {
+      item.append(
+        field("问题", entry.question, (value) => (entry.question = value)),
+        field("回答", entry.answer, (value) => (entry.answer = value), 4),
+      );
+    }
+
     if (path === "about.education" || path === "about.experience") {
       renderTitleMetaDescription(item, entry);
     }
@@ -167,11 +209,22 @@ function renderList(path) {
         field("URL 标识", entry.slug, (value) => (entry.slug = value)),
         field("状态", entry.status, (value) => (entry.status = value)),
         field("简介", entry.summary, (value) => (entry.summary = value), 3),
+        field("问题背景", entry.problem, (value) => (entry.problem = value), 4),
+        field("架构设想", entry.architecture, (value) => (entry.architecture = value), 4),
         field("技术栈，逗号分隔", entry.stack || [], (value) => {
           entry.stack = splitValues(value);
         }),
+        field("核心模块，逗号分隔", entry.modules || [], (value) => {
+          entry.modules = splitValues(value);
+        }),
         field("项目要点，逗号分隔", entry.details || [], (value) => {
           entry.details = splitValues(value);
+        }),
+        field("主要难点，逗号分隔", entry.challenges || [], (value) => {
+          entry.challenges = splitValues(value);
+        }),
+        field("下一步，逗号分隔", entry.nextSteps || [], (value) => {
+          entry.nextSteps = splitValues(value);
         }),
         field("GitHub 链接", entry.github, (value) => (entry.github = value)),
         field("Demo 链接", entry.demo, (value) => (entry.demo = value)),
@@ -195,9 +248,21 @@ function renderList(path) {
     if (path === "knowledgeBase") {
       item.append(
         field("主题", entry.topic, (value) => (entry.topic = value)),
+        field("说明", entry.summary, (value) => (entry.summary = value), 3),
         field("知识点，逗号分隔", entry.items || [], (value) => {
           entry.items = splitValues(value);
         }),
+        field(
+          "节点说明，格式：名称:说明，逗号分隔",
+          (entry.notes || []).map((note) => `${note.name}:${note.description}`),
+          (value) => {
+            entry.notes = splitValues(value).map((current) => {
+              const [name, ...rest] = current.split(":").map((part) => part.trim());
+              return { name, description: rest.join(":") || "" };
+            });
+          },
+          4,
+        ),
       );
     }
 
