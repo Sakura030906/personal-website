@@ -27,6 +27,7 @@ const templates = {
     architecture: "架构设想。",
     modules: ["模块"],
     details: ["项目要点"],
+    evidence: ["当前证据"],
     challenges: ["难点"],
     nextSteps: ["下一步"],
     github: "",
@@ -219,6 +220,9 @@ function renderList(path) {
         }),
         field("项目要点，逗号分隔", entry.details || [], (value) => {
           entry.details = splitValues(value);
+        }),
+        field("当前证据，逗号分隔", entry.evidence || [], (value) => {
+          entry.evidence = splitValues(value);
         }),
         field("主要难点，逗号分隔", entry.challenges || [], (value) => {
           entry.challenges = splitValues(value);

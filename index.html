@@ -7,54 +7,46 @@
       name="description"
       content="晏宏翔的个人品牌主页、技术博客、项目作品集、学习档案与 AI 能力展示平台。"
     />
-    <meta name="theme-color" content="#f4f6fb" />
+    <meta name="theme-color" content="#f7f6f2" />
     <title>晏宏翔 | AI Agent / RAG 方向</title>
-    <link rel="stylesheet" href="styles.css?v=13" />
+    <link rel="stylesheet" href="styles.css?v=14" />
   </head>
   <body>
     <main class="app-shell">
       <header class="site-topbar">
         <nav class="tabs" aria-label="主导航">
-          <a class="tab is-active" href="#home" data-route="home">🏠 首页</a>
-          <a class="tab" href="#posts" data-route="posts">📝 文章</a>
-          <a class="tab" href="#projects" data-route="projects">🚀 项目</a>
-          <a class="tab" href="#knowledge" data-route="knowledge">🧠 知识库</a>
-          <a class="tab" href="#roadmap" data-route="roadmap">🗺️ 路线</a>
-          <a class="tab" href="#lab" data-route="lab">🤖 AI Lab</a>
-          <a class="tab" href="#about" data-route="about">👤 关于</a>
+          <a class="tab is-active" href="#home" data-route="home">首页</a>
+          <a class="tab" href="#posts" data-route="posts">文章</a>
+          <a class="tab" href="#projects" data-route="projects">项目</a>
+          <a class="tab" href="#knowledge" data-route="knowledge">知识库</a>
+          <a class="tab" href="#roadmap" data-route="roadmap">路线</a>
+          <a class="tab" href="#lab" data-route="lab">AI Lab</a>
+          <a class="tab" href="#about" data-route="about">关于</a>
         </nav>
       </header>
 
       <section class="view is-active" data-view="home">
         <section class="profile-hero">
-          <div class="hero-cover"></div>
-          <div class="avatar" data-profile="initials">晏</div>
           <div class="hero-content">
-            <p class="kicker">Personal Digital Archive</p>
+            <p class="kicker">Engineering Notes / Portfolio</p>
             <h1 data-profile="name">晏宏翔</h1>
             <p class="role" data-profile="role">AI Agent / RAG 工程师方向</p>
             <p class="headline" data-profile="headline"></p>
             <p class="intro" data-profile="summary"></p>
-            <div class="hero-actions" data-contacts></div>
+            <div class="hero-actions">
+              <a class="button-link primary" href="#projects">查看项目</a>
+              <a class="button-link" href="#posts">阅读文章</a>
+            </div>
+            <div class="contact-actions" data-contacts></div>
           </div>
-        </section>
 
-        <section class="status-grid" data-status></section>
-
-        <section class="section-block">
-          <div class="section-title">
-            <p>Now</p>
-            <h2>当前重点</h2>
-          </div>
-          <div class="focus-grid" data-focus></div>
-        </section>
-
-        <section class="section-block">
-          <div class="section-title">
-            <p>Archive</p>
-            <h2>内容地图</h2>
-          </div>
-          <div class="module-grid" data-site-modules></div>
+          <aside class="hero-panel">
+            <p class="kicker">Now Building</p>
+            <h2 data-current-project-title></h2>
+            <p data-current-project-summary></p>
+            <div class="mini-stack" data-current-project-stack></div>
+            <div class="hero-facts" data-status></div>
+          </aside>
         </section>
 
         <section class="section-block">
@@ -65,29 +57,33 @@
           <div class="project-grid" data-featured-projects></div>
         </section>
 
-        <section class="section-block split">
-          <div>
-            <div class="section-title">
-              <p>Latest</p>
-              <h2>最新文章</h2>
-            </div>
-            <div class="post-list compact-list" data-latest-posts></div>
-          </div>
-          <div>
-            <div class="section-title">
-              <p>Stack</p>
-              <h2>技术栈</h2>
-            </div>
-            <div class="pill-list" data-tech-stack></div>
-          </div>
-        </section>
-
         <section class="section-block">
           <div class="section-title">
-            <p>AI Lab</p>
-            <h2>AI 能力展示规划</h2>
+            <p>Latest</p>
+            <h2>最近文章</h2>
           </div>
-          <article class="ai-card" data-ai-showcase></article>
+          <div class="post-list compact-list" data-latest-posts></div>
+        </section>
+
+        <section class="section-block split calm">
+          <div>
+            <div class="section-title">
+              <p>Now</p>
+              <h2>现在在做什么</h2>
+            </div>
+            <div class="focus-list" data-focus></div>
+          </div>
+          <article class="home-about">
+            <div class="section-title">
+              <p>About</p>
+              <h2>简短关于我</h2>
+            </div>
+            <p data-home-about></p>
+            <div class="home-links">
+              <a href="#about">完整经历</a>
+              <a href="#lab">AI Lab</a>
+            </div>
+          </article>
         </section>
       </section>
 
@@ -188,17 +184,17 @@
         </div>
         <section class="card-grid">
           <article class="info-card">
-            <h2><span>🎓</span> 教育背景</h2>
+            <h2>教育背景</h2>
             <div class="divider"></div>
             <div class="timeline" data-education></div>
           </article>
           <article class="info-card">
-            <h2><span>💼</span> 工作经历</h2>
+            <h2>工作经历</h2>
             <div class="divider"></div>
             <div class="timeline" data-experience></div>
           </article>
           <article class="info-card wide">
-            <h2><span>🌱</span> 技术价值观</h2>
+            <h2>技术价值观</h2>
             <div class="divider"></div>
             <div class="value-list" data-values></div>
           </article>
@@ -207,10 +203,10 @@
 
       <footer class="site-footer">
         <span>© <span data-year></span> <span data-profile="name">晏宏翔</span></span>
-        <span>个人品牌主页 + 技术博客 + AI 能力展示平台</span>
+        <span>GitHub / Email / Portfolio</span>
       </footer>
     </main>
 
-    <script src="script.js?v=13" defer></script>
+    <script src="script.js?v=14" defer></script>
   </body>
 </html>

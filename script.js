@@ -158,40 +158,51 @@ function renderProfile(content) {
   setText('[data-profile="headline"]', profile.headline);
   setText('[data-profile="summary"]', profile.summary);
 
-  document.querySelector("[data-contacts]").innerHTML = (profile.contacts || [])
-    .map((item) => {
-      const href = item.href || "#";
-      const isLink = href && href !== "#";
-      return `<a class="button-link" href="${escapeHtml(href)}" ${isLink ? 'target="_blank" rel="noreferrer"' : ""}>${escapeHtml(item.label)} · ${escapeHtml(item.value)}</a>`;
-    })
-    .join("");
+  const contacts = document.querySelector("[data-contacts]");
+  if (contacts) {
+    contacts.innerHTML = (profile.contacts || [])
+      .map((item) => {
+        const href = item.href || "#";
+        const isLink = href && href !== "#";
+        return `<a href="${escapeHtml(href)}" ${isLink ? 'target="_blank" rel="noreferrer"' : ""}>${escapeHtml(item.label)} · ${escapeHtml(item.value)}</a>`;
+      })
+      .join("");
+  }
 
-  document.querySelector("[data-status]").innerHTML = (profile.status || [])
-    .map(
-      (item) => `
-        <article class="metric-card">
-          <span>${escapeHtml(item.label)}</span>
-          <strong>${escapeHtml(item.value)}</strong>
-        </article>
-      `,
-    )
-    .join("");
+  const status = document.querySelector("[data-status]");
+  if (status) {
+    status.innerHTML = (profile.status || [])
+      .map(
+        (item) => `
+          <div>
+            <span>${escapeHtml(item.label)}</span>
+            <strong>${escapeHtml(item.value)}</strong>
+          </div>
+        `,
+      )
+      .join("");
+  }
 
-  document.querySelector("[data-focus]").innerHTML = (profile.focus || [])
-    .map(
-      (item) => `
-        <article class="focus-card">
-          <span>${escapeHtml(item.label)}</span>
-          <h3>${escapeHtml(item.value)}</h3>
-          <p>${escapeHtml(item.note)}</p>
-        </article>
-      `,
-    )
-    .join("");
+  const focus = document.querySelector("[data-focus]");
+  if (focus) {
+    focus.innerHTML = (profile.focus || [])
+      .map(
+        (item) => `
+          <article class="focus-card">
+            <span>${escapeHtml(item.label)}</span>
+            <h3>${escapeHtml(item.value)}</h3>
+            <p>${escapeHtml(item.note)}</p>
+          </article>
+        `,
+      )
+      .join("");
+  }
 }
 
 function renderSiteModules(content) {
-  document.querySelector("[data-site-modules]").innerHTML = (content.siteModules || [])
+  const target = document.querySelector("[data-site-modules]");
+  if (!target) return;
+  target.innerHTML = (content.siteModules || [])
     .map(
       (item) => `
         <article class="module-card">
@@ -216,6 +227,14 @@ function projectCard(project, index) {
       <ul>
         ${(project.details || []).slice(0, 3).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
       </ul>
+      ${
+        project.evidence?.length
+          ? `<div class="evidence-list">${project.evidence
+              .slice(0, 2)
+              .map((item) => `<span>${escapeHtml(item)}</span>`)
+              .join("")}</div>`
+          : ""
+      }
       <span class="read-more">查看项目详情</span>
     </a>
   `;
@@ -239,6 +258,16 @@ function renderProjects(content) {
 
   document.querySelector("[data-projects]").innerHTML = html;
   document.querySelector("[data-featured-projects]").innerHTML = projects.slice(0, 2).map(projectCard).join("");
+
+  const current = projects[0];
+  if (current) {
+    setText("[data-current-project-title]", current.name);
+    setText("[data-current-project-summary]", current.summary);
+    const stack = document.querySelector("[data-current-project-stack]");
+    if (stack) {
+      stack.innerHTML = (current.stack || []).slice(0, 4).map((item) => `<span>${escapeHtml(item)}</span>`).join("");
+    }
+  }
 }
 
 function renderProjectDetail(content, slug) {
@@ -277,6 +306,7 @@ function renderProjectDetail(content, slug) {
       </section>
       ${detailList("核心模块", project.modules)}
       ${detailList("项目要点", project.details)}
+      ${detailList("当前证据", project.evidence)}
       ${detailList("主要难点", project.challenges)}
       ${detailList("下一步", project.nextSteps)}
     </div>
@@ -501,10 +531,18 @@ function renderAbout(content) {
   document.querySelector("[data-values]").innerHTML = (about.values || [])
     .map((item) => `<p>${escapeHtml(item)}</p>`)
     .join("");
+
+  const homeAbout = document.querySelector("[data-home-about]");
+  if (homeAbout) {
+    homeAbout.textContent =
+      "2025 年毕业于江西师范大学计算机专业，目前在上海做 C# 工程开发。正在把工程经验迁移到大模型应用方向，重点关注 RAG、Agent、知识库系统和可落地的业务场景。";
+  }
 }
 
 function renderTimeline(selector, items) {
-  document.querySelector(selector).innerHTML = (items || [])
+  const target = document.querySelector(selector);
+  if (!target) return;
+  target.innerHTML = (items || [])
     .map(
       (item) => `
         <section class="timeline-item">
@@ -523,14 +561,16 @@ function renderTimeline(selector, items) {
 function renderAi(content) {
   const ai = content.aiShowcase || fallbackContent.aiShowcase;
   const homeTarget = document.querySelector("[data-ai-showcase]");
-  homeTarget.innerHTML = `
-    <div>
-      <div class="card-meta"><span>${escapeHtml(ai.status || "规划中")}</span></div>
-      <h3>${escapeHtml(ai.title)}</h3>
-      <p>${escapeHtml(ai.summary)}</p>
-    </div>
-    <div class="pipeline">${(ai.pipeline || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>
-  `;
+  if (homeTarget) {
+    homeTarget.innerHTML = `
+      <div>
+        <div class="card-meta"><span>${escapeHtml(ai.status || "规划中")}</span></div>
+        <h3>${escapeHtml(ai.title)}</h3>
+        <p>${escapeHtml(ai.summary)}</p>
+      </div>
+      <div class="pipeline">${(ai.pipeline || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>
+    `;
+  }
 
   document.querySelector("[data-ai-full]").innerHTML = `
     <div class="section-title">
