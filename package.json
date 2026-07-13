@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "A polished personal website for a senior software engineer.",
+  "description": "A public personal archive, blog, portfolio and AI learning platform.",
   "scripts": {
     "build": "node scripts/build.mjs",
     "dev": "python3 -m http.server 4173",

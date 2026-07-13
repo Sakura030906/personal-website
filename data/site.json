@@ -1,59 +1,186 @@
 {
-  "name": "晏宏翔",
-  "initials": "晏",
-  "role": "大模型开发 / Agent、RAG 方向",
-  "summary": "2025 年毕业于江西师范大学计算机专业，目前在上海阅凡自动化科技有限公司担任 C# 工程师。正在转向大模型应用开发，重点关注 Agent、RAG、工具调用和业务系统结合。",
-  "basicInfo": [
-    {
-      "label": "城市",
-      "value": "上海"
-    },
-    {
-      "label": "邮箱",
-      "value": "Cecilia030906@proton.me"
-    },
-    {
-      "label": "当前职位",
-      "value": "C# 工程师"
-    },
-    {
-      "label": "发展方向",
-      "value": "Agent / RAG / 大模型应用"
-    }
-  ],
-  "education": [
-    {
-      "title": "江西师范大学",
-      "meta": "计算机专业 · 本科 · 2021 - 2025",
-      "description": "在校成绩位于年级前 20%，系统学习计算机基础课程，并持续关注软件工程与 AI 应用方向。"
-    }
-  ],
-  "experience": [
-    {
-      "title": "上海阅凡自动化科技有限公司",
-      "meta": "C# 工程师 · 2025 - 至今",
-      "description": "参与自动化业务相关软件开发与维护，负责业务功能实现、问题定位和系统迭代。"
-    }
-  ],
-  "skills": [
-    "C#,",
-    "python",
-    "Agent开发",
-    "问题排查",
-    "数据结构",
-    "数据库",
-    "大模型应用",
-    "Agent",
+  "profile": {
+    "name": "晏宏翔",
+    "initials": "晏",
+    "role": "AI Agent / RAG 工程师方向",
+    "headline": "把工业软件经验，迁移到大模型应用与知识库系统。",
+    "summary": "2025 年毕业于江西师范大学计算机专业，目前在上海阅凡自动化科技有限公司担任 C# 工程师。正在系统学习并实践大模型应用开发，重点关注企业知识库、向量检索、Agent 工作流与 RAG 系统。",
+    "status": [
+      {
+        "label": "当前工作",
+        "value": "C# 工程师 · 上海"
+      },
+      {
+        "label": "当前方向",
+        "value": "Agent / RAG / 知识库"
+      },
+      {
+        "label": "近期目标",
+        "value": "完成 3 个可展示的 AI 项目"
+      }
+    ],
+    "contacts": [
+      {
+        "label": "Email",
+        "value": "Cecilia030906@proton.me",
+        "href": "mailto:Cecilia030906@proton.me"
+      },
+      {
+        "label": "GitHub",
+        "value": "待补充",
+        "href": "https://github.com/"
+      }
+    ]
+  },
+  "about": {
+    "education": [
+      {
+        "title": "江西师范大学",
+        "meta": "计算机专业 · 本科 · 2021 - 2025",
+        "description": "在校成绩位于年级前 20%，系统学习计算机基础课程，并持续关注软件工程与 AI 应用方向。"
+      }
+    ],
+    "experience": [
+      {
+        "title": "上海阅凡自动化科技有限公司",
+        "meta": "C# 工程师 · 2025 - 至今",
+        "description": "参与自动化业务相关软件开发与维护，负责业务功能实现、问题定位和系统迭代。"
+      }
+    ],
+    "values": [
+      "真实记录当前阶段，不把学习方向包装成已经完成的成果。",
+      "重视长期积累：文章、项目、复盘和学习路线都要可持续更新。",
+      "用项目验证学习，把 Agent、RAG、数据库、缓存和工程部署串成完整能力。"
+    ]
+  },
+  "techStack": [
+    "C#",
+    ".NET",
+    "Python",
+    "FastAPI",
+    "MySQL",
+    "PostgreSQL",
+    "Redis",
+    "Milvus",
+    "LangGraph",
     "RAG",
-    "Prompt Engineering"
+    "Agent",
+    "Docker"
   ],
-  "projects": [],
-  "interests": [
-    "阅读",
-    "技术写作",
-    "AI 工具",
-    "开源项目",
-    "跑步"
+  "projects": [
+    {
+      "name": "EduRAG 教育问答系统",
+      "slug": "edurag",
+      "status": "规划中",
+      "summary": "面向学习资料的 RAG 问答系统，计划结合 MySQL 结构化数据、Milvus 向量检索、Redis 缓存和 LLM 生成。",
+      "stack": ["Python", "FastAPI", "Milvus", "Redis", "RAG"],
+      "details": [
+        "目标：把课程资料、笔记和题库整理成可检索的知识库。",
+        "核心模块：文档切分、Embedding、混合检索、Rerank、LLM 生成。",
+        "后续可扩展为个人网站站内 AI 问答能力。"
+      ],
+      "github": "",
+      "demo": ""
+    },
+    {
+      "name": "Agent Runtime 学习项目",
+      "slug": "agent-runtime",
+      "status": "准备中",
+      "summary": "用于理解 Agent 工作流、工具调用、记忆机制和任务编排的实验项目。",
+      "stack": ["Agent", "Tool Calling", "Memory", "Workflow"],
+      "details": [
+        "目标：从简单工具调用开始，逐步实现可组合的 Agent Runtime。",
+        "重点关注：任务拆解、上下文管理、工具结果校验和执行日志。"
+      ],
+      "github": "",
+      "demo": ""
+    }
   ],
-  "blogPosts": []
+  "posts": [
+    {
+      "title": "为什么我要把个人网站做成数字档案馆",
+      "slug": "personal-digital-archive",
+      "category": "个人随笔",
+      "date": "2026-07-13",
+      "summary": "这个网站不只是展示页面，而是长期记录学习、项目、文章和 AI 实践的平台。",
+      "tags": ["个人网站", "长期主义", "学习记录"],
+      "content": "我希望这个网站不只是一个简单的自我介绍页面，而是一个能长期更新的个人数字档案馆。\n\n它应该记录我是谁、我正在学习什么、做过什么项目、踩过哪些坑，也记录我对技术成长和职业方向的理解。\n\n目前我正在从 C# 工程开发转向大模型应用开发，重点关注 Agent、RAG、知识库和企业业务系统结合。这个网站本身也会逐步演化成一个 AI 项目展示平台。"
+    }
+  ],
+  "knowledgeBase": [
+    {
+      "topic": "RAG",
+      "items": ["Chunk", "Embedding", "Milvus", "Hybrid Search", "Rerank", "LLM 生成"]
+    },
+    {
+      "topic": "Agent",
+      "items": ["Tool Calling", "Memory", "Workflow", "Planning", "MCP"]
+    },
+    {
+      "topic": "Redis",
+      "items": ["缓存穿透", "缓存雪崩", "分布式锁", "持久化", "过期策略"]
+    },
+    {
+      "topic": "Milvus",
+      "items": ["Collection", "Schema", "Index", "IVF_FLAT", "HNSW", "Hybrid Search"]
+    }
+  ],
+  "learningMap": [
+    {
+      "layer": "基础层",
+      "items": [
+        { "name": "Python", "status": "学习中" },
+        { "name": "SQL", "status": "学习中" },
+        { "name": "Linux", "status": "学习中" }
+      ]
+    },
+    {
+      "layer": "机器学习层",
+      "items": [
+        { "name": "回归 / 分类", "status": "未开始" },
+        { "name": "集成学习", "status": "未开始" }
+      ]
+    },
+    {
+      "layer": "深度学习与 NLP",
+      "items": [
+        { "name": "Transformer", "status": "学习中" },
+        { "name": "Embedding", "status": "学习中" },
+        { "name": "Attention", "status": "未开始" }
+      ]
+    },
+    {
+      "layer": "RAG 与 Agent",
+      "items": [
+        { "name": "RAG Pipeline", "status": "学习中" },
+        { "name": "Tool Calling", "status": "学习中" },
+        { "name": "Agent Memory", "status": "未开始" }
+      ]
+    }
+  ],
+  "reading": [
+    {
+      "title": "动手学深度学习",
+      "author": "Aston Zhang 等",
+      "status": "在读",
+      "note": "用于补齐深度学习基础。"
+    },
+    {
+      "title": "Designing Machine Learning Systems",
+      "author": "Chip Huyen",
+      "status": "想读",
+      "note": "关注 ML 系统工程化。"
+    }
+  ],
+  "timeline": [
+    { "time": "2025", "event": "毕业于江西师范大学计算机专业，加入上海阅凡自动化科技有限公司。" },
+    { "time": "2026", "event": "系统转向 AI Agent / RAG 应用开发，开始沉淀技术博客和项目作品。" },
+    { "time": "2026", "event": "计划完成 EduRAG、Agent Runtime 和个人站内 AI 助手 MVP。" }
+  ],
+  "aiShowcase": {
+    "title": "站内 AI 助手规划",
+    "summary": "后续会把文章、知识库、项目文档切块并向量化，基于 Milvus / pgvector 做站内 RAG 问答。",
+    "pipeline": ["文章与笔记", "切块", "Embedding", "向量检索", "Rerank", "LLM 回答"],
+    "status": "规划中"
+  }
 }

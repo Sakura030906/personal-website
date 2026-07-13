@@ -5,89 +5,163 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="晏宏翔的个人网站，记录个人介绍、技术方向、工作经历和博客文章。"
+      content="晏宏翔的个人品牌主页、技术博客、项目作品集、学习档案与 AI 能力展示平台。"
     />
     <meta name="theme-color" content="#f4f6fb" />
-    <title>晏宏翔 | 个人网站</title>
-    <link rel="stylesheet" href="styles.css?v=8" />
+    <title>晏宏翔 | AI Agent / RAG 方向</title>
+    <link rel="stylesheet" href="styles.css?v=12" />
   </head>
   <body>
     <main class="app-shell">
       <header class="site-topbar">
         <nav class="tabs" aria-label="主导航">
           <a class="tab is-active" href="#home" data-route="home">🏠 首页</a>
-          <a class="tab" href="#blog" data-route="blog">📝 博客</a>
+          <a class="tab" href="#posts" data-route="posts">📝 文章</a>
+          <a class="tab" href="#projects" data-route="projects">🚀 项目</a>
+          <a class="tab" href="#knowledge" data-route="knowledge">🧠 知识库</a>
+          <a class="tab" href="#roadmap" data-route="roadmap">🗺️ 路线</a>
+          <a class="tab" href="#about" data-route="about">👤 关于</a>
         </nav>
       </header>
 
       <section class="view is-active" data-view="home">
         <section class="profile-hero">
           <div class="hero-cover"></div>
-          <div class="avatar" data-field="initials">晏</div>
+          <div class="avatar" data-profile="initials">晏</div>
           <div class="hero-content">
-            <h1 data-field="name">晏宏翔</h1>
-            <p class="role" data-field="role">大模型开发 / Agent、RAG 方向</p>
-            <p class="intro" data-field="summary"></p>
+            <p class="kicker">Personal Digital Archive</p>
+            <h1 data-profile="name">晏宏翔</h1>
+            <p class="role" data-profile="role">AI Agent / RAG 工程师方向</p>
+            <p class="headline" data-profile="headline"></p>
+            <p class="intro" data-profile="summary"></p>
+            <div class="hero-actions" data-contacts></div>
           </div>
         </section>
 
+        <section class="status-grid" data-status></section>
+
+        <section class="section-block">
+          <div class="section-title">
+            <p>Featured</p>
+            <h2>精选项目</h2>
+          </div>
+          <div class="project-grid" data-featured-projects></div>
+        </section>
+
+        <section class="section-block split">
+          <div>
+            <div class="section-title">
+              <p>Latest</p>
+              <h2>最新文章</h2>
+            </div>
+            <div class="post-list compact-list" data-latest-posts></div>
+          </div>
+          <div>
+            <div class="section-title">
+              <p>Stack</p>
+              <h2>技术栈</h2>
+            </div>
+            <div class="pill-list" data-tech-stack></div>
+          </div>
+        </section>
+
+        <section class="section-block">
+          <div class="section-title">
+            <p>AI Lab</p>
+            <h2>AI 能力展示规划</h2>
+          </div>
+          <article class="ai-card" data-ai-showcase></article>
+        </section>
+      </section>
+
+      <section class="view" data-view="posts">
+        <div class="page-head">
+          <p>Writing</p>
+          <h1>文章与随笔</h1>
+          <span>技术学习、项目实战、踩坑记录、AI 思考和个人随笔。</span>
+        </div>
+        <div class="post-tools">
+          <input data-post-search type="search" placeholder="搜索标题、分类或标签" />
+          <div class="filter-row" data-post-filters></div>
+        </div>
+        <div class="post-list" data-posts></div>
+        <article class="post-article" data-post-article hidden></article>
+      </section>
+
+      <section class="view" data-view="projects">
+        <div class="page-head">
+          <p>Portfolio</p>
+          <h1>项目作品集</h1>
+          <span>记录项目背景、技术选型、核心功能、踩坑记录和后续规划。</span>
+        </div>
+        <div class="project-grid" data-projects></div>
+      </section>
+
+      <section class="view" data-view="knowledge">
+        <div class="page-head">
+          <p>Knowledge Base</p>
+          <h1>结构化知识库</h1>
+          <span>区别于博客，这里沉淀概念树、模块关系和可复习的知识节点。</span>
+        </div>
+        <div class="knowledge-grid" data-knowledge></div>
+      </section>
+
+      <section class="view" data-view="roadmap">
+        <div class="page-head">
+          <p>Learning Map</p>
+          <h1>学习路线与长期档案</h1>
+          <span>记录从工程基础到 RAG、Agent 和 AI Infra 的学习状态。</span>
+        </div>
+        <div class="roadmap-grid" data-learning-map></div>
+        <div class="section-block split">
+          <div>
+            <div class="section-title">
+              <p>Reading</p>
+              <h2>阅读记录</h2>
+            </div>
+            <div class="reading-list" data-reading></div>
+          </div>
+          <div>
+            <div class="section-title">
+              <p>Timeline</p>
+              <h2>年度时间线</h2>
+            </div>
+            <div class="timeline-list" data-timeline></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" data-view="about">
+        <div class="page-head">
+          <p>About</p>
+          <h1>关于我</h1>
+          <span>教育背景、工作经历、技术兴趣和长期目标。</span>
+        </div>
         <section class="card-grid">
           <article class="info-card">
-            <h2><span>👤</span> 基本信息</h2>
-            <div class="divider"></div>
-            <dl data-basic-info></dl>
-          </article>
-
-          <article class="info-card">
-            <h2><span>🎓</span> 教育经历</h2>
+            <h2><span>🎓</span> 教育背景</h2>
             <div class="divider"></div>
             <div class="timeline" data-education></div>
           </article>
-
           <article class="info-card">
             <h2><span>💼</span> 工作经历</h2>
             <div class="divider"></div>
             <div class="timeline" data-experience></div>
           </article>
-
-          <article class="info-card">
-            <h2><span>⚡</span> 专业技能</h2>
+          <article class="info-card wide">
+            <h2><span>🌱</span> 技术价值观</h2>
             <div class="divider"></div>
-            <div class="pill-list" data-skills></div>
-          </article>
-
-          <article class="info-card">
-            <h2><span>🚀</span> 项目作品</h2>
-            <div class="divider"></div>
-            <div class="project-list" data-projects></div>
-          </article>
-
-          <article class="info-card">
-            <h2><span>🎯</span> 兴趣爱好</h2>
-            <div class="divider"></div>
-            <div class="pill-list soft" data-interests></div>
+            <div class="value-list" data-values></div>
           </article>
         </section>
       </section>
 
-      <section class="view" data-view="blog">
-        <div class="blog-head">
-          <div>
-            <p class="kicker">Writing</p>
-            <h1>我的博客</h1>
-          </div>
-          <p>记录大模型开发、Agent、RAG、C# 工程实践和阶段性学习笔记。</p>
-        </div>
-        <div class="blog-list" data-blog-list></div>
-        <article class="blog-article" data-blog-article hidden></article>
-      </section>
-
       <footer class="site-footer">
-        <span>© <span data-year></span> <span data-field="name">晏宏翔</span></span>
-        <span>用真实经历和持续记录构建个人主页</span>
+        <span>© <span data-year></span> <span data-profile="name">晏宏翔</span></span>
+        <span>个人品牌主页 + 技术博客 + AI 能力展示平台</span>
       </footer>
     </main>
 
-    <script src="script.js?v=8" defer></script>
+    <script src="script.js?v=12" defer></script>
   </body>
 </html>

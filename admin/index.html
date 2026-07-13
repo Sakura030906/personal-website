@@ -13,57 +13,74 @@
         <h1>个人网站内容编辑</h1>
       </div>
       <div class="actions">
-        <a href="http://127.0.0.1:4173" target="_blank" rel="noreferrer">预览公网页面</a>
+        <a href="http://127.0.0.1:4173" target="_blank" rel="noreferrer">预览公开页</a>
         <button type="button" data-save>保存修改</button>
       </div>
     </header>
 
     <main>
       <section class="panel">
-        <h2>首页信息</h2>
+        <h2>首页身份</h2>
         <div class="grid two">
-          <label>姓名<input data-path="name" /></label>
-          <label>头像字<input data-path="initials" /></label>
-          <label>方向/角色<input data-path="role" /></label>
+          <label>姓名<input data-path="profile.name" /></label>
+          <label>头像字<input data-path="profile.initials" /></label>
+          <label>方向/角色<input data-path="profile.role" /></label>
+          <label>首页标题<input data-path="profile.headline" /></label>
         </div>
-        <label>个人简介<textarea data-path="summary" rows="4"></textarea></label>
+        <label>个人简介<textarea data-path="profile.summary" rows="5"></textarea></label>
       </section>
 
       <section class="panel">
         <div class="panel-title">
-          <h2>基本信息</h2>
-          <button type="button" data-add="basicInfo">添加信息</button>
+          <h2>首页状态卡片</h2>
+          <button type="button" data-add="profile.status">添加状态</button>
         </div>
-        <div data-list="basicInfo"></div>
+        <div data-list="profile.status"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>联系方式</h2>
+          <button type="button" data-add="profile.contacts">添加联系</button>
+        </div>
+        <div data-list="profile.contacts"></div>
       </section>
 
       <section class="panel">
         <div class="panel-title">
           <h2>教育经历</h2>
-          <button type="button" data-add="education">添加教育</button>
+          <button type="button" data-add="about.education">添加教育</button>
         </div>
-        <div data-list="education"></div>
+        <div data-list="about.education"></div>
       </section>
 
       <section class="panel">
         <div class="panel-title">
           <h2>工作经历</h2>
-          <button type="button" data-add="experience">添加工作</button>
+          <button type="button" data-add="about.experience">添加工作</button>
         </div>
-        <div data-list="experience"></div>
+        <div data-list="about.experience"></div>
       </section>
 
       <section class="panel">
         <div class="panel-title">
-          <h2>专业技能</h2>
-          <button type="button" data-add="skills">添加技能</button>
+          <h2>技术价值观</h2>
+          <button type="button" data-add="about.values">添加内容</button>
         </div>
-        <div data-list="skills"></div>
+        <div data-list="about.values"></div>
       </section>
 
       <section class="panel">
         <div class="panel-title">
-          <h2>项目作品</h2>
+          <h2>技术栈</h2>
+          <button type="button" data-add="techStack">添加技术</button>
+        </div>
+        <div data-list="techStack"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>项目作品集</h2>
           <button type="button" data-add="projects">添加项目</button>
         </div>
         <div data-list="projects"></div>
@@ -71,18 +88,56 @@
 
       <section class="panel">
         <div class="panel-title">
-          <h2>兴趣爱好</h2>
-          <button type="button" data-add="interests">添加兴趣</button>
+          <h2>博客文章</h2>
+          <button type="button" data-add="posts">写文章</button>
         </div>
-        <div data-list="interests"></div>
+        <div data-list="posts"></div>
       </section>
 
       <section class="panel">
         <div class="panel-title">
-          <h2>博客文章</h2>
-          <button type="button" data-add="blogPosts">写文章</button>
+          <h2>结构化知识库</h2>
+          <button type="button" data-add="knowledgeBase">添加主题</button>
         </div>
-        <div data-list="blogPosts"></div>
+        <div data-list="knowledgeBase"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>学习路线</h2>
+          <button type="button" data-add="learningMap">添加层级</button>
+        </div>
+        <div data-list="learningMap"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>阅读记录</h2>
+          <button type="button" data-add="reading">添加书籍</button>
+        </div>
+        <div data-list="reading"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>年度时间线</h2>
+          <button type="button" data-add="timeline">添加事件</button>
+        </div>
+        <div data-list="timeline"></div>
+      </section>
+
+      <section class="panel">
+        <h2>AI 能力展示规划</h2>
+        <div class="grid two">
+          <label>标题<input data-path="aiShowcase.title" /></label>
+          <label>状态<input data-path="aiShowcase.status" /></label>
+        </div>
+        <label>说明<textarea data-path="aiShowcase.summary" rows="4"></textarea></label>
+        <div class="panel-title compact">
+          <h3>流程节点</h3>
+          <button type="button" data-add="aiShowcase.pipeline">添加节点</button>
+        </div>
+        <div data-list="aiShowcase.pipeline"></div>
       </section>
     </main>
 
