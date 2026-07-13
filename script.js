@@ -241,6 +241,38 @@ function projectCard(project, index) {
   `;
 }
 
+function projectStage(project, index = 0) {
+  const slug = normalizeSlug(project, index, "project");
+  const evidence = project.evidence || [];
+  return `
+    <div class="stage-copy">
+      <p class="kicker">Current Build</p>
+      <h2>${escapeHtml(project.name)}</h2>
+      <p>${escapeHtml(project.tagline || project.summary || "")}</p>
+      <div class="pill-list compact">
+        ${(project.stack || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+      </div>
+      <div class="stage-evidence">
+        ${evidence
+          .slice(0, 3)
+          .map(
+            (item) => `
+              <div>
+                <span></span>
+                <p>${escapeHtml(item)}</p>
+              </div>
+            `,
+          )
+          .join("")}
+      </div>
+      <a class="button-link primary" href="#project-${escapeHtml(slug)}">查看项目细节</a>
+    </div>
+    <div class="stage-visual">
+      ${projectVisual(project, false)}
+    </div>
+  `;
+}
+
 function projectVisual(project, compact = true) {
   const visual = project.visual || {};
   const items = visual.items || project.modules || [];
@@ -304,6 +336,11 @@ function renderProjects(content) {
 
   const current = projects[0];
   if (current) {
+    const stageTarget = document.querySelector("[data-project-stage]");
+    if (stageTarget) {
+      stageTarget.innerHTML = projectStage(current, 0);
+    }
+
     const consoleTarget = document.querySelector("[data-hero-console]");
     if (consoleTarget) {
       consoleTarget.innerHTML = `
@@ -372,6 +409,10 @@ function postCard(post, index) {
   const slug = normalizeSlug(post, index, "post");
   return `
     <a class="post-card" href="#post-${escapeHtml(slug)}" data-post-card data-title="${escapeHtml(post.title)}" data-category="${escapeHtml(post.category || "")}" data-tags="${escapeHtml((post.tags || []).join(","))}">
+      <div class="post-cover">
+        <span>${escapeHtml(post.category || "Writing")}</span>
+        <strong>${escapeHtml(post.date || "Draft")}</strong>
+      </div>
       <div class="card-meta">
         <span>${escapeHtml(post.category || "文章")}</span>
         <time>${escapeHtml(post.date || "未设置日期")}</time>

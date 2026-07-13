@@ -7,13 +7,17 @@
       name="description"
       content="晏宏翔的个人品牌主页、技术博客、项目作品集、学习档案与 AI 能力展示平台。"
     />
-    <meta name="theme-color" content="#f7f6f2" />
+    <meta name="theme-color" content="#ebe8de" />
     <title>晏宏翔 | AI Agent / RAG 方向</title>
-    <link rel="stylesheet" href="styles.css?v=15" />
+    <link rel="stylesheet" href="styles.css?v=16" />
   </head>
   <body>
     <main class="app-shell">
       <header class="site-topbar">
+        <a class="brand-mark" href="#home" aria-label="晏宏翔 首页">
+          <span>YX</span>
+          <strong>AI Build Log</strong>
+        </a>
         <nav class="tabs" aria-label="主导航">
           <a class="tab is-active" href="#home" data-route="home">首页</a>
           <a class="tab" href="#posts" data-route="posts">文章</a>
@@ -28,10 +32,10 @@
       <section class="view is-active" data-view="home">
         <section class="profile-hero">
           <div class="hero-content">
-            <p class="kicker">Yan Hongxiang / AI Engineering Portfolio</p>
-            <h1>Building AI Agent Systems.</h1>
-            <p class="role">From C# engineering to AI Agent applications.</p>
-            <p class="headline">专注企业知识库、RAG 检索增强生成与可落地的智能体平台。</p>
+            <p class="kicker">From Industrial Software to AI Agent Engineering</p>
+            <h1>Learning in Public.<span>Building in Practice.</span></h1>
+            <p class="role">把 C# 工程经验迁移到 AI Agent / RAG 应用开发。</p>
+            <p class="headline">我正在把学习路线、项目实验和工程复盘，整理成一个可验证的 Personal AI OS。</p>
             <p class="intro" data-profile="summary"></p>
             <div class="hero-actions">
               <a class="button-link primary" href="#projects">查看项目</a>
@@ -41,15 +45,21 @@
           </div>
 
           <aside class="hero-panel">
+            <div class="panel-label">
+              <span>Public Build Record</span>
+              <strong>持续构建中</strong>
+            </div>
             <div class="project-console" data-hero-console></div>
             <div class="hero-facts" data-status></div>
           </aside>
         </section>
 
+        <section class="project-stage" data-project-stage></section>
+
         <section class="section-block">
           <div class="section-title">
-            <p>Featured</p>
-            <h2>精选项目</h2>
+            <p>Project Index</p>
+            <h2>项目是主角</h2>
           </div>
           <div class="project-grid" data-featured-projects></div>
         </section>
@@ -193,6 +203,6 @@
       </footer>
     </main>
 
-    <script src="script.js?v=15" defer></script>
+    <script src="script.js?v=16" defer></script>
   </body>
 </html>
