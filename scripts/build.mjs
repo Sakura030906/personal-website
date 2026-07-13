@@ -61,7 +61,7 @@ function response(body, type, init = {}) {
     ...init,
     headers: {
       "content-type": type,
-      "cache-control": type.startsWith("text/html") || type.startsWith("application/json")
+      "cache-control": type.startsWith("text/") || type.startsWith("application/json")
         ? "public, max-age=0, must-revalidate"
         : "public, max-age=31536000, immutable",
       ...(init.headers || {})
