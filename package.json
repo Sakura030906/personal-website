@@ -4,6 +4,7 @@
   "private": true,
   "description": "A polished personal website for a senior software engineer.",
   "scripts": {
+    "build": "node scripts/build.mjs",
     "dev": "python3 -m http.server 4173",
     "start": "python3 -m http.server 4173"
   },
