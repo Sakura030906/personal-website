@@ -8,6 +8,7 @@ const entries = [
   "styles.css",
   "script.js",
   "assets",
+  "data",
   ".openai",
 ];
 
@@ -38,6 +39,10 @@ const textAssets = {
   "/script.js": {
     body: await readFile(new URL("script.js", rootDir), "utf8"),
     type: "text/javascript; charset=utf-8",
+  },
+  "/data/site.json": {
+    body: await readFile(new URL("data/site.json", rootDir), "utf8"),
+    type: "application/json; charset=utf-8",
   },
 };
 

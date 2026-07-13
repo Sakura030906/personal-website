@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>个人网站本地编辑器</title>
+    <link rel="stylesheet" href="/admin/admin.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p>Local Editor</p>
+        <h1>个人网站内容编辑</h1>
+      </div>
+      <div class="actions">
+        <a href="http://127.0.0.1:4173" target="_blank" rel="noreferrer">预览公网页面</a>
+        <button type="button" data-save>保存修改</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2>基本信息</h2>
+        <div class="grid two">
+          <label>姓名<input data-path="name" /></label>
+          <label>缩写<input data-path="initials" /></label>
+          <label>角色<input data-path="role" /></label>
+          <label>联系说明<input data-path="contactNote" /></label>
+        </div>
+        <label>首页标题<textarea data-path="headline" rows="2"></textarea></label>
+        <label>简介<textarea data-path="summary" rows="4"></textarea></label>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>链接</h2>
+          <button type="button" data-add="links">添加链接</button>
+        </div>
+        <div data-list="links"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>个人亮点</h2>
+          <button type="button" data-add="highlights">添加亮点</button>
+        </div>
+        <div data-list="highlights"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>关于</h2>
+          <button type="button" data-add="about">添加段落</button>
+        </div>
+        <div data-list="about"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>项目</h2>
+          <button type="button" data-add="projects">添加项目</button>
+        </div>
+        <div data-list="projects"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>技能</h2>
+          <button type="button" data-add="skills">添加技能组</button>
+        </div>
+        <div data-list="skills"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>经历</h2>
+          <button type="button" data-add="experience">添加经历</button>
+        </div>
+        <div data-list="experience"></div>
+      </section>
+    </main>
+
+    <div class="toast" data-toast></div>
+    <script src="/admin/admin.js" defer></script>
+  </body>
+</html>

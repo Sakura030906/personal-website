@@ -1,0 +1,102 @@
+{
+  "name": "你的名字",
+  "initials": "SE",
+  "role": "Senior Software Engineer",
+  "headline": "构建稳定、清晰、长期可维护的软件系统。",
+  "summary": "专注后端系统、全栈产品交付、工程效率和可观测性。习惯从问题边界、系统设计、实现质量到上线维护完整负责。",
+  "contactNote": "如果你想了解我的项目、简历或合作方式，可以通过下面的方式联系我。",
+  "links": [
+    {
+      "label": "Email",
+      "value": "hello@example.com",
+      "href": "mailto:hello@example.com"
+    },
+    {
+      "label": "GitHub",
+      "value": "github.com/yourname",
+      "href": "https://github.com/"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Focus",
+      "value": "Backend / Full-stack"
+    },
+    {
+      "label": "Experience",
+      "value": "8+ years"
+    },
+    {
+      "label": "Location",
+      "value": "Remote / China"
+    }
+  ],
+  "about": [
+    "我倾向于把复杂问题拆成清楚的边界，用简单、可验证的方式交付系统。",
+    "关注代码质量、接口契约、可观测性和发布流程。比起炫技，更重视系统在真实环境里的稳定表现。"
+  ],
+  "projects": [
+    {
+      "name": "高可用业务系统",
+      "description": "重构核心链路，补齐日志、指标、告警和异常恢复策略，提升上线后的可维护性。",
+      "impact": "降低排障时间，减少重复人工处理。",
+      "stack": [
+        "Node.js",
+        "PostgreSQL",
+        "Redis",
+        "Docker"
+      ]
+    },
+    {
+      "name": "生产数据可视化平台",
+      "description": "整合多来源数据，提供实时看板和异常追踪，让业务与工程团队共享同一套事实。",
+      "impact": "提升问题定位效率和跨团队沟通质量。",
+      "stack": [
+        "React",
+        "TypeScript",
+        "WebSocket"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "title": "系统设计",
+      "items": [
+        "领域建模",
+        "接口设计",
+        "服务边界",
+        "容量规划"
+      ]
+    },
+    {
+      "title": "工程质量",
+      "items": [
+        "代码审查",
+        "自动化测试",
+        "CI/CD",
+        "发布回滚"
+      ]
+    },
+    {
+      "title": "稳定性",
+      "items": [
+        "日志指标",
+        "告警",
+        "降级",
+        "故障复盘"
+      ]
+    }
+  ],
+  "experience": [
+    {
+      "period": "2024 - Now",
+      "title": "Senior Software Engineer",
+      "description": "负责核心系统设计、性能优化、工程效率和稳定性建设。"
+    },
+    {
+      "period": "2021 - 2024",
+      "title": "Full-stack Engineer",
+      "description": "独立交付多个 Web 产品，覆盖前端、后端、数据库和部署。"
+    }
+  ]
+}

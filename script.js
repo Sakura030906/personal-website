@@ -1,92 +1,122 @@
-const profile = {
-  capabilities: [
-    {
-      title: "系统架构",
-      body: "从业务边界、数据模型、接口契约到部署拓扑，设计能演进的服务结构。",
-      points: ["领域建模", "服务拆分", "容量规划"],
-    },
-    {
-      title: "全栈交付",
-      body: "把前端体验、后端接口、数据库和运维链路串起来，缩短从想法到上线的距离。",
-      points: ["产品闭环", "API 设计", "交互实现"],
-    },
-    {
-      title: "稳定性工程",
-      body: "用日志、指标、告警、重试和降级机制，让系统在异常情况下仍然可控。",
-      points: ["可观测性", "故障恢复", "发布治理"],
-    },
-    {
-      title: "工程效率",
-      body: "通过自动化、代码规范、测试策略和工具链建设，让团队交付更快也更稳。",
-      points: ["CI/CD", "测试体系", "代码审查"],
-    },
+const contentUrl = "data/site.json";
+
+const fallbackProfile = {
+  name: "你的名字",
+  initials: "SE",
+  role: "Senior Software Engineer",
+  headline: "构建稳定、清晰、长期可维护的软件系统。",
+  summary:
+    "专注后端系统、全栈产品交付、工程效率和可观测性。习惯从问题边界、系统设计、实现质量到上线维护完整负责。",
+  contactNote: "如果你想了解我的项目、简历或合作方式，可以通过下面的方式联系我。",
+  links: [
+    { label: "Email", value: "hello@example.com", href: "mailto:hello@example.com" },
+    { label: "GitHub", value: "github.com/yourname", href: "https://github.com/" },
+  ],
+  highlights: [
+    { label: "Focus", value: "Backend / Full-stack" },
+    { label: "Experience", value: "8+ years" },
+    { label: "Location", value: "Remote / China" },
+  ],
+  about: [
+    "我倾向于把复杂问题拆成清楚的边界，用简单、可验证的方式交付系统。",
+    "关注代码质量、接口契约、可观测性和发布流程。比起炫技，更重视系统在真实环境里的稳定表现。",
   ],
   projects: [
     {
-      label: "01",
-      title: "高可用业务中台",
-      result: "把核心流程拆成可观测服务，发布故障率下降，跨团队联调周期缩短。",
+      name: "高可用业务系统",
+      description: "重构核心链路，补齐日志、指标、告警和异常恢复策略，提升上线后的可维护性。",
+      impact: "降低排障时间，减少重复人工处理。",
       stack: ["Node.js", "PostgreSQL", "Redis", "Docker"],
     },
     {
-      label: "02",
-      title: "生产数据可视化平台",
-      result: "统一采集、清洗和展示关键指标，让运营和工程团队能实时定位问题。",
-      stack: ["React", "TypeScript", "WebSocket", "Charts"],
-    },
-    {
-      label: "03",
-      title: "自动化交付流水线",
-      result: "建立测试、构建、灰度和回滚流程，把人工发布变成可追踪的标准动作。",
-      stack: ["GitHub Actions", "Linux", "Nginx", "Playwright"],
+      name: "生产数据可视化平台",
+      description: "整合多来源数据，提供实时看板和异常追踪，让业务与工程团队共享同一套事实。",
+      impact: "提升问题定位效率和跨团队沟通质量。",
+      stack: ["React", "TypeScript", "WebSocket"],
     },
   ],
-  stack: [
-    "TypeScript",
-    "React",
-    "Vue",
-    "Node.js",
-    "Python",
-    "C#",
-    "PostgreSQL",
-    "MySQL",
-    "Redis",
-    "Docker",
-    "Nginx",
-    "Linux",
-    "CI/CD",
-    "Observability",
-    "System Design",
+  skills: [
+    { title: "系统设计", items: ["领域建模", "接口设计", "服务边界", "容量规划"] },
+    { title: "工程质量", items: ["代码审查", "自动化测试", "CI/CD", "发布回滚"] },
+    { title: "稳定性", items: ["日志指标", "告警", "降级", "故障复盘"] },
   ],
-  timeline: [
+  experience: [
     {
       period: "2024 - Now",
-      role: "Senior Software Engineer",
-      detail: "负责核心业务系统架构、性能优化、稳定性治理和关键项目落地。",
+      title: "Senior Software Engineer",
+      description: "负责核心系统设计、性能优化、工程效率和稳定性建设。",
     },
     {
       period: "2021 - 2024",
-      role: "Full-stack Engineer",
-      detail: "独立交付多个 Web 产品，覆盖需求分析、前后端开发、上线和监控。",
-    },
-    {
-      period: "2018 - 2021",
-      role: "Backend Engineer",
-      detail: "建设业务接口、数据模型和内部工具，积累复杂系统排查与维护经验。",
+      title: "Full-stack Engineer",
+      description: "独立交付多个 Web 产品，覆盖前端、后端、数据库和部署。",
     },
   ],
 };
 
-function renderCapabilities() {
-  const target = document.querySelector("[data-capabilities]");
-  target.innerHTML = profile.capabilities
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function setText(selector, value) {
+  document.querySelectorAll(selector).forEach((node) => {
+    node.textContent = value;
+  });
+}
+
+function renderLinks(profile) {
+  const links = profile.links || [];
+  const compact = links
+    .map(
+      (link) => `
+        <a href="${escapeHtml(link.href)}" target="${link.href?.startsWith("http") ? "_blank" : "_self"}" rel="noreferrer">
+          <span>${escapeHtml(link.label)}</span>
+          <strong>${escapeHtml(link.value)}</strong>
+        </a>
+      `,
+    )
+    .join("");
+
+  document.querySelector("[data-links]").innerHTML = compact;
+  document.querySelector("[data-contact-actions]").innerHTML = compact;
+}
+
+function renderHighlights(profile) {
+  document.querySelector("[data-highlights]").innerHTML = (profile.highlights || [])
     .map(
       (item) => `
-        <article class="capability-card">
-          <h3>${item.title}</h3>
-          <p>${item.body}</p>
+        <div>
+          <dt>${escapeHtml(item.label)}</dt>
+          <dd>${escapeHtml(item.value)}</dd>
+        </div>
+      `,
+    )
+    .join("");
+}
+
+function renderAbout(profile) {
+  document.querySelector("[data-about]").innerHTML = (profile.about || [])
+    .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+    .join("");
+}
+
+function renderProjects(profile) {
+  document.querySelector("[data-projects]").innerHTML = (profile.projects || [])
+    .map(
+      (project) => `
+        <article class="project-item">
+          <div>
+            <h3>${escapeHtml(project.name)}</h3>
+            <p>${escapeHtml(project.description)}</p>
+            <p class="impact">${escapeHtml(project.impact)}</p>
+          </div>
           <ul>
-            ${item.points.map((point) => `<li>${point}</li>`).join("")}
+            ${(project.stack || []).map((tech) => `<li>${escapeHtml(tech)}</li>`).join("")}
           </ul>
         </article>
       `,
@@ -94,41 +124,30 @@ function renderCapabilities() {
     .join("");
 }
 
-function renderProjects() {
-  const target = document.querySelector("[data-projects]");
-  target.innerHTML = profile.projects
+function renderSkills(profile) {
+  document.querySelector("[data-skills]").innerHTML = (profile.skills || [])
     .map(
-      (project) => `
-        <article class="project-row">
-          <span class="project-index">${project.label}</span>
-          <div>
-            <h3>${project.title}</h3>
-            <p>${project.result}</p>
-          </div>
-          <div class="project-stack">
-            ${project.stack.map((tech) => `<span>${tech}</span>`).join("")}
-          </div>
+      (group) => `
+        <article class="skill-card">
+          <h3>${escapeHtml(group.title)}</h3>
+          <ul>
+            ${(group.items || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+          </ul>
         </article>
       `,
     )
     .join("");
 }
 
-function renderStack() {
-  const target = document.querySelector("[data-stack]");
-  target.innerHTML = profile.stack.map((tech) => `<span>${tech}</span>`).join("");
-}
-
-function renderTimeline() {
-  const target = document.querySelector("[data-timeline]");
-  target.innerHTML = profile.timeline
+function renderExperience(profile) {
+  document.querySelector("[data-experience]").innerHTML = (profile.experience || [])
     .map(
       (item) => `
         <article class="timeline-item">
-          <time>${item.period}</time>
+          <time>${escapeHtml(item.period)}</time>
           <div>
-            <h3>${item.role}</h3>
-            <p>${item.detail}</p>
+            <h3>${escapeHtml(item.title)}</h3>
+            <p>${escapeHtml(item.description)}</p>
           </div>
         </article>
       `,
@@ -136,15 +155,34 @@ function renderTimeline() {
     .join("");
 }
 
-function syncHeaderState() {
-  const header = document.querySelector("[data-header]");
-  header.classList.toggle("is-scrolled", window.scrollY > 24);
+function renderProfile(profile) {
+  document.title = `${profile.name} | ${profile.role}`;
+  setText('[data-field="name"]', profile.name);
+  setText('[data-field="initials"]', profile.initials);
+  setText('[data-field="role"]', profile.role);
+  setText('[data-field="headline"]', profile.headline);
+  setText('[data-field="summary"]', profile.summary);
+  setText('[data-field="contactNote"]', profile.contactNote);
+  renderLinks(profile);
+  renderHighlights(profile);
+  renderAbout(profile);
+  renderProjects(profile);
+  renderSkills(profile);
+  renderExperience(profile);
+  document.querySelector("[data-year]").textContent = new Date().getFullYear();
 }
 
-renderCapabilities();
-renderProjects();
-renderStack();
-renderTimeline();
-document.querySelector("[data-year]").textContent = new Date().getFullYear();
-syncHeaderState();
-window.addEventListener("scroll", syncHeaderState, { passive: true });
+async function loadProfile() {
+  try {
+    const response = await fetch(contentUrl, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`Content request failed: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.warn(error);
+    return fallbackProfile;
+  }
+}
+
+loadProfile().then(renderProfile);

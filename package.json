@@ -7,6 +7,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "dev": "python3 -m http.server 4173",
+    "edit": "node scripts/edit-server.mjs",
     "start": "python3 -m http.server 4173"
   },
   "keywords": [
