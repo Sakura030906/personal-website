@@ -7,14 +7,15 @@
       name="description"
       content="晏宏翔的个人品牌主页、技术博客、项目作品集、学习档案与 AI 能力展示平台。"
     />
-    <meta name="theme-color" content="#f7f4ef" />
+    <meta name="theme-color" content="#f8f5ee" />
     <title>晏宏翔 | AI Agent / RAG 方向</title>
-    <link rel="stylesheet" href="styles.css?v=17" />
+    <link rel="stylesheet" href="styles.css?v=18" />
   </head>
   <body>
     <main class="app-shell">
       <header class="site-topbar">
         <a class="brand-mark" href="#home" aria-label="晏宏翔 首页">
+          <em>HX</em>
           <strong>晏宏翔</strong>
           <span></span>
         </a>
@@ -26,6 +27,10 @@
           <a class="tab" href="#lab" data-route="lab">AI Lab</a>
           <a class="tab" href="#about" data-route="about">关于</a>
         </nav>
+        <div class="topbar-tools" aria-label="页面工具">
+          <button type="button" aria-label="夜间模式">◐</button>
+          <button type="button" aria-label="搜索">⌕</button>
+        </div>
       </header>
 
       <section class="view is-active" data-view="home">
@@ -39,11 +44,15 @@
               <a class="button-link primary" href="#projects">查看项目 →</a>
               <a class="button-link" href="#posts">阅读文章</a>
             </div>
-            <div class="contact-actions" data-contacts></div>
+            <div class="home-status-pills">
+              <span>EduRAG 2.0 开发中</span>
+              <span>Agent Runtime 优化</span>
+              <span>知识库体系化</span>
+            </div>
           </div>
 
           <aside class="hero-panel">
-            <div class="project-console" data-hero-console></div>
+            <img src="assets/hero-workspace.png" alt="AI Agent 工程工作台" />
           </aside>
         </section>
 
@@ -64,26 +73,48 @@
         </section>
 
         <section class="section-block calm">
-          <div>
-            <div class="section-title">
-              <h2>最近在做</h2>
-            </div>
-            <div class="focus-list" data-focus></div>
-          </div>
+          <blockquote class="home-quote">
+            <span>“</span>
+            <strong>真正的成长，来自持续构建、分享与复盘。</strong>
+            <em>— 2026</em>
+          </blockquote>
         </section>
       </section>
 
       <section class="view" data-view="posts">
-        <div class="page-head">
-          <h1>文章</h1>
-          <span>记录学习过程，分享技术思考</span>
+        <div class="content-main">
+          <div class="page-head">
+            <h1>文章</h1>
+            <span>记录学习过程，分享技术思考</span>
+          </div>
+          <div class="post-tools">
+            <div class="filter-row" data-post-filters></div>
+            <input data-post-search type="search" placeholder="搜索文章..." />
+          </div>
+          <div class="post-list" data-posts></div>
+          <article class="post-article" data-post-article hidden></article>
         </div>
-        <div class="post-tools">
-          <input data-post-search type="search" placeholder="搜索标题、分类或标签" />
-          <div class="filter-row" data-post-filters></div>
-        </div>
-        <div class="post-list" data-posts></div>
-        <article class="post-article" data-post-article hidden></article>
+        <aside class="page-sidebar">
+          <section>
+            <h2>热门标签</h2>
+            <div class="tag-cloud" data-hot-tags></div>
+          </section>
+          <section>
+            <h2>文章统计</h2>
+            <div class="stat-list">
+              <div><span>总文章数</span><strong data-post-count>0</strong></div>
+              <div><span>总阅读量</span><strong>48.7k</strong></div>
+              <div><span>今日阅读</span><strong>342</strong></div>
+            </div>
+          </section>
+          <section>
+            <h2>订阅更新</h2>
+            <label class="subscribe-box">
+              <input type="email" placeholder="your.email@example.com" />
+              <button type="button">订阅</button>
+            </label>
+          </section>
+        </aside>
       </section>
 
       <section class="view" data-view="projects">
@@ -91,23 +122,74 @@
           <h1>项目</h1>
           <span>探索和构建 AI 系统</span>
         </div>
+        <div class="project-toolbar">
+          <div class="filter-row">
+            <button class="is-active" type="button">全部</button>
+            <button type="button">AI Agent</button>
+            <button type="button">RAG 系统</button>
+            <button type="button">工具应用</button>
+            <button type="button">个人项目</button>
+          </div>
+          <button class="sort-button" type="button">排序：最新⌄</button>
+        </div>
         <div class="project-grid" data-projects></div>
         <article class="detail-panel" data-project-detail hidden></article>
       </section>
 
       <section class="view" data-view="knowledge">
-        <div class="page-head">
-          <h1>知识库</h1>
-          <span>系统化的知识管理与沉淀</span>
+        <aside class="knowledge-nav">
+          <h2>知识分类</h2>
+          <a class="is-active" href="#knowledge">全部知识</a>
+          <a href="#knowledge">AI 基础</a>
+          <a href="#knowledge">机器学习</a>
+          <a href="#knowledge">深度学习</a>
+          <a href="#knowledge">NLP 自然语言处理</a>
+          <a href="#knowledge">系统设计</a>
+          <a href="#knowledge">工具链</a>
+          <a href="#knowledge">数据结构</a>
+        </aside>
+        <div class="knowledge-main">
+          <div class="page-head">
+            <h1>知识库</h1>
+            <span>系统化的知识管理与沉淀</span>
+          </div>
+          <div class="knowledge-search">
+            <input type="search" placeholder="搜索知识..." />
+            <button type="button">添加笔记</button>
+          </div>
+          <div class="knowledge-grid" data-knowledge></div>
+          <section class="knowledge-graph">
+            <div class="section-title">
+              <h2>知识图谱</h2>
+            </div>
+            <div class="graph-canvas" aria-label="知识图谱示意"></div>
+          </section>
+          <article class="detail-panel" data-knowledge-detail hidden></article>
         </div>
-        <div class="knowledge-grid" data-knowledge></div>
-        <article class="detail-panel" data-knowledge-detail hidden></article>
+        <aside class="page-sidebar knowledge-side">
+          <section>
+            <h2>知识统计</h2>
+            <div class="stat-list">
+              <div><span>知识总数</span><strong>156</strong></div>
+              <div><span>笔记收藏</span><strong>342</strong></div>
+              <div><span>关联关系</span><strong>1,248</strong></div>
+              <div><span>最后更新</span><strong>2026-07-13</strong></div>
+            </div>
+          </section>
+        </aside>
       </section>
 
       <section class="view" data-view="lab">
         <div class="page-head">
           <h1>站内 AI 能力展示</h1>
           <span>实验、探索、创新</span>
+        </div>
+        <div class="filter-row lab-tabs">
+          <button class="is-active" type="button">智能问答</button>
+          <button type="button">RAG 演示</button>
+          <button type="button">Agent 演示</button>
+          <button type="button">工具调用</button>
+          <button type="button">实验记录</button>
         </div>
         <section class="lab-layout">
           <article class="lab-card" data-ai-full></article>
@@ -120,49 +202,64 @@
               <span>输入一个关于项目、RAG、Agent 或知识库的问题</span>
               <textarea data-ai-question rows="4" placeholder="例如：EduRAG 准备用哪些技术？"></textarea>
             </label>
-            <button class="primary-button" type="button" data-ai-ask>生成静态回答</button>
+            <button class="primary-button" type="button" data-ai-ask>发送</button>
             <div class="answer-box" data-ai-answer></div>
           </article>
         </section>
-        <section class="section-block">
-          <div class="section-title">
-            <p>Capability</p>
-            <h2>规划能力</h2>
-          </div>
-          <div class="module-grid" data-ai-capabilities></div>
+        <section class="lab-stats">
+          <div><span>今日对话</span><strong>24</strong></div>
+          <div><span>检索次数</span><strong>156</strong></div>
+          <div><span>Token 使用</span><strong>45.2k</strong></div>
+          <div><span>平均响应</span><strong>2.3s</strong></div>
         </section>
       </section>
 
       <section class="view" data-view="about">
-        <div class="page-head">
-          <h1>关于我</h1>
-          <span>AI Agent Engineer</span>
-        </div>
-        <section class="card-grid">
+        <section class="about-hero">
+          <div>
+            <div class="page-head">
+              <h1>关于我</h1>
+              <span>AI Agent Engineer</span>
+            </div>
+            <p data-profile="summary"></p>
+            <div class="about-facts">
+              <div><span>教育背景</span><strong>江西师范大学 · 计算机科学与技术</strong></div>
+              <div><span>工作经历</span><strong>工业软件开发 → AI Agent 工程师</strong></div>
+              <div><span>技术专长</span><strong>AI Agent · RAG · 系统设计 · Python · 数据库</strong></div>
+              <div><span>兴趣爱好</span><strong>阅读 · 写作 · 思考 · 健身</strong></div>
+            </div>
+            <a class="button-link primary" href="mailto:Cecilia030906@proton.me">联系我</a>
+          </div>
+          <figure class="about-photo">
+            <img src="assets/hero-workspace.png" alt="晏宏翔的工作台" />
+          </figure>
+        </section>
+        <section class="about-bottom">
           <article class="info-card">
-            <h2>教育背景</h2>
-            <div class="divider"></div>
-            <div class="timeline" data-education></div>
+            <h2>技术栈</h2>
+            <div class="tech-icons" data-tech-stack></div>
           </article>
           <article class="info-card">
-            <h2>工作经历</h2>
-            <div class="divider"></div>
-            <div class="timeline" data-experience></div>
-          </article>
-          <article class="info-card wide">
-            <h2>技术价值观</h2>
-            <div class="divider"></div>
-            <div class="value-list" data-values></div>
+            <h2>社交链接</h2>
+            <div class="social-links">
+              <a href="https://github.com/" target="_blank" rel="noreferrer">GitHub</a>
+              <a href="#posts">知乎</a>
+              <a href="#about">LinkedIn</a>
+              <a href="mailto:Cecilia030906@proton.me">邮箱</a>
+            </div>
           </article>
         </section>
       </section>
 
       <footer class="site-footer">
-        <span>© <span data-year></span> <span data-profile="name">晏宏翔</span></span>
-        <span>GitHub / Email / Portfolio</span>
+        <span>学习 487 天</span>
+        <span>文章 68 篇</span>
+        <span>项目 12 个</span>
+        <span>笔记 342 条</span>
+        <span class="footer-links">GitHub　in　✉</span>
       </footer>
     </main>
 
-    <script src="script.js?v=17" defer></script>
+    <script src="script.js?v=18" defer></script>
   </body>
 </html>

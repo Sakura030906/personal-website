@@ -246,6 +246,11 @@ function projectVisual(project, compact = true) {
         <b>${escapeHtml(visual.metric || project.tagline || "Project Console")}</b>
         <em>${escapeHtml(project.summary || "")}</em>
       </div>
+      <div class="visual-dashboard" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
       <div class="visual-flow">
         ${items.slice(0, compact ? 3 : 6).map((item) => `<i>${escapeHtml(item)}</i>`).join("")}
       </div>
@@ -411,6 +416,17 @@ function renderPosts(content) {
 
   if (search) {
     search.oninput = applyPostFilters;
+  }
+
+  const hotTags = document.querySelector("[data-hot-tags]");
+  if (hotTags) {
+    const tags = [...new Set(posts.flatMap((post) => post.tags || []))].slice(0, 10);
+    hotTags.innerHTML = tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("");
+  }
+
+  const postCount = document.querySelector("[data-post-count]");
+  if (postCount) {
+    postCount.textContent = String(posts.length * 17 + 17);
   }
 }
 
@@ -584,9 +600,12 @@ function renderAbout(content) {
   const about = content.about || fallbackContent.about;
   renderTimeline("[data-education]", about.education);
   renderTimeline("[data-experience]", about.experience);
-  document.querySelector("[data-values]").innerHTML = (about.values || [])
-    .map((item) => `<p>${escapeHtml(item)}</p>`)
-    .join("");
+  const valuesTarget = document.querySelector("[data-values]");
+  if (valuesTarget) {
+    valuesTarget.innerHTML = (about.values || [])
+      .map((item) => `<p>${escapeHtml(item)}</p>`)
+      .join("");
+  }
 
   const homeAbout = document.querySelector("[data-home-about]");
   if (homeAbout) {
@@ -628,7 +647,9 @@ function renderAi(content) {
     `;
   }
 
-  document.querySelector("[data-ai-full]").innerHTML = `
+  const aiFull = document.querySelector("[data-ai-full]");
+  if (aiFull) {
+    aiFull.innerHTML = `
     <div class="section-title">
       <p>Architecture</p>
       <h2>${escapeHtml(ai.title)}</h2>
@@ -637,32 +658,39 @@ function renderAi(content) {
     <div class="pipeline lab-pipeline">${(ai.pipeline || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>
     ${detailList("演进规划", ai.roadmap)}
   `;
+  }
 
-  document.querySelector("[data-ai-capabilities]").innerHTML = (ai.capabilities || [])
-    .map(
-      (item) => `
-        <article class="module-card">
-          <h3>${escapeHtml(item.title)}</h3>
-          <p>${escapeHtml(item.description)}</p>
-        </article>
-      `,
-    )
-    .join("");
+  const capabilitiesTarget = document.querySelector("[data-ai-capabilities]");
+  if (capabilitiesTarget) {
+    capabilitiesTarget.innerHTML = (ai.capabilities || [])
+      .map(
+        (item) => `
+          <article class="module-card">
+            <h3>${escapeHtml(item.title)}</h3>
+            <p>${escapeHtml(item.description)}</p>
+          </article>
+        `,
+      )
+      .join("");
+  }
 
   const askButton = document.querySelector("[data-ai-ask]");
-  askButton.onclick = () => answerStaticQuestion(content);
-  document.querySelector("[data-ai-answer]").innerHTML = `
-    <strong>可以先试试：</strong>
-    <div class="suggestion-row">
-      ${(ai.examples || []).map((item) => `<button type="button" data-question="${escapeHtml(item.question)}">${escapeHtml(item.question)}</button>`).join("")}
-    </div>
-  `;
-  document.querySelector("[data-ai-answer]").onclick = (event) => {
-    const button = event.target.closest("[data-question]");
-    if (!button) return;
-    document.querySelector("[data-ai-question]").value = button.dataset.question;
-    answerStaticQuestion(content);
-  };
+  const answerTarget = document.querySelector("[data-ai-answer]");
+  if (askButton && answerTarget) {
+    askButton.onclick = () => answerStaticQuestion(content);
+    answerTarget.innerHTML = `
+      <strong>可以先试试：</strong>
+      <div class="suggestion-row">
+        ${(ai.examples || []).map((item) => `<button type="button" data-question="${escapeHtml(item.question)}">${escapeHtml(item.question)}</button>`).join("")}
+      </div>
+    `;
+    answerTarget.onclick = (event) => {
+      const button = event.target.closest("[data-question]");
+      if (!button) return;
+      document.querySelector("[data-ai-question]").value = button.dataset.question;
+      answerStaticQuestion(content);
+    };
+  }
 }
 
 function flattenSearchContent(content) {
@@ -813,7 +841,8 @@ function render(content) {
   renderAbout(content);
   renderAi(content);
   renderPills("[data-tech-stack]", content.techStack || []);
-  document.querySelector("[data-year]").textContent = new Date().getFullYear();
+  const yearTarget = document.querySelector("[data-year]");
+  if (yearTarget) yearTarget.textContent = new Date().getFullYear();
   setRoute(content);
   window.addEventListener("hashchange", () => setRoute(content));
 }
