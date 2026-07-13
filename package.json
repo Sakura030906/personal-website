@@ -2,6 +2,7 @@
   "name": "senior-developer-portfolio",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "A polished personal website for a senior software engineer.",
   "scripts": {
     "build": "node scripts/build.mjs",
