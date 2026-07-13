@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="高级程序员个人网站，展示工程能力、项目经验、技术栈与联系方式。"
+    />
+    <meta name="theme-color" content="#111418" />
+    <title>你的名字 | 高级软件工程师</title>
+    <link rel="preload" href="assets/hero-workspace.png" as="image" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header" data-header>
+      <a class="brand" href="#top" aria-label="回到首页">
+        <span class="brand-mark">YK</span>
+        <span class="brand-text">你的名字</span>
+      </a>
+      <nav class="site-nav" aria-label="主导航">
+        <a href="#work">项目</a>
+        <a href="#systems">能力</a>
+        <a href="#timeline">经历</a>
+        <a href="#contact">联系</a>
+      </nav>
+      <a class="header-action" href="mailto:hello@example.com">联系我</a>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <img class="hero-image" src="assets/hero-workspace.png" alt="高级软件工程师的工作台、代码审查和系统监控界面" />
+        <div class="hero-overlay" aria-hidden="true"></div>
+        <div class="hero-content">
+          <p class="eyebrow">Senior Software Engineer / Architect</p>
+          <h1 id="hero-title">把复杂系统做稳，把产品体验做顺。</h1>
+          <p class="hero-lead">
+            我专注于高可用后端、全栈产品交付、工程效率和长期可维护架构。能从需求拆解、系统设计、核心实现到上线监控完整负责。
+          </p>
+          <div class="hero-actions" aria-label="主要操作">
+            <a class="button primary" href="#work">查看项目</a>
+            <a class="button secondary" href="#contact">预约沟通</a>
+          </div>
+          <dl class="hero-metrics" aria-label="关键指标">
+            <div>
+              <dt>8+</dt>
+              <dd>年工程经验</dd>
+            </div>
+            <div>
+              <dt>20+</dt>
+              <dd>上线项目</dd>
+            </div>
+            <div>
+              <dt>99.9%</dt>
+              <dd>稳定性目标</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="section intro" aria-labelledby="intro-title">
+        <div class="section-kicker">Profile</div>
+        <div class="section-grid">
+          <h2 id="intro-title">高级程序员风格，不是堆技术名词，而是能交付可运行、可维护、可扩展的系统。</h2>
+          <div class="intro-copy">
+            <p>
+              我习惯用清晰边界、可观测性、自动化测试和渐进式架构演进来降低复杂度。面对业务目标，先找关键路径，再做稳定实现。
+            </p>
+            <p>
+              适合展示给招聘方、客户、合作伙伴，也可以作为个人品牌官网继续扩展博客、案例、作品集和在线简历。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section capabilities" id="systems" aria-labelledby="systems-title">
+        <div class="section-kicker">Engineering</div>
+        <div class="section-heading">
+          <h2 id="systems-title">核心能力</h2>
+          <p>围绕真实交付组织技术能力，而不是孤立列工具清单。</p>
+        </div>
+        <div class="capability-grid" data-capabilities></div>
+      </section>
+
+      <section class="section work" id="work" aria-labelledby="work-title">
+        <div class="section-kicker">Selected Work</div>
+        <div class="section-heading">
+          <h2 id="work-title">代表项目</h2>
+          <p>每个项目都突出问题、方案和结果，便于后续替换成你的真实经历。</p>
+        </div>
+        <div class="project-list" data-projects></div>
+      </section>
+
+      <section class="section stack" aria-labelledby="stack-title">
+        <div class="section-kicker">Toolbox</div>
+        <div class="section-grid compact">
+          <h2 id="stack-title">技术栈</h2>
+          <div class="tag-cloud" data-stack></div>
+        </div>
+      </section>
+
+      <section class="section timeline" id="timeline" aria-labelledby="timeline-title">
+        <div class="section-kicker">Experience</div>
+        <div class="section-heading">
+          <h2 id="timeline-title">职业经历</h2>
+          <p>用工程影响力描述成长轨迹，弱化空泛头衔。</p>
+        </div>
+        <div class="timeline-list" data-timeline></div>
+      </section>
+
+      <section class="contact" id="contact" aria-labelledby="contact-title">
+        <div class="contact-inner">
+          <p class="eyebrow">Available for senior engineering roles and consulting</p>
+          <h2 id="contact-title">需要一个能把系统真正做起来的人？</h2>
+          <p>
+            可以把这里改成你的微信、邮箱、GitHub、LinkedIn 或简历链接。当前模板已经预留了上线发布结构。
+          </p>
+          <div class="contact-actions">
+            <a class="button primary" href="mailto:hello@example.com">hello@example.com</a>
+            <a class="button secondary dark" href="https://github.com/" target="_blank" rel="noreferrer">GitHub</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>© <span data-year></span> 你的名字</span>
+      <a href="#top">返回顶部</a>
+    </footer>
+
+    <script src="script.js" defer></script>
+  </body>
+</html>

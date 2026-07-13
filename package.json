@@ -1,0 +1,17 @@
+{
+  "name": "senior-developer-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A polished personal website for a senior software engineer.",
+  "scripts": {
+    "dev": "python3 -m http.server 4173",
+    "start": "python3 -m http.server 4173"
+  },
+  "keywords": [
+    "portfolio",
+    "personal-website",
+    "software-engineer"
+  ],
+  "author": "",
+  "license": "UNLICENSED"
+}
