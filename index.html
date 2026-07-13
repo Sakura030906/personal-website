@@ -7,23 +7,22 @@
       name="description"
       content="晏宏翔的个人品牌主页、技术博客、项目作品集、学习档案与 AI 能力展示平台。"
     />
-    <meta name="theme-color" content="#ebe8de" />
+    <meta name="theme-color" content="#f7f4ef" />
     <title>晏宏翔 | AI Agent / RAG 方向</title>
-    <link rel="stylesheet" href="styles.css?v=16" />
+    <link rel="stylesheet" href="styles.css?v=17" />
   </head>
   <body>
     <main class="app-shell">
       <header class="site-topbar">
         <a class="brand-mark" href="#home" aria-label="晏宏翔 首页">
-          <span>YX</span>
-          <strong>AI Build Log</strong>
+          <strong>晏宏翔</strong>
+          <span></span>
         </a>
         <nav class="tabs" aria-label="主导航">
           <a class="tab is-active" href="#home" data-route="home">首页</a>
           <a class="tab" href="#posts" data-route="posts">文章</a>
           <a class="tab" href="#projects" data-route="projects">项目</a>
           <a class="tab" href="#knowledge" data-route="knowledge">知识库</a>
-          <a class="tab" href="#roadmap" data-route="roadmap">路线</a>
           <a class="tab" href="#lab" data-route="lab">AI Lab</a>
           <a class="tab" href="#about" data-route="about">关于</a>
         </nav>
@@ -32,42 +31,34 @@
       <section class="view is-active" data-view="home">
         <section class="profile-hero">
           <div class="hero-content">
-            <p class="kicker">From Industrial Software to AI Agent Engineering</p>
-            <h1>Learning in Public.<span>Building in Practice.</span></h1>
-            <p class="role">把 C# 工程经验迁移到 AI Agent / RAG 应用开发。</p>
-            <p class="headline">我正在把学习路线、项目实验和工程复盘，整理成一个可验证的 Personal AI OS。</p>
+            <p class="kicker">AI Agent Engineer</p>
+            <h1>Building AI Agent Systems.<span>Learning in Public.</span></h1>
+            <p class="headline">从工业软件开发转向 AI 领域，专注于构建智能体系统、知识检索与企业级 AI 应用。</p>
             <p class="intro" data-profile="summary"></p>
             <div class="hero-actions">
-              <a class="button-link primary" href="#projects">查看项目</a>
-              <a class="button-link" href="#lab">AI Assistant</a>
+              <a class="button-link primary" href="#projects">查看项目 →</a>
+              <a class="button-link" href="#posts">阅读文章</a>
             </div>
             <div class="contact-actions" data-contacts></div>
           </div>
 
           <aside class="hero-panel">
-            <div class="panel-label">
-              <span>Public Build Record</span>
-              <strong>持续构建中</strong>
-            </div>
             <div class="project-console" data-hero-console></div>
-            <div class="hero-facts" data-status></div>
           </aside>
         </section>
 
-        <section class="project-stage" data-project-stage></section>
-
         <section class="section-block">
           <div class="section-title">
-            <p>Project Index</p>
-            <h2>项目是主角</h2>
+            <h2>精选项目</h2>
+            <a href="#projects">查看全部 →</a>
           </div>
           <div class="project-grid" data-featured-projects></div>
         </section>
 
         <section class="section-block">
           <div class="section-title">
-            <p>Latest</p>
             <h2>最近文章</h2>
+            <a href="#posts">查看全部 →</a>
           </div>
           <div class="post-list compact-list" data-latest-posts></div>
         </section>
@@ -75,8 +66,7 @@
         <section class="section-block calm">
           <div>
             <div class="section-title">
-              <p>Now</p>
-              <h2>现在在做什么</h2>
+              <h2>最近在做</h2>
             </div>
             <div class="focus-list" data-focus></div>
           </div>
@@ -85,9 +75,8 @@
 
       <section class="view" data-view="posts">
         <div class="page-head">
-          <p>Writing</p>
-          <h1>文章与随笔</h1>
-          <span>技术学习、项目实战、踩坑记录、AI 思考和个人随笔。</span>
+          <h1>文章</h1>
+          <span>记录学习过程，分享技术思考</span>
         </div>
         <div class="post-tools">
           <input data-post-search type="search" placeholder="搜索标题、分类或标签" />
@@ -99,9 +88,8 @@
 
       <section class="view" data-view="projects">
         <div class="page-head">
-          <p>Portfolio</p>
-          <h1>项目作品集</h1>
-          <span>记录项目背景、技术选型、核心功能、踩坑记录和后续规划。</span>
+          <h1>项目</h1>
+          <span>探索和构建 AI 系统</span>
         </div>
         <div class="project-grid" data-projects></div>
         <article class="detail-panel" data-project-detail hidden></article>
@@ -109,44 +97,17 @@
 
       <section class="view" data-view="knowledge">
         <div class="page-head">
-          <p>Knowledge Base</p>
-          <h1>结构化知识库</h1>
-          <span>区别于博客，这里沉淀概念树、模块关系和可复习的知识节点。</span>
+          <h1>知识库</h1>
+          <span>系统化的知识管理与沉淀</span>
         </div>
         <div class="knowledge-grid" data-knowledge></div>
         <article class="detail-panel" data-knowledge-detail hidden></article>
       </section>
 
-      <section class="view" data-view="roadmap">
-        <div class="page-head">
-          <p>Learning Map</p>
-          <h1>学习路线与长期档案</h1>
-          <span>记录从工程基础到 RAG、Agent 和 AI Infra 的学习状态。</span>
-        </div>
-        <div class="roadmap-grid" data-learning-map></div>
-        <div class="section-block split">
-          <div>
-            <div class="section-title">
-              <p>Reading</p>
-              <h2>阅读记录</h2>
-            </div>
-            <div class="reading-list" data-reading></div>
-          </div>
-          <div>
-            <div class="section-title">
-              <p>Timeline</p>
-              <h2>年度时间线</h2>
-            </div>
-            <div class="timeline-list" data-timeline></div>
-          </div>
-        </div>
-      </section>
-
       <section class="view" data-view="lab">
         <div class="page-head">
-          <p>AI Lab</p>
           <h1>站内 AI 能力展示</h1>
-          <span>当前先用静态检索 Demo 验证交互方式，后续再接入真实 FastAPI + Milvus + LLM 服务。</span>
+          <span>实验、探索、创新</span>
         </div>
         <section class="lab-layout">
           <article class="lab-card" data-ai-full></article>
@@ -156,7 +117,7 @@
               <h2>站内检索问答</h2>
             </div>
             <label class="ask-box">
-              <span>输入一个关于项目、RAG、Agent 或学习路线的问题</span>
+              <span>输入一个关于项目、RAG、Agent 或知识库的问题</span>
               <textarea data-ai-question rows="4" placeholder="例如：EduRAG 准备用哪些技术？"></textarea>
             </label>
             <button class="primary-button" type="button" data-ai-ask>生成静态回答</button>
@@ -174,9 +135,8 @@
 
       <section class="view" data-view="about">
         <div class="page-head">
-          <p>About</p>
           <h1>关于我</h1>
-          <span>教育背景、工作经历、技术兴趣和长期目标。</span>
+          <span>AI Agent Engineer</span>
         </div>
         <section class="card-grid">
           <article class="info-card">
@@ -203,6 +163,6 @@
       </footer>
     </main>
 
-    <script src="script.js?v=16" defer></script>
+    <script src="script.js?v=17" defer></script>
   </body>
 </html>

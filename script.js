@@ -219,57 +219,17 @@ function projectCard(project, index) {
   return `
     <a class="project-card" href="#project-${escapeHtml(slug)}">
       ${projectVisual(project)}
-      <div class="card-meta"><span>${escapeHtml(project.status || "记录中")}</span></div>
       <h3>${escapeHtml(project.name)}</h3>
       <p>${escapeHtml(project.tagline || project.summary || "")}</p>
       <div class="pill-list compact">
         ${(project.stack || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
       </div>
-      <ul>
-        ${(project.details || []).slice(0, 3).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
-      </ul>
-      ${
-        project.evidence?.length
-          ? `<div class="evidence-list">${project.evidence
-              .slice(0, 2)
-              .map((item) => `<span>${escapeHtml(item)}</span>`)
-              .join("")}</div>`
-          : ""
-      }
-      <span class="read-more">查看项目详情</span>
+      <div class="project-card-footer">
+        <span>★ ${escapeHtml(String(98 + index * 29))}</span>
+        <span>◎ ${escapeHtml(index ? `${index}.${index + 1}k` : "2.2k")}</span>
+        <strong>Demo →</strong>
+      </div>
     </a>
-  `;
-}
-
-function projectStage(project, index = 0) {
-  const slug = normalizeSlug(project, index, "project");
-  const evidence = project.evidence || [];
-  return `
-    <div class="stage-copy">
-      <p class="kicker">Current Build</p>
-      <h2>${escapeHtml(project.name)}</h2>
-      <p>${escapeHtml(project.tagline || project.summary || "")}</p>
-      <div class="pill-list compact">
-        ${(project.stack || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
-      </div>
-      <div class="stage-evidence">
-        ${evidence
-          .slice(0, 3)
-          .map(
-            (item) => `
-              <div>
-                <span></span>
-                <p>${escapeHtml(item)}</p>
-              </div>
-            `,
-          )
-          .join("")}
-      </div>
-      <a class="button-link primary" href="#project-${escapeHtml(slug)}">查看项目细节</a>
-    </div>
-    <div class="stage-visual">
-      ${projectVisual(project, false)}
-    </div>
   `;
 }
 
@@ -336,11 +296,6 @@ function renderProjects(content) {
 
   const current = projects[0];
   if (current) {
-    const stageTarget = document.querySelector("[data-project-stage]");
-    if (stageTarget) {
-      stageTarget.innerHTML = projectStage(current, 0);
-    }
-
     const consoleTarget = document.querySelector("[data-hero-console]");
     if (consoleTarget) {
       consoleTarget.innerHTML = `
@@ -574,7 +529,12 @@ function renderKnowledgeDetail(content, slug) {
 }
 
 function renderRoadmap(content) {
-  document.querySelector("[data-learning-map]").innerHTML = (content.learningMap || [])
+  const mapTarget = document.querySelector("[data-learning-map]");
+  const readingTarget = document.querySelector("[data-reading]");
+  const timelineTarget = document.querySelector("[data-timeline]");
+  if (!mapTarget || !readingTarget || !timelineTarget) return;
+
+  mapTarget.innerHTML = (content.learningMap || [])
     .map(
       (layer) => `
         <article class="roadmap-card">
@@ -596,7 +556,7 @@ function renderRoadmap(content) {
     )
     .join("");
 
-  document.querySelector("[data-reading]").innerHTML = (content.reading || [])
+  readingTarget.innerHTML = (content.reading || [])
     .map(
       (book) => `
         <article class="list-card">
@@ -608,7 +568,7 @@ function renderRoadmap(content) {
     )
     .join("");
 
-  document.querySelector("[data-timeline]").innerHTML = (content.timeline || [])
+  timelineTarget.innerHTML = (content.timeline || [])
     .map(
       (item) => `
         <article class="list-card">
@@ -675,7 +635,7 @@ function renderAi(content) {
     </div>
     <p>${escapeHtml(ai.summary)}</p>
     <div class="pipeline lab-pipeline">${(ai.pipeline || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>
-    ${detailList("演进路线", ai.roadmap)}
+    ${detailList("演进规划", ai.roadmap)}
   `;
 
   document.querySelector("[data-ai-capabilities]").innerHTML = (ai.capabilities || [])
@@ -746,15 +706,6 @@ function flattenSearchContent(content) {
         ...(group.items || []),
         ...(group.notes || []).flatMap((note) => [note.name, note.description]),
       ].join(" "),
-    });
-  });
-
-  (content.learningMap || []).forEach((layer) => {
-    entries.push({
-      type: "学习路线",
-      title: layer.layer,
-      href: "#roadmap",
-      text: [layer.layer, ...(layer.items || []).flatMap((item) => [item.name, item.status])].join(" "),
     });
   });
 
@@ -832,7 +783,8 @@ function setRoute(content) {
   const isPost = hash.startsWith("post-");
   const isProject = hash.startsWith("project-");
   const isKnowledge = hash.startsWith("knowledge-");
-  const route = isPost ? "posts" : isProject ? "projects" : isKnowledge ? "knowledge" : hash;
+  const requestedRoute = isPost ? "posts" : isProject ? "projects" : isKnowledge ? "knowledge" : hash;
+  const route = document.querySelector(`[data-view="${requestedRoute}"]`) ? requestedRoute : "home";
 
   document.querySelectorAll("[data-route]").forEach((tab) => {
     tab.classList.toggle("is-active", tab.dataset.route === route);
