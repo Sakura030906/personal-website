@@ -9,7 +9,7 @@
     />
     <meta name="theme-color" content="#f8f5ee" />
     <title>晏宏翔 | AI Agent / RAG 方向</title>
-    <link rel="stylesheet" href="styles.css?v=18" />
+    <link rel="stylesheet" href="styles.css?v=19" />
   </head>
   <body>
     <main class="app-shell">
@@ -72,13 +72,6 @@
           <div class="post-list compact-list" data-latest-posts></div>
         </section>
 
-        <section class="section-block calm">
-          <blockquote class="home-quote">
-            <span>“</span>
-            <strong>真正的成长，来自持续构建、分享与复盘。</strong>
-            <em>— 2026</em>
-          </blockquote>
-        </section>
       </section>
 
       <section class="view" data-view="posts">
@@ -103,16 +96,9 @@
             <h2>文章统计</h2>
             <div class="stat-list">
               <div><span>总文章数</span><strong data-post-count>0</strong></div>
-              <div><span>总阅读量</span><strong>48.7k</strong></div>
-              <div><span>今日阅读</span><strong>342</strong></div>
+              <div><span>总阅读量</span><strong data-post-reads>0</strong></div>
+              <div><span>今日阅读</span><strong data-post-today>0</strong></div>
             </div>
-          </section>
-          <section>
-            <h2>订阅更新</h2>
-            <label class="subscribe-box">
-              <input type="email" placeholder="your.email@example.com" />
-              <button type="button">订阅</button>
-            </label>
           </section>
         </aside>
       </section>
@@ -139,14 +125,7 @@
       <section class="view" data-view="knowledge">
         <aside class="knowledge-nav">
           <h2>知识分类</h2>
-          <a class="is-active" href="#knowledge">全部知识</a>
-          <a href="#knowledge">AI 基础</a>
-          <a href="#knowledge">机器学习</a>
-          <a href="#knowledge">深度学习</a>
-          <a href="#knowledge">NLP 自然语言处理</a>
-          <a href="#knowledge">系统设计</a>
-          <a href="#knowledge">工具链</a>
-          <a href="#knowledge">数据结构</a>
+          <div data-knowledge-nav></div>
         </aside>
         <div class="knowledge-main">
           <div class="page-head">
@@ -160,9 +139,9 @@
           <div class="knowledge-grid" data-knowledge></div>
           <section class="knowledge-graph">
             <div class="section-title">
-              <h2>知识图谱</h2>
+              <h2>真实知识节点</h2>
             </div>
-            <div class="graph-canvas" aria-label="知识图谱示意"></div>
+            <div class="knowledge-relations" data-knowledge-relations></div>
           </section>
           <article class="detail-panel" data-knowledge-detail hidden></article>
         </div>
@@ -170,10 +149,10 @@
           <section>
             <h2>知识统计</h2>
             <div class="stat-list">
-              <div><span>知识总数</span><strong>156</strong></div>
-              <div><span>笔记收藏</span><strong>342</strong></div>
-              <div><span>关联关系</span><strong>1,248</strong></div>
-              <div><span>最后更新</span><strong>2026-07-13</strong></div>
+              <div><span>知识主题</span><strong data-knowledge-count>0</strong></div>
+              <div><span>知识节点</span><strong data-knowledge-node-count>0</strong></div>
+              <div><span>笔记数量</span><strong data-note-count>0</strong></div>
+              <div><span>关联项目</span><strong data-project-count>0</strong></div>
             </div>
           </section>
         </aside>
@@ -205,12 +184,6 @@
             <button class="primary-button" type="button" data-ai-ask>发送</button>
             <div class="answer-box" data-ai-answer></div>
           </article>
-        </section>
-        <section class="lab-stats">
-          <div><span>今日对话</span><strong>24</strong></div>
-          <div><span>检索次数</span><strong>156</strong></div>
-          <div><span>Token 使用</span><strong>45.2k</strong></div>
-          <div><span>平均响应</span><strong>2.3s</strong></div>
         </section>
       </section>
 
@@ -252,14 +225,14 @@
       </section>
 
       <footer class="site-footer">
-        <span>学习 487 天</span>
-        <span>文章 68 篇</span>
-        <span>项目 12 个</span>
-        <span>笔记 342 条</span>
+        <span>学习 <strong data-learning-days>1</strong> 天</span>
+        <span>文章 <strong data-footer-post-count>0</strong> 篇</span>
+        <span>项目 <strong data-footer-project-count>0</strong> 个</span>
+        <span>笔记 <strong data-footer-note-count>0</strong> 条</span>
         <span class="footer-links">GitHub　in　✉</span>
       </footer>
     </main>
 
-    <script src="script.js?v=18" defer></script>
+    <script src="script.js?v=19" defer></script>
   </body>
 </html>

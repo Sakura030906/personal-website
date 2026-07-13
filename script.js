@@ -224,11 +224,7 @@ function projectCard(project, index) {
       <div class="pill-list compact">
         ${(project.stack || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
       </div>
-      <div class="project-card-footer">
-        <span>★ ${escapeHtml(String(98 + index * 29))}</span>
-        <span>◎ ${escapeHtml(index ? `${index}.${index + 1}k` : "2.2k")}</span>
-        <strong>Demo →</strong>
-      </div>
+      <span class="project-detail-link">查看详情 →</span>
     </a>
   `;
 }
@@ -396,8 +392,10 @@ function renderPosts(content) {
 
   list.innerHTML = posts.length
     ? posts.map(postCard).join("")
-    : `<div class="empty-state"><strong>还没有文章</strong><p>打开本地编辑器，写下第一篇技术记录。</p></div>`;
-  latest.innerHTML = posts.slice(0, 3).map(postCard).join("");
+    : `<div class="empty-state"><strong>还没有文章</strong><p>之后写的新文章会显示在这里。</p></div>`;
+  latest.innerHTML = posts.length
+    ? posts.slice(0, 3).map(postCard).join("")
+    : `<div class="empty-state"><strong>还没有文章</strong><p>文章发布后会自动出现在这里。</p></div>`;
 
   const categories = [...new Set(posts.map((post) => post.category).filter(Boolean))];
   if (filters) {
@@ -421,13 +419,18 @@ function renderPosts(content) {
   const hotTags = document.querySelector("[data-hot-tags]");
   if (hotTags) {
     const tags = [...new Set(posts.flatMap((post) => post.tags || []))].slice(0, 10);
-    hotTags.innerHTML = tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("");
+    hotTags.innerHTML = tags.length
+      ? tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")
+      : `<span>暂无标签</span>`;
   }
 
   const postCount = document.querySelector("[data-post-count]");
   if (postCount) {
-    postCount.textContent = String(posts.length * 17 + 17);
+    postCount.textContent = String(posts.length);
   }
+
+  setText("[data-post-reads]", "0");
+  setText("[data-post-today]", "0");
 }
 
 function applyPostFilters() {
@@ -487,7 +490,8 @@ function renderArticle(content, slug) {
 }
 
 function renderKnowledge(content) {
-  document.querySelector("[data-knowledge]").innerHTML = (content.knowledgeBase || [])
+  const groups = content.knowledgeBase || [];
+  document.querySelector("[data-knowledge]").innerHTML = groups
     .map((group, index) => {
       const slug = normalizeSlug(group, index, "knowledge");
       return `
@@ -502,6 +506,33 @@ function renderKnowledge(content) {
       `;
     })
     .join("");
+
+  const nav = document.querySelector("[data-knowledge-nav]");
+  if (nav) {
+    nav.innerHTML = [
+      `<a class="is-active" href="#knowledge">全部知识</a>`,
+      ...groups.map((group, index) => {
+        const slug = normalizeSlug(group, index, "knowledge");
+        return `<a href="#knowledge-${escapeHtml(slug)}">${escapeHtml(group.topic)}</a>`;
+      }),
+    ].join("");
+  }
+
+  const relations = document.querySelector("[data-knowledge-relations]");
+  if (relations) {
+    relations.innerHTML = groups.length
+      ? groups
+          .map(
+            (group) => `
+              <article>
+                <strong>${escapeHtml(group.topic)}</strong>
+                <span>${escapeHtml((group.items || []).join(" / "))}</span>
+              </article>
+            `,
+          )
+          .join("")
+      : `<div class="empty-state"><strong>还没有知识节点</strong><p>添加知识库内容后会自动生成节点关系。</p></div>`;
+  }
 }
 
 function renderKnowledgeDetail(content, slug) {
@@ -693,6 +724,42 @@ function renderAi(content) {
   }
 }
 
+function inclusiveDaysSince(dateString) {
+  const start = new Date(`${dateString}T00:00:00+08:00`);
+  const now = new Date();
+  const current = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startLocal = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const diff = Math.floor((current - startLocal) / 86400000) + 1;
+  return Math.max(1, diff);
+}
+
+function countKnowledgeNotes(content) {
+  return (content.knowledgeBase || []).reduce((total, group) => total + (group.notes || []).length, 0);
+}
+
+function countKnowledgeNodes(content) {
+  return (content.knowledgeBase || []).reduce((total, group) => total + (group.items || []).length, 0);
+}
+
+function renderStats(content) {
+  const posts = content.posts || [];
+  const projects = content.projects || [];
+  const knowledge = content.knowledgeBase || [];
+  const noteCount = countKnowledgeNotes(content);
+  const nodeCount = countKnowledgeNodes(content);
+  const learningDays = inclusiveDaysSince("2026-07-01");
+
+  setText("[data-learning-days]", learningDays);
+  setText("[data-footer-post-count]", posts.length);
+  setText("[data-footer-project-count]", projects.length);
+  setText("[data-footer-note-count]", noteCount);
+
+  setText("[data-knowledge-count]", knowledge.length);
+  setText("[data-knowledge-node-count]", nodeCount);
+  setText("[data-note-count]", noteCount);
+  setText("[data-project-count]", projects.length);
+}
+
 function flattenSearchContent(content) {
   const entries = [];
 
@@ -840,6 +907,7 @@ function render(content) {
   renderRoadmap(content);
   renderAbout(content);
   renderAi(content);
+  renderStats(content);
   renderPills("[data-tech-stack]", content.techStack || []);
   const yearTarget = document.querySelector("[data-year]");
   if (yearTarget) yearTarget.textContent = new Date().getFullYear();

@@ -2343,7 +2343,7 @@ body {
 .project-card h3,
 .project-card p,
 .project-card .pill-list,
-.project-card-footer {
+.project-detail-link {
   margin-right: 16px;
   margin-left: 16px;
 }
@@ -2380,19 +2380,17 @@ body {
   font-weight: 700;
 }
 
-.project-card-footer {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.project-detail-link {
+  display: inline-flex;
   margin-top: 16px;
-  color: #4b554f;
+  color: var(--primary);
   font-size: 12px;
   font-weight: 700;
 }
 
-.project-card-footer strong {
-  margin-left: auto;
-  color: var(--primary);
+.site-footer strong {
+  color: inherit;
+  font-weight: 850;
 }
 
 .home-quote {
@@ -2721,6 +2719,37 @@ body {
     linear-gradient(24deg, transparent 48%, rgba(80, 96, 88, 0.12) 49% 51%, transparent 52%),
     linear-gradient(148deg, transparent 48%, rgba(80, 96, 88, 0.12) 49% 51%, transparent 52%);
   content: "";
+}
+
+.knowledge-relations {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.knowledge-relations article {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.knowledge-relations strong {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.knowledge-relations span {
+  color: #59635d;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
 }
 
 .lab-tabs {
