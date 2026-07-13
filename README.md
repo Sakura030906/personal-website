@@ -71,6 +71,19 @@ data/site.json
 
 当前视觉方向是“克制型技术编辑部风格”：减少大面积渐变、Emoji 和强阴影，使用低饱和配色、清晰排版、少量重点卡片和更强的信息层级。首页只承担快速说明“我是谁、在做什么、有什么项目、最近写了什么”，更完整的知识库、路线和 AI Lab 放到独立页面深入阅读。
 
+当前首页继续向“项目优先”收敛：首屏重点不是个人头像，而是 `Building AI Agent Systems.` 和正在构建的项目控制台；首页只保留 Hero、精选项目、最近文章、Now 和页脚。
+
+## 自定义域名
+
+目标域名是 `sakura000702.me`。当前 Sites 仍显示 `pending_validation`。DNS 应配置：
+
+- `@` A 记录：`172.66.3.26`
+- `@` A 记录：`162.159.143.30`
+- `_openai-site-verification` TXT：`openai-site-verification=U5W2Fxwa51nSLjrrO0065b3AtLxt1_KPKog5u9jFHqs`
+- `_cf-custom-hostname` TXT：`6d6051da-4586-440c-a0e1-75a2e0d408d3`
+
+如果 `dig +short sakura000702.me A` 仍返回 `198.18.2.123`，说明阿里云 DNS 记录还没有正确指向 Sites。
+
 ## 发布
 
 修改内容后执行：

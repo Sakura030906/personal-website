@@ -23,12 +23,27 @@ const templates = {
     status: "规划中",
     summary: "项目简介。",
     stack: ["Tech"],
+    tagline: "一句话价值。",
+    visual: {
+      label: "Project Console",
+      metric: "Metric",
+      status: "MVP",
+      items: ["Step"],
+    },
     problem: "问题背景。",
     architecture: "架构设想。",
+    architectureDiagram: ["Client", "API", "Database"],
+    directoryTree: ["app/main.py"],
+    techChoices: ["技术选型"],
+    databaseDesign: ["表设计"],
+    apiExamples: ["接口示例"],
+    deployment: ["部署方式"],
+    performance: ["性能目标"],
     modules: ["模块"],
     details: ["项目要点"],
     evidence: ["当前证据"],
     challenges: ["难点"],
+    pitfalls: ["踩坑"],
     nextSteps: ["下一步"],
     github: "",
     demo: "",
@@ -209,9 +224,47 @@ function renderList(path) {
         field("项目名", entry.name, (value) => (entry.name = value)),
         field("URL 标识", entry.slug, (value) => (entry.slug = value)),
         field("状态", entry.status, (value) => (entry.status = value)),
+        field("一句话价值", entry.tagline, (value) => (entry.tagline = value)),
         field("简介", entry.summary, (value) => (entry.summary = value), 3),
+        field("预览标题", entry.visual?.label, (value) => {
+          entry.visual ||= {};
+          entry.visual.label = value;
+        }),
+        field("预览指标", entry.visual?.metric, (value) => {
+          entry.visual ||= {};
+          entry.visual.metric = value;
+        }),
+        field("预览状态", entry.visual?.status, (value) => {
+          entry.visual ||= {};
+          entry.visual.status = value;
+        }),
+        field("预览节点，逗号分隔", entry.visual?.items || [], (value) => {
+          entry.visual ||= {};
+          entry.visual.items = splitValues(value);
+        }),
         field("问题背景", entry.problem, (value) => (entry.problem = value), 4),
         field("架构设想", entry.architecture, (value) => (entry.architecture = value), 4),
+        field("架构图节点，逗号分隔", entry.architectureDiagram || [], (value) => {
+          entry.architectureDiagram = splitValues(value);
+        }),
+        field("目录结构，逗号分隔", entry.directoryTree || [], (value) => {
+          entry.directoryTree = splitValues(value);
+        }),
+        field("技术选型，逗号分隔", entry.techChoices || [], (value) => {
+          entry.techChoices = splitValues(value);
+        }),
+        field("数据库设计，逗号分隔", entry.databaseDesign || [], (value) => {
+          entry.databaseDesign = splitValues(value);
+        }),
+        field("API，逗号分隔", entry.apiExamples || [], (value) => {
+          entry.apiExamples = splitValues(value);
+        }),
+        field("部署，逗号分隔", entry.deployment || [], (value) => {
+          entry.deployment = splitValues(value);
+        }),
+        field("性能目标，逗号分隔", entry.performance || [], (value) => {
+          entry.performance = splitValues(value);
+        }),
         field("技术栈，逗号分隔", entry.stack || [], (value) => {
           entry.stack = splitValues(value);
         }),
@@ -226,6 +279,9 @@ function renderList(path) {
         }),
         field("主要难点，逗号分隔", entry.challenges || [], (value) => {
           entry.challenges = splitValues(value);
+        }),
+        field("踩坑，逗号分隔", entry.pitfalls || [], (value) => {
+          entry.pitfalls = splitValues(value);
         }),
         field("下一步，逗号分隔", entry.nextSteps || [], (value) => {
           entry.nextSteps = splitValues(value);

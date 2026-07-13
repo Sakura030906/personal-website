@@ -187,7 +187,7 @@ textarea {
 }
 
 .hero-panel {
-  padding: 26px;
+  padding: 18px;
   border: 1px solid var(--line);
   border-radius: 16px;
   background:
@@ -206,6 +206,11 @@ textarea {
 .hero-panel p {
   margin: 0;
   color: #53606d;
+}
+
+.project-console {
+  display: grid;
+  gap: 14px;
 }
 
 .mini-stack {
@@ -231,6 +236,24 @@ textarea {
   margin-top: 24px;
   padding-top: 20px;
   border-top: 1px solid var(--line);
+}
+
+.hero-project-links {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+.hero-project-links a {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.hero-project-links span {
+  color: var(--muted);
 }
 
 .hero-facts div {
@@ -288,6 +311,10 @@ textarea {
   gap: 18px;
 }
 
+[data-featured-projects].project-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .project-card,
 .post-card,
 .knowledge-card,
@@ -325,6 +352,77 @@ textarea {
 .project-card {
   display: block;
   background: #ffffff;
+}
+
+.project-visual {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid #d7ded8;
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(49, 92, 82, 0.08), rgba(154, 107, 69, 0.08)),
+    #fbfaf7;
+}
+
+.project-visual.large {
+  margin-bottom: 0;
+  padding: 22px;
+}
+
+.visual-top,
+.visual-main,
+.visual-flow {
+  display: flex;
+  gap: 10px;
+}
+
+.visual-top {
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.visual-top strong {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.visual-main {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.visual-main b {
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.visual-main em {
+  color: #53606d;
+  font-size: 13px;
+  font-style: normal;
+}
+
+.visual-flow {
+  flex-wrap: wrap;
+}
+
+.visual-flow i {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  padding: 0 9px;
+  border: 1px solid rgba(49, 92, 82, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.74);
+  color: #33423d;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
 }
 
 .project-card:hover,
@@ -664,6 +762,10 @@ textarea {
   background: var(--soft);
 }
 
+.detail-grid .wide-section {
+  grid-column: 1 / -1;
+}
+
 .detail-grid h2,
 .detail-panel section h2,
 .note-card h2,
@@ -684,6 +786,43 @@ textarea {
   margin: 0;
   padding-left: 18px;
   color: #46515d;
+}
+
+.architecture-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.architecture-flow span {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(49, 92, 82, 0.24);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.architecture-flow span:not(:last-child)::after {
+  margin-left: 10px;
+  color: var(--muted);
+  content: "→";
+}
+
+.code-block {
+  overflow: auto;
+  margin: 0;
+  padding: 14px;
+  border-radius: 10px;
+  background: #1f2933;
+  color: #f7f6f2;
+  font-size: 13px;
+  line-height: 1.7;
 }
 
 .lab-layout {
@@ -916,6 +1055,7 @@ textarea {
 @media (max-width: 1020px) {
   .profile-hero,
   .project-grid,
+  [data-featured-projects].project-grid,
   .knowledge-grid,
   .roadmap-grid,
   .card-grid,
