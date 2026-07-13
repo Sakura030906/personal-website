@@ -1,45 +1,35 @@
 const contentUrl = "data/site.json";
 
 const fallbackProfile = {
-  name: "你的名字",
-  initials: "SE",
-  role: "C# 工程师 / 大模型应用开发方向",
-  headline: "计算机专业背景，当前从 C# 工程开发转向 Agent 与 RAG 应用。",
+  name: "晏宏翔",
+  initials: "晏",
+  role: "大模型开发 / Agent、RAG 方向",
   summary:
-    "2025 年毕业于江西师范大学计算机相关专业，目前在上海阅凡自动化科技有限公司担任 C# 工程师。正在系统学习并实践大模型应用开发，重点关注 Agent、RAG、业务系统与 AI 能力结合。",
-  contactNote: "如果你想了解我的学习方向、项目进展或合作机会，可以通过下面的方式联系我。",
-  links: [
-    { label: "Email", value: "hello@example.com", href: "mailto:hello@example.com" },
-    { label: "GitHub", value: "github.com/yourname", href: "https://github.com/" },
+    "2025 年毕业于江西师范大学计算机专业，目前在上海阅凡自动化科技有限公司担任 C# 工程师。正在转向大模型应用开发，重点关注 Agent、RAG、工具调用和业务系统结合。",
+  basicInfo: [
+    { label: "城市", value: "上海" },
+    { label: "邮箱", value: "Cecilia030906@proton.me" },
+    { label: "当前职位", value: "C# 工程师" },
+    { label: "发展方向", value: "Agent / RAG / 大模型应用" },
   ],
-  highlights: [
-    { label: "Current", value: "C# Engineer" },
-    { label: "Direction", value: "Agent / RAG" },
-    { label: "Education", value: "JXNU · CS · 2025" },
-  ],
-  about: [
-    "我本科就读于江西师范大学计算机专业，2021 级，2025 年毕业。在校成绩处于年级前 20%，具备扎实的计算机基础和持续学习能力。",
-    "毕业后加入上海阅凡自动化科技有限公司，担任 C# 工程师，参与自动化业务相关软件开发。当前重点转向大模型应用开发，关注 Agent、RAG、工具调用和企业业务系统结合。",
-    "我希望个人网站保持真实、克制和可持续更新：不夸大经历，不把方向包装成已经完成的成果，而是清楚展示当前阶段、技术积累和正在推进的方向。",
-  ],
-  projects: [],
-  skills: [
-    { title: "工程开发", items: ["C#", ".NET", "业务系统开发", "问题排查"] },
-    { title: "计算机基础", items: ["数据结构", "数据库", "操作系统", "软件工程"] },
-    { title: "AI 应用方向", items: ["Large Language Models", "Agent", "RAG", "Prompt Engineering"] },
+  education: [
+    {
+      title: "江西师范大学",
+      meta: "计算机专业 · 本科 · 2021 - 2025",
+      description: "在校成绩位于年级前 20%，系统学习计算机基础课程，并持续关注软件工程与 AI 应用方向。",
+    },
   ],
   experience: [
     {
-      period: "2025 - Now",
-      title: "C# 工程师 · 上海阅凡自动化科技有限公司",
-      description: "负责自动化业务相关软件开发与维护，使用 C# 参与业务功能实现、问题定位和系统迭代。",
-    },
-    {
-      period: "2021 - 2025",
-      title: "江西师范大学 · 计算机专业",
-      description: "本科阶段系统学习计算机专业课程，在校成绩位于年级前 20%，毕业后进入软件开发岗位。",
+      title: "上海阅凡自动化科技有限公司",
+      meta: "C# 工程师 · 2025 - 至今",
+      description: "参与自动化业务相关软件开发与维护，负责业务功能实现、问题定位和系统迭代。",
     },
   ],
+  skills: ["C#", ".NET", "业务系统开发", "问题排查", "大模型应用", "Agent", "RAG"],
+  projects: [],
+  interests: ["阅读", "技术写作", "AI 工具", "开源项目", "跑步"],
+  blogPosts: [],
 };
 
 function escapeHtml(value) {
@@ -51,31 +41,23 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function slugify(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w\u4e00-\u9fa5-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 function setText(selector, value) {
   document.querySelectorAll(selector).forEach((node) => {
     node.textContent = value;
   });
 }
 
-function renderLinks(profile) {
-  const links = profile.links || [];
-  const compact = links
-    .map(
-      (link) => `
-        <a href="${escapeHtml(link.href)}" target="${link.href?.startsWith("http") ? "_blank" : "_self"}" rel="noreferrer">
-          <span>${escapeHtml(link.label)}</span>
-          <strong>${escapeHtml(link.value)}</strong>
-        </a>
-      `,
-    )
-    .join("");
-
-  document.querySelector("[data-links]").innerHTML = compact;
-  document.querySelector("[data-contact-actions]").innerHTML = compact;
-}
-
-function renderHighlights(profile) {
-  document.querySelector("[data-highlights]").innerHTML = (profile.highlights || [])
+function renderBasicInfo(profile) {
+  document.querySelector("[data-basic-info]").innerHTML = (profile.basicInfo || [])
     .map(
       (item) => `
         <div>
@@ -87,91 +69,160 @@ function renderHighlights(profile) {
     .join("");
 }
 
-function renderAbout(profile) {
-  document.querySelector("[data-about]").innerHTML = (profile.about || [])
-    .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+function renderTimeline(selector, items) {
+  document.querySelector(selector).innerHTML = (items || [])
+    .map(
+      (item) => `
+        <section class="timeline-item">
+          <span class="dot"></span>
+          <div>
+            <h3>${escapeHtml(item.title)}</h3>
+            <p class="meta">${escapeHtml(item.meta)}</p>
+            <p>${escapeHtml(item.description)}</p>
+          </div>
+        </section>
+      `,
+    )
+    .join("");
+}
+
+function renderPills(selector, items) {
+  document.querySelector(selector).innerHTML = (items || [])
+    .map((item) => `<span>${escapeHtml(item)}</span>`)
     .join("");
 }
 
 function renderProjects(profile) {
   const projects = profile.projects || [];
+  const target = document.querySelector("[data-projects]");
+
   if (projects.length === 0) {
-    document.querySelector("[data-projects]").innerHTML = `
-      <article class="project-item empty-state">
-        <div>
-          <h3>项目经历整理中</h3>
-          <p>这里先保留为空。后续可以补充 C# 工程项目、大模型应用 Demo、Agent 或 RAG 相关实践。</p>
-          <p class="impact">保持真实，比过度包装更重要。</p>
-        </div>
-      </article>
+    target.innerHTML = `
+      <div class="empty-mini">
+        <strong>项目作品整理中</strong>
+        <p>后续可以补充 C# 工程项目、大模型 Demo、Agent 或 RAG 实践。</p>
+      </div>
     `;
     return;
   }
 
-  document.querySelector("[data-projects]").innerHTML = projects
+  target.innerHTML = projects
     .map(
       (project) => `
-        <article class="project-item">
-          <div>
-            <h3>${escapeHtml(project.name)}</h3>
-            <p>${escapeHtml(project.description)}</p>
-            <p class="impact">${escapeHtml(project.impact)}</p>
+        <article class="project-card">
+          <h3>${escapeHtml(project.name)}</h3>
+          <p>${escapeHtml(project.description)}</p>
+          <div class="pill-list compact">
+            ${(project.stack || []).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
           </div>
-          <ul>
-            ${(project.stack || []).map((tech) => `<li>${escapeHtml(tech)}</li>`).join("")}
-          </ul>
         </article>
       `,
     )
     .join("");
 }
 
-function renderSkills(profile) {
-  document.querySelector("[data-skills]").innerHTML = (profile.skills || [])
-    .map(
-      (group) => `
-        <article class="skill-card">
-          <h3>${escapeHtml(group.title)}</h3>
-          <ul>
-            ${(group.items || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
-          </ul>
-        </article>
-      `,
-    )
+function renderBlogList(profile) {
+  const posts = profile.blogPosts || [];
+  const list = document.querySelector("[data-blog-list]");
+  const article = document.querySelector("[data-blog-article]");
+
+  article.hidden = true;
+
+  if (posts.length === 0) {
+    list.innerHTML = `
+      <div class="blog-empty">
+        <div>📭</div>
+        <p>还没有文章，先在本地编辑后台写第一篇吧。</p>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = posts
+    .map((post, index) => {
+      const slug = post.slug || slugify(post.title) || `post-${index + 1}`;
+      return `
+        <a class="blog-card" href="#post-${escapeHtml(slug)}" data-post-slug="${escapeHtml(slug)}">
+          <time>${escapeHtml(post.date || "未设置日期")}</time>
+          <h2>${escapeHtml(post.title)}</h2>
+          <p>${escapeHtml(post.summary || "")}</p>
+          <div class="pill-list compact">
+            ${(post.tags || []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
+          </div>
+        </a>
+      `;
+    })
     .join("");
 }
 
-function renderExperience(profile) {
-  document.querySelector("[data-experience]").innerHTML = (profile.experience || [])
-    .map(
-      (item) => `
-        <article class="timeline-item">
-          <time>${escapeHtml(item.period)}</time>
-          <div>
-            <h3>${escapeHtml(item.title)}</h3>
-            <p>${escapeHtml(item.description)}</p>
-          </div>
-        </article>
-      `,
-    )
-    .join("");
+function renderArticle(profile, slug) {
+  const posts = profile.blogPosts || [];
+  const post = posts.find((item, index) => (item.slug || slugify(item.title) || `post-${index + 1}`) === slug);
+  const article = document.querySelector("[data-blog-article]");
+  const list = document.querySelector("[data-blog-list]");
+
+  if (!post) {
+    article.hidden = true;
+    list.hidden = false;
+    return;
+  }
+
+  list.hidden = true;
+  article.hidden = false;
+  article.innerHTML = `
+    <a class="back-link" href="#blog">← 返回博客</a>
+    <time>${escapeHtml(post.date || "未设置日期")}</time>
+    <h1>${escapeHtml(post.title)}</h1>
+    <div class="pill-list compact">
+      ${(post.tags || []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
+    </div>
+    <div class="article-body">
+      ${String(post.content || "")
+        .split(/\n{2,}/)
+        .map((paragraph) => `<p>${escapeHtml(paragraph).replaceAll("\n", "<br>")}</p>`)
+        .join("")}
+    </div>
+  `;
+}
+
+function setRoute(profile) {
+  const hash = window.location.hash.replace("#", "") || "home";
+  const isPost = hash.startsWith("post-");
+  const route = isPost ? "blog" : hash;
+
+  document.querySelectorAll("[data-route]").forEach((tab) => {
+    tab.classList.toggle("is-active", tab.dataset.route === route);
+  });
+
+  document.querySelectorAll("[data-view]").forEach((view) => {
+    view.classList.toggle("is-active", view.dataset.view === route);
+  });
+
+  document.querySelector("[data-blog-list]").hidden = false;
+  if (isPost) {
+    renderArticle(profile, hash.replace("post-", ""));
+  } else if (route === "blog") {
+    document.querySelector("[data-blog-article]").hidden = true;
+    document.querySelector("[data-blog-list]").hidden = false;
+  }
 }
 
 function renderProfile(profile) {
-  document.title = `${profile.name} | ${profile.role}`;
+  document.title = `${profile.name} | 个人网站`;
   setText('[data-field="name"]', profile.name);
   setText('[data-field="initials"]', profile.initials);
   setText('[data-field="role"]', profile.role);
-  setText('[data-field="headline"]', profile.headline);
   setText('[data-field="summary"]', profile.summary);
-  setText('[data-field="contactNote"]', profile.contactNote);
-  renderLinks(profile);
-  renderHighlights(profile);
-  renderAbout(profile);
+  renderBasicInfo(profile);
+  renderTimeline("[data-education]", profile.education);
+  renderTimeline("[data-experience]", profile.experience);
+  renderPills("[data-skills]", profile.skills);
+  renderPills("[data-interests]", profile.interests);
   renderProjects(profile);
-  renderSkills(profile);
-  renderExperience(profile);
+  renderBlogList(profile);
+  setRoute(profile);
   document.querySelector("[data-year]").textContent = new Date().getFullYear();
+  window.addEventListener("hashchange", () => setRoute(profile));
 }
 
 async function loadProfile() {

@@ -1,20 +1,31 @@
 let state;
 
 const templates = {
-  links: { label: "New", value: "example.com", href: "https://example.com" },
-  highlights: { label: "Label", value: "Value" },
-  about: "新的介绍段落。",
+  basicInfo: { label: "名称", value: "内容" },
+  education: {
+    title: "学校名称",
+    meta: "专业 · 学历 · 时间",
+    description: "教育经历说明。",
+  },
+  experience: {
+    title: "公司名称",
+    meta: "职位 · 时间",
+    description: "工作经历说明。",
+  },
+  skills: "新技能",
+  interests: "新兴趣",
   projects: {
     name: "项目名称",
     description: "项目说明。",
-    impact: "项目结果。",
     stack: ["Tech"],
   },
-  skills: { title: "技能组", items: ["能力"] },
-  experience: {
-    period: "2024 - Now",
-    title: "职位 / 角色",
-    description: "经历说明。",
+  blogPosts: {
+    title: "新文章标题",
+    slug: "new-post",
+    date: new Date().toISOString().slice(0, 10),
+    summary: "文章摘要。",
+    tags: ["学习"],
+    content: "在这里写正文。\n\n可以用空行分段。",
   },
 };
 
@@ -45,9 +56,17 @@ function itemShell(title, onRemove) {
   return item;
 }
 
+function splitValues(value) {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function renderList(name) {
   const target = document.querySelector(`[data-list="${name}"]`);
   target.innerHTML = "";
+  state[name] ||= [];
 
   state[name].forEach((entry, index) => {
     const item = itemShell(`${name} #${index + 1}`, () => {
@@ -55,50 +74,45 @@ function renderList(name) {
       render();
     });
 
-    if (name === "links") {
-      item.append(
-        field("标签", entry.label, (value) => (entry.label = value)),
-        field("显示值", entry.value, (value) => (entry.value = value)),
-        field("链接地址", entry.href, (value) => (entry.href = value)),
-      );
-    }
-
-    if (name === "highlights") {
+    if (name === "basicInfo") {
       item.append(
         field("名称", entry.label, (value) => (entry.label = value)),
-        field("值", entry.value, (value) => (entry.value = value)),
+        field("内容", entry.value, (value) => (entry.value = value)),
       );
     }
 
-    if (name === "about") {
-      item.append(field("段落", entry, (value) => (state[name][index] = value), 4));
+    if (name === "education" || name === "experience") {
+      item.append(
+        field("标题", entry.title, (value) => (entry.title = value)),
+        field("副标题/时间", entry.meta, (value) => (entry.meta = value)),
+        field("说明", entry.description, (value) => (entry.description = value), 4),
+      );
+    }
+
+    if (name === "skills" || name === "interests") {
+      item.append(field("内容", entry, (value) => (state[name][index] = value)));
     }
 
     if (name === "projects") {
       item.append(
         field("项目名", entry.name, (value) => (entry.name = value)),
         field("说明", entry.description, (value) => (entry.description = value), 3),
-        field("结果", entry.impact, (value) => (entry.impact = value), 2),
-        field("技术栈，逗号分隔", entry.stack, (value) => {
-          entry.stack = value.split(",").map((item) => item.trim()).filter(Boolean);
+        field("技术栈，逗号分隔", entry.stack || [], (value) => {
+          entry.stack = splitValues(value);
         }),
       );
     }
 
-    if (name === "skills") {
+    if (name === "blogPosts") {
       item.append(
         field("标题", entry.title, (value) => (entry.title = value)),
-        field("技能，逗号分隔", entry.items, (value) => {
-          entry.items = value.split(",").map((item) => item.trim()).filter(Boolean);
+        field("URL 标识", entry.slug, (value) => (entry.slug = value)),
+        field("日期", entry.date, (value) => (entry.date = value)),
+        field("摘要", entry.summary, (value) => (entry.summary = value), 3),
+        field("标签，逗号分隔", entry.tags || [], (value) => {
+          entry.tags = splitValues(value);
         }),
-      );
-    }
-
-    if (name === "experience") {
-      item.append(
-        field("时间", entry.period, (value) => (entry.period = value)),
-        field("标题", entry.title, (value) => (entry.title = value)),
-        field("说明", entry.description, (value) => (entry.description = value), 3),
+        field("正文", entry.content, (value) => (entry.content = value), 10),
       );
     }
 
@@ -114,7 +128,7 @@ function render() {
     };
   });
 
-  ["links", "highlights", "about", "projects", "skills", "experience"].forEach(renderList);
+  ["basicInfo", "education", "experience", "skills", "projects", "interests", "blogPosts"].forEach(renderList);
 }
 
 function showToast(message) {
@@ -131,12 +145,7 @@ async function save() {
     body: JSON.stringify(state),
   });
 
-  if (!response.ok) {
-    showToast("保存失败");
-    return;
-  }
-
-  showToast("已保存到 data/site.json");
+  showToast(response.ok ? "已保存到 data/site.json" : "保存失败");
 }
 
 async function init() {
@@ -146,6 +155,7 @@ async function init() {
   document.querySelectorAll("[data-add]").forEach((button) => {
     button.addEventListener("click", () => {
       const key = button.dataset.add;
+      state[key] ||= [];
       state[key].push(structuredClone(templates[key]));
       render();
     });

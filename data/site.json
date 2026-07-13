@@ -1,66 +1,59 @@
 {
-  "name": "你的名字",
-  "initials": "SE",
-  "role": "C# 工程师 / 大模型应用开发方向",
-  "headline": "计算机专业背景，当前从 C# 工程开发转向 Agent 与 RAG 应用。",
-  "summary": "2025 年毕业于江西师范大学计算机相关专业，目前在上海阅凡自动化科技有限公司担任 C# 工程师。正在系统学习并实践大模型应用开发，重点关注 Agent、RAG、业务系统与 AI 能力结合。",
-  "contactNote": "如果你想了解我的学习方向、项目进展或合作机会，可以通过下面的方式联系我。",
-  "links": [
+  "name": "晏宏翔",
+  "initials": "晏",
+  "role": "大模型开发 / Agent、RAG 方向",
+  "summary": "2025 年毕业于江西师范大学计算机专业，目前在上海阅凡自动化科技有限公司担任 C# 工程师。正在转向大模型应用开发，重点关注 Agent、RAG、工具调用和业务系统结合。",
+  "basicInfo": [
     {
-      "label": "Email",
-      "value": "hello@example.com",
-      "href": "mailto:hello@example.com"
+      "label": "城市",
+      "value": "上海"
     },
     {
-      "label": "GitHub",
-      "value": "github.com/yourname",
-      "href": "https://github.com/"
+      "label": "邮箱",
+      "value": "Cecilia030906@proton.me"
+    },
+    {
+      "label": "当前职位",
+      "value": "C# 工程师"
+    },
+    {
+      "label": "发展方向",
+      "value": "Agent / RAG / 大模型应用"
     }
   ],
-  "highlights": [
+  "education": [
     {
-      "label": "Current",
-      "value": "C# Engineer"
-    },
-    {
-      "label": "Direction",
-      "value": "Agent / RAG"
-    },
-    {
-      "label": "Education",
-      "value": "JXNU · CS · 2025"
-    }
-  ],
-  "about": [
-    "我本科就读于江西师范大学计算机专业，2021 级，2025 年毕业。在校成绩处于年级前 20%，具备扎实的计算机基础和持续学习能力。",
-    "毕业后加入上海阅凡自动化科技有限公司，担任 C# 工程师，参与自动化业务相关软件开发。当前重点转向大模型应用开发，关注 Agent、RAG、工具调用和企业业务系统结合。",
-    "我希望个人网站保持真实、克制和可持续更新：不夸大经历，不把方向包装成已经完成的成果，而是清楚展示当前阶段、技术积累和正在推进的方向。"
-  ],
-  "projects": [],
-  "skills": [
-    {
-      "title": "工程开发",
-      "items": ["C#", ".NET", "业务系统开发", "问题排查"]
-    },
-    {
-      "title": "计算机基础",
-      "items": ["数据结构", "数据库", "操作系统", "软件工程"]
-    },
-    {
-      "title": "AI 应用方向",
-      "items": ["Large Language Models", "Agent", "RAG", "Prompt Engineering"]
+      "title": "江西师范大学",
+      "meta": "计算机专业 · 本科 · 2021 - 2025",
+      "description": "在校成绩位于年级前 20%，系统学习计算机基础课程，并持续关注软件工程与 AI 应用方向。"
     }
   ],
   "experience": [
     {
-      "period": "2025 - Now",
-      "title": "C# 工程师 · 上海阅凡自动化科技有限公司",
-      "description": "负责自动化业务相关软件开发与维护，使用 C# 参与业务功能实现、问题定位和系统迭代。"
-    },
-    {
-      "period": "2021 - 2025",
-      "title": "江西师范大学 · 计算机专业",
-      "description": "本科阶段系统学习计算机专业课程，在校成绩位于年级前 20%，毕业后进入软件开发岗位。"
+      "title": "上海阅凡自动化科技有限公司",
+      "meta": "C# 工程师 · 2025 - 至今",
+      "description": "参与自动化业务相关软件开发与维护，负责业务功能实现、问题定位和系统迭代。"
     }
-  ]
+  ],
+  "skills": [
+    "C#",
+    ".NET",
+    "业务系统开发",
+    "问题排查",
+    "数据结构",
+    "数据库",
+    "大模型应用",
+    "Agent",
+    "RAG",
+    "Prompt Engineering"
+  ],
+  "projects": [],
+  "interests": [
+    "阅读",
+    "技术写作",
+    "AI 工具",
+    "开源项目",
+    "跑步"
+  ],
+  "blogPosts": []
 }

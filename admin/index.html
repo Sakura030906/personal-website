@@ -20,44 +20,50 @@
 
     <main>
       <section class="panel">
-        <h2>基本信息</h2>
+        <h2>首页信息</h2>
         <div class="grid two">
           <label>姓名<input data-path="name" /></label>
-          <label>缩写<input data-path="initials" /></label>
-          <label>角色<input data-path="role" /></label>
-          <label>联系说明<input data-path="contactNote" /></label>
+          <label>头像字<input data-path="initials" /></label>
+          <label>方向/角色<input data-path="role" /></label>
         </div>
-        <label>首页标题<textarea data-path="headline" rows="2"></textarea></label>
-        <label>简介<textarea data-path="summary" rows="4"></textarea></label>
+        <label>个人简介<textarea data-path="summary" rows="4"></textarea></label>
       </section>
 
       <section class="panel">
         <div class="panel-title">
-          <h2>链接</h2>
-          <button type="button" data-add="links">添加链接</button>
+          <h2>基本信息</h2>
+          <button type="button" data-add="basicInfo">添加信息</button>
         </div>
-        <div data-list="links"></div>
+        <div data-list="basicInfo"></div>
       </section>
 
       <section class="panel">
         <div class="panel-title">
-          <h2>个人亮点</h2>
-          <button type="button" data-add="highlights">添加亮点</button>
+          <h2>教育经历</h2>
+          <button type="button" data-add="education">添加教育</button>
         </div>
-        <div data-list="highlights"></div>
+        <div data-list="education"></div>
       </section>
 
       <section class="panel">
         <div class="panel-title">
-          <h2>关于</h2>
-          <button type="button" data-add="about">添加段落</button>
+          <h2>工作经历</h2>
+          <button type="button" data-add="experience">添加工作</button>
         </div>
-        <div data-list="about"></div>
+        <div data-list="experience"></div>
       </section>
 
       <section class="panel">
         <div class="panel-title">
-          <h2>项目</h2>
+          <h2>专业技能</h2>
+          <button type="button" data-add="skills">添加技能</button>
+        </div>
+        <div data-list="skills"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>项目作品</h2>
           <button type="button" data-add="projects">添加项目</button>
         </div>
         <div data-list="projects"></div>
@@ -65,18 +71,18 @@
 
       <section class="panel">
         <div class="panel-title">
-          <h2>技能</h2>
-          <button type="button" data-add="skills">添加技能组</button>
+          <h2>兴趣爱好</h2>
+          <button type="button" data-add="interests">添加兴趣</button>
         </div>
-        <div data-list="skills"></div>
+        <div data-list="interests"></div>
       </section>
 
       <section class="panel">
         <div class="panel-title">
-          <h2>经历</h2>
-          <button type="button" data-add="experience">添加经历</button>
+          <h2>博客文章</h2>
+          <button type="button" data-add="blogPosts">写文章</button>
         </div>
-        <div data-list="experience"></div>
+        <div data-list="blogPosts"></div>
       </section>
     </main>
 

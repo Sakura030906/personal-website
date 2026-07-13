@@ -5,91 +5,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="高级程序员个人网站，展示工程背景、项目经验、技术能力与联系方式。"
+      content="晏宏翔的个人网站，记录个人介绍、技术方向、工作经历和博客文章。"
     />
-    <meta name="theme-color" content="#f6f4ef" />
-    <title>个人网站 | 高级软件工程师</title>
-    <link rel="preload" href="assets/hero-workspace.png" as="image" />
+    <meta name="theme-color" content="#f4f6fb" />
+    <title>晏宏翔 | 个人网站</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="site-header">
-      <a class="brand" href="#top" aria-label="回到首页">
-        <span class="brand-mark" data-field="initials">SE</span>
-        <span data-field="name">你的名字</span>
-      </a>
-      <nav class="site-nav" aria-label="主导航">
-        <a href="#about">关于</a>
-        <a href="#projects">项目</a>
-        <a href="#experience">经历</a>
-        <a href="#contact">联系</a>
-      </nav>
-    </header>
+    <main class="app-shell">
+      <header class="site-topbar">
+        <nav class="tabs" aria-label="主导航">
+          <a class="tab is-active" href="#home" data-route="home">🏠 首页</a>
+          <a class="tab" href="#blog" data-route="blog">📝 博客</a>
+        </nav>
+      </header>
 
-    <main id="top">
-      <section class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow" data-field="role">Senior Software Engineer</p>
-          <h1 data-field="headline">构建稳定、清晰、长期可维护的软件系统。</h1>
-          <p class="hero-summary" data-field="summary">
-            专注后端系统、全栈产品交付、工程效率和可观测性。习惯从问题边界、系统设计、实现质量到上线维护完整负责。
-          </p>
-          <div class="contact-strip" data-links></div>
-        </div>
-        <aside class="profile-panel" aria-label="个人概览">
-          <img src="assets/hero-workspace.png" alt="软件工程工作台" />
-          <dl data-highlights></dl>
-        </aside>
+      <section class="view is-active" data-view="home">
+        <section class="profile-hero">
+          <div class="hero-cover"></div>
+          <div class="avatar" data-field="initials">晏</div>
+          <div class="hero-content">
+            <h1 data-field="name">晏宏翔</h1>
+            <p class="role" data-field="role">大模型开发 / Agent、RAG 方向</p>
+            <p class="intro" data-field="summary"></p>
+          </div>
+        </section>
+
+        <section class="card-grid">
+          <article class="info-card">
+            <h2><span>👤</span> 基本信息</h2>
+            <div class="divider"></div>
+            <dl data-basic-info></dl>
+          </article>
+
+          <article class="info-card">
+            <h2><span>🎓</span> 教育经历</h2>
+            <div class="divider"></div>
+            <div class="timeline" data-education></div>
+          </article>
+
+          <article class="info-card">
+            <h2><span>💼</span> 工作经历</h2>
+            <div class="divider"></div>
+            <div class="timeline" data-experience></div>
+          </article>
+
+          <article class="info-card">
+            <h2><span>⚡</span> 专业技能</h2>
+            <div class="divider"></div>
+            <div class="pill-list" data-skills></div>
+          </article>
+
+          <article class="info-card">
+            <h2><span>🚀</span> 项目作品</h2>
+            <div class="divider"></div>
+            <div class="project-list" data-projects></div>
+          </article>
+
+          <article class="info-card">
+            <h2><span>🎯</span> 兴趣爱好</h2>
+            <div class="divider"></div>
+            <div class="pill-list soft" data-interests></div>
+          </article>
+        </section>
       </section>
 
-      <section class="section" id="about">
-        <div class="section-label">About</div>
-        <div class="section-body">
-          <h2>工程风格</h2>
-          <div class="body-copy" data-about></div>
+      <section class="view" data-view="blog">
+        <div class="blog-head">
+          <div>
+            <p class="kicker">Writing</p>
+            <h1>我的博客</h1>
+          </div>
+          <p>记录大模型开发、Agent、RAG、C# 工程实践和阶段性学习笔记。</p>
         </div>
+        <div class="blog-list" data-blog-list></div>
+        <article class="blog-article" data-blog-article hidden></article>
       </section>
 
-      <section class="section" id="projects">
-        <div class="section-label">Projects</div>
-        <div class="section-body">
-          <h2>代表项目</h2>
-          <div class="project-list" data-projects></div>
-        </div>
-      </section>
-
-      <section class="section">
-        <div class="section-label">Skills</div>
-        <div class="section-body">
-          <h2>技术能力</h2>
-          <div class="skill-grid" data-skills></div>
-        </div>
-      </section>
-
-      <section class="section" id="experience">
-        <div class="section-label">Experience</div>
-        <div class="section-body">
-          <h2>经历</h2>
-          <div class="timeline" data-experience></div>
-        </div>
-      </section>
-
-      <section class="section contact" id="contact">
-        <div class="section-label">Contact</div>
-        <div class="section-body">
-          <h2>联系</h2>
-          <p data-field="contactNote">
-            如果你想了解我的项目、简历或合作方式，可以通过下面的方式联系我。
-          </p>
-          <div class="contact-actions" data-contact-actions></div>
-        </div>
-      </section>
+      <footer class="site-footer">
+        <span>© <span data-year></span> <span data-field="name">晏宏翔</span></span>
+        <span>用真实经历和持续记录构建个人主页</span>
+      </footer>
     </main>
-
-    <footer class="site-footer">
-      <span>© <span data-year></span> <span data-field="name">你的名字</span></span>
-      <span>Public read-only profile</span>
-    </footer>
 
     <script src="script.js" defer></script>
   </body>
