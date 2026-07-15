@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: crpi-sul1qi73t2e5rqq7.cn-hongkong.personal.cr.aliyuncs.com/hongxiang000702/postgres:16-alpine
+
+  etcd:
+    image: crpi-sul1qi73t2e5rqq7.cn-hongkong.personal.cr.aliyuncs.com/hongxiang000702/etcd:v3.5.18
+
+  minio:
+    image: crpi-sul1qi73t2e5rqq7.cn-hongkong.personal.cr.aliyuncs.com/hongxiang000702/minio:2025-04-22
+
+  milvus:
+    image: crpi-sul1qi73t2e5rqq7.cn-hongkong.personal.cr.aliyuncs.com/hongxiang000702/milvus:v2.5.14
+
+  api:
+    image: crpi-sul1qi73t2e5rqq7.cn-hongkong.personal.cr.aliyuncs.com/hongxiang000702/backend:2026.07.16
+
+  web:
+    image: crpi-sul1qi73t2e5rqq7.cn-hongkong.personal.cr.aliyuncs.com/hongxiang000702/frontend:2026.07.16
+
+  backup:
+    image: crpi-sul1qi73t2e5rqq7.cn-hongkong.personal.cr.aliyuncs.com/hongxiang000702/backup:2026.07.16
+
+  certbot:
+    image: crpi-sul1qi73t2e5rqq7.cn-hongkong.personal.cr.aliyuncs.coom/hongxiang000702/certbot:v3.2.0
