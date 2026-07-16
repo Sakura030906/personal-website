@@ -12,7 +12,7 @@ services:
     image: crpi-sul1qi73t2e5rqq7.cn-hongkong.personal.cr.aliyuncs.com/hongxiang000702/milvus:v2.5.14
 
   api:
-    image: crpi-sul1qi73t2e5rqq7.cn-hongkong.personal.cr.aliyuncs.com/hongxiang000702/backend:2026.07.16-fix1
+    image: crpi-sul1qi73t2e5rqq7.cn-hongkong.personal.cr.aliyuncs.com/hongxiang000702/backend:2026.07.16-fix2
   web:
     image: crpi-sul1qi73t2e5rqq7.cn-hongkong.personal.cr.aliyuncs.com/hongxiang000702/frontend:2026.07.16
 
