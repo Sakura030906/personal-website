@@ -7,9 +7,14 @@
       name="description"
       content="晏宏翔的个人品牌主页、技术博客、项目作品集、学习档案与 AI 能力展示平台。"
     />
+    <meta name="author" content="晏宏翔" />
+    <meta property="og:title" content="晏宏翔 | AI Agent / RAG 方向" />
+    <meta property="og:description" content="从工业软件开发转向 AI Agent 工程，持续构建项目、文章、知识库与站内 AI 能力。" />
+    <meta property="og:type" content="website" />
     <meta name="theme-color" content="#f8f5ee" />
     <title>晏宏翔 | AI Agent / RAG 方向</title>
-    <link rel="stylesheet" href="styles.css?v=19" />
+    <link rel="alternate" type="application/rss+xml" title="晏宏翔的文章 RSS" href="feed.xml" />
+    <link rel="stylesheet" href="styles.css?v=24" />
   </head>
   <body>
     <main class="app-shell">
@@ -24,12 +29,14 @@
           <a class="tab" href="#posts" data-route="posts">文章</a>
           <a class="tab" href="#projects" data-route="projects">项目</a>
           <a class="tab" href="#knowledge" data-route="knowledge">知识库</a>
+          <a class="tab" href="#graph" data-route="graph">知识图谱</a>
+          <a class="tab" href="#now" data-route="now">Now</a>
           <a class="tab" href="#lab" data-route="lab">AI Lab</a>
           <a class="tab" href="#about" data-route="about">关于</a>
         </nav>
         <div class="topbar-tools" aria-label="页面工具">
           <button type="button" aria-label="夜间模式">◐</button>
-          <button type="button" aria-label="搜索">⌕</button>
+          <button type="button" aria-label="打开命令面板" data-open-search>⌘K</button>
         </div>
       </header>
 
@@ -58,6 +65,14 @@
 
         <section class="section-block">
           <div class="section-title">
+            <h2>成长仪表盘</h2>
+            <a href="#now">查看当前状态 →</a>
+          </div>
+          <div class="growth-dashboard" data-growth-dashboard></div>
+        </section>
+
+        <section class="section-block">
+          <div class="section-title">
             <h2>精选项目</h2>
             <a href="#projects">查看全部 →</a>
           </div>
@@ -74,31 +89,71 @@
 
       </section>
 
+      <section class="view now-view" data-view="now">
+        <aside class="now-navigation" aria-label="Now 页面导航">
+          <a class="is-active" href="#now"><span>⌂</span>Now</a>
+          <a href="#posts"><span>▣</span>专栏</a>
+          <a href="#graph"><span>⌘</span>图谱</a>
+          <a href="#knowledge"><span>□</span>知识节点</a>
+          <a href="#building"><span>◇</span>Building</a>
+          <a href="#changelog"><span>○</span>更新日志</a>
+        </aside>
+        <main class="now-workspace">
+          <div class="page-head now-page-head">
+            <h1>Now</h1>
+            <span>当下的构建，决定未来的视界。</span>
+          </div>
+          <article class="now-main" data-now-main></article>
+        </main>
+        <aside class="now-side" data-now-side></aside>
+      </section>
+
+      <section class="view" data-view="building">
+        <div class="page-head">
+          <h1>Building</h1>
+          <span>持续构建中的系统、能力和阶段进度</span>
+        </div>
+        <div class="building-grid" data-building></div>
+      </section>
+
+      <section class="view" data-view="changelog">
+        <div class="page-head">
+          <h1>Changelog</h1>
+          <span>把这个网站当作一个产品持续迭代</span>
+        </div>
+        <div class="changelog-list" data-changelog></div>
+      </section>
+
       <section class="view" data-view="posts">
         <div class="content-main">
-          <div class="page-head">
-            <h1>文章</h1>
-            <span>记录学习过程，分享技术思考</span>
+          <div class="page-head" data-post-overview-head>
+            <h1>专栏</h1>
+            <span>记录生活、整理思考，也沉淀持续学习的过程</span>
           </div>
-          <div class="post-tools">
-            <div class="filter-row" data-post-filters></div>
-            <input data-post-search type="search" placeholder="搜索文章..." />
-          </div>
-          <div class="post-list" data-posts></div>
+          <div class="post-column-grid" data-post-columns></div>
+          <section class="post-column-detail" data-post-column-detail hidden>
+            <header class="post-column-head" data-post-column-head></header>
+            <div class="post-tools">
+              <input data-post-search type="search" placeholder="搜索这个专栏的文章..." />
+            </div>
+            <div class="post-list" data-posts></div>
+          </section>
           <article class="post-article" data-post-article hidden></article>
         </div>
         <aside class="page-sidebar">
           <section>
-            <h2>热门标签</h2>
-            <div class="tag-cloud" data-hot-tags></div>
-          </section>
-          <section>
-            <h2>文章统计</h2>
+            <h2>写作系统</h2>
             <div class="stat-list">
               <div><span>总文章数</span><strong data-post-count>0</strong></div>
-              <div><span>总阅读量</span><strong data-post-reads>0</strong></div>
-              <div><span>今日阅读</span><strong data-post-today>0</strong></div>
+              <div><span>总字数</span><strong data-post-words>0</strong></div>
+              <div><span>Markdown</span><strong>已支持</strong></div>
+              <div><span>Mermaid</span><strong>已支持</strong></div>
+              <div><span>RSS</span><strong>构建生成</strong></div>
             </div>
+          </section>
+          <section>
+            <h2>最近更新</h2>
+            <div class="recent-post-list" data-recent-posts></div>
           </section>
         </aside>
       </section>
@@ -124,104 +179,322 @@
 
       <section class="view" data-view="knowledge">
         <aside class="knowledge-nav">
-          <h2>知识分类</h2>
+          <div class="knowledge-nav-brand">
+            <span aria-hidden="true">◆</span>
+            <div><strong>知识库</strong><small>个人知识管理系统</small></div>
+          </div>
+          <a class="knowledge-nav-root is-active" href="#knowledge"><span class="knowledge-nav-folder" aria-hidden="true"></span>专栏</a>
+          <h2>专栏目录</h2>
           <div data-knowledge-nav></div>
         </aside>
         <div class="knowledge-main">
-          <div class="page-head">
-            <h1>知识库</h1>
-            <span>系统化的知识管理与沉淀</span>
-          </div>
-          <div class="knowledge-search">
-            <input type="search" placeholder="搜索知识..." />
-            <button type="button">添加笔记</button>
-          </div>
-          <div class="knowledge-grid" data-knowledge></div>
-          <section class="knowledge-graph">
-            <div class="section-title">
-              <h2>真实知识节点</h2>
+          <section data-knowledge-overview>
+            <div class="knowledge-overview-head">
+              <div>
+                <h1>专栏</h1>
+                <p>管理和阅读你的知识专栏</p>
+              </div>
+              <label class="knowledge-search">
+                <span aria-hidden="true">⌕</span>
+                <input data-knowledge-search type="search" placeholder="搜索专栏..." />
+              </label>
             </div>
-            <div class="knowledge-relations" data-knowledge-relations></div>
+            <div class="knowledge-column-grid" data-knowledge-columns></div>
           </section>
-          <article class="detail-panel" data-knowledge-detail hidden></article>
+          <article class="knowledge-column-detail" data-column-detail hidden></article>
+          <article class="knowledge-node-detail" data-node-detail hidden></article>
+          <div data-normalized-knowledge-nodes hidden></div>
+          <div data-knowledge hidden></div>
+          <article data-knowledge-detail hidden></article>
         </div>
-        <aside class="page-sidebar knowledge-side">
-          <section>
-            <h2>知识统计</h2>
-            <div class="stat-list">
-              <div><span>知识主题</span><strong data-knowledge-count>0</strong></div>
-              <div><span>知识节点</span><strong data-knowledge-node-count>0</strong></div>
-              <div><span>笔记数量</span><strong data-note-count>0</strong></div>
-              <div><span>关联项目</span><strong data-project-count>0</strong></div>
-            </div>
-          </section>
-        </aside>
       </section>
 
-      <section class="view" data-view="lab">
-        <div class="page-head">
-          <h1>站内 AI 能力展示</h1>
-          <span>实验、探索、创新</span>
-        </div>
-        <div class="filter-row lab-tabs">
-          <button class="is-active" type="button">智能问答</button>
-          <button type="button">RAG 演示</button>
-          <button type="button">Agent 演示</button>
-          <button type="button">工具调用</button>
-          <button type="button">实验记录</button>
-        </div>
-        <section class="lab-layout">
-          <article class="lab-card" data-ai-full></article>
-          <article class="lab-card qa-card">
-            <div class="section-title">
-              <p>Demo</p>
-              <h2>站内检索问答</h2>
-            </div>
-            <label class="ask-box">
-              <span>输入一个关于项目、RAG、Agent 或知识库的问题</span>
-              <textarea data-ai-question rows="4" placeholder="例如：EduRAG 准备用哪些技术？"></textarea>
-            </label>
-            <button class="primary-button" type="button" data-ai-ask>发送</button>
-            <div class="answer-box" data-ai-answer></div>
-          </article>
-        </section>
-      </section>
-
-      <section class="view" data-view="about">
-        <section class="about-hero">
+      <section class="view graph-view" data-view="graph">
+        <header class="graph-page-head">
           <div>
-            <div class="page-head">
-              <h1>关于我</h1>
-              <span>AI Agent Engineer</span>
-            </div>
-            <p data-profile="summary"></p>
-            <div class="about-facts">
-              <div><span>教育背景</span><strong>江西师范大学 · 计算机科学与技术</strong></div>
-              <div><span>工作经历</span><strong>工业软件开发 → AI Agent 工程师</strong></div>
-              <div><span>技术专长</span><strong>AI Agent · RAG · 系统设计 · Python · 数据库</strong></div>
-              <div><span>兴趣爱好</span><strong>阅读 · 写作 · 思考 · 健身</strong></div>
-            </div>
-            <a class="button-link primary" href="mailto:Cecilia030906@proton.me">联系我</a>
+            <p>知识图谱</p>
+            <h1 data-graph-title>知识网络</h1>
+            <span data-graph-summary>读取公开知识节点与真实关系</span>
           </div>
-          <figure class="about-photo">
-            <img src="assets/hero-workspace.png" alt="晏宏翔的工作台" />
-          </figure>
-        </section>
-        <section class="about-bottom">
-          <article class="info-card">
-            <h2>技术栈</h2>
-            <div class="tech-icons" data-tech-stack></div>
-          </article>
-          <article class="info-card">
-            <h2>社交链接</h2>
-            <div class="social-links">
-              <a href="https://github.com/" target="_blank" rel="noreferrer">GitHub</a>
-              <a href="#posts">知乎</a>
-              <a href="#about">LinkedIn</a>
-              <a href="mailto:Cecilia030906@proton.me">邮箱</a>
+          <div class="graph-head-tools">
+            <label class="graph-search-box">
+              <span aria-hidden="true">⌕</span>
+              <input data-graph-search type="search" placeholder="搜索当前图谱..." />
+            </label>
+            <button type="button" data-graph-export title="导出当前图谱数据">导出数据</button>
+            <button type="button" data-graph-fit title="适应视图">适应视图</button>
+            <button class="graph-primary-action" type="button" data-graph-fullscreen title="进入全屏">全屏</button>
+          </div>
+        </header>
+
+        <div class="graph-studio" data-graph-studio>
+          <aside class="graph-control-panel">
+            <section class="graph-panel-section graph-column-section">
+              <div class="graph-panel-heading">
+                <h2>知识专栏</h2>
+                <a href="#knowledge">管理</a>
+              </div>
+              <div class="graph-column-list" data-graph-column-list></div>
+            </section>
+
+            <section class="graph-panel-section">
+              <div class="graph-panel-heading">
+                <h2>筛选过滤</h2>
+                <button type="button" data-graph-reset>清空</button>
+              </div>
+              <label class="graph-filter-search">
+                <span aria-hidden="true">⌕</span>
+                <input data-graph-filter-search type="search" placeholder="搜索节点、标签、关系..." />
+              </label>
+              <div class="graph-filter-group">
+                <span>标签</span>
+                <div class="graph-tag-filter" data-graph-tag-filter></div>
+              </div>
+              <label class="graph-select-field">
+                <span>关系类型</span>
+                <select data-graph-relation-type><option value="">全部关系类型</option></select>
+              </label>
+              <label class="graph-select-field">
+                <span>节点类型</span>
+                <select data-graph-node-type><option value="">全部节点类型</option></select>
+              </label>
+              <label class="graph-switch-row">
+                <span>只显示有关系的节点</span>
+                <input data-graph-connected-only type="checkbox" />
+              </label>
+            </section>
+
+            <section class="graph-panel-section">
+              <div class="graph-panel-heading"><h2>视图控制</h2></div>
+              <div class="graph-filter-group">
+                <span>布局方式</span>
+                <div class="graph-segmented" data-graph-layouts>
+                  <button class="is-active" type="button" data-graph-layout="clustered">力导向</button>
+                  <button type="button" data-graph-layout="concentric">层级</button>
+                  <button type="button" data-graph-layout="circle">环形</button>
+                </div>
+              </div>
+              <div class="graph-view-buttons">
+                <button type="button" data-graph-zoom-out title="缩小" aria-label="缩小">−</button>
+                <button type="button" data-graph-zoom-in title="放大" aria-label="放大">+</button>
+                <button type="button" data-graph-fit title="重置视图">重置视图</button>
+              </div>
+            </section>
+          </aside>
+
+          <main class="graph-canvas-panel">
+            <div class="knowledge-map" data-knowledge-map aria-label="交互式知识图谱"></div>
+            <div class="graph-canvas-status" data-graph-stats></div>
+            <p class="graph-canvas-hint">拖动画布 · 滚轮缩放 · 单击查看 · 双击进入知识详情</p>
+          </main>
+
+          <aside class="graph-detail" data-graph-detail>
+            <span>图谱概览</span>
+            <strong>选择一个知识节点</strong>
+            <p>节点简介、所属专栏、直接关系与相关文章会显示在这里。</p>
+          </aside>
+        </div>
+
+        <section class="graph-recommendation-panel">
+          <div class="graph-recommendation-head">
+            <div>
+              <span>跨专栏连接</span>
+              <h2>智能推荐关联</h2>
             </div>
-          </article>
+            <a href="admin/" target="_blank" rel="noreferrer">管理知识关系 →</a>
+          </div>
+          <div class="graph-recommendation-list" data-graph-recommendations></div>
         </section>
+
+        <footer class="graph-legend-panel">
+          <section>
+            <h2>图例说明</h2>
+            <div class="graph-node-legend">
+              <span><i data-type="column"></i>核心专栏</span>
+              <span><i data-type="concept"></i>知识点</span>
+              <span><i data-type="tool"></i>方法 / 技术</span>
+              <span><i data-type="question"></i>问题 / 待解决</span>
+            </div>
+          </section>
+          <section>
+            <h2>关系类型</h2>
+            <div class="graph-edge-legend">
+              <span><i data-edge="contains"></i>包含</span>
+              <span><i data-edge="related_to"></i>相关</span>
+              <span><i data-edge="depends_on"></i>依赖</span>
+              <span><i data-edge="contrasts"></i>对比</span>
+            </div>
+          </section>
+          <section>
+            <h2>状态说明</h2>
+            <p><i class="graph-status-dot"></i> 当前仅展示已公开的知识节点与关系</p>
+          </section>
+        </footer>
+      </section>
+
+      <section class="view ai-lab-view" data-view="lab">
+        <div class="ai-lab-shell">
+          <aside class="ai-lab-navigation">
+            <div class="ai-lab-brand">
+              <i>AI</i>
+              <div><strong>AI Lab</strong><span>我的 AI 实验平台</span></div>
+            </div>
+            <nav aria-label="AI Lab 产品导航">
+              <button class="is-active" type="button" data-lab-open="overview"><span>⌂</span><div><strong>首页</strong></div></button>
+              <button type="button" data-lab-open="rag"><span>◉</span><div><strong>RAG Studio</strong><small>知识检索与问答</small></div></button>
+              <button type="button" data-lab-open="agent"><span>◇</span><div><strong>Agent Studio</strong><small>任务规划与执行</small></div></button>
+              <button type="button" data-lab-open="experiment"><span>△</span><div><strong>Experiment</strong><small>实验记录与评估</small></div></button>
+              <button type="button" data-lab-open="knowledge"><span>▧</span><div><strong>Knowledge Base</strong><small>知识库与图谱</small></div></button>
+            </nav>
+            <div class="ai-lab-management">
+              <span>系统管理</span>
+              <a href="admin/" target="_blank" rel="noreferrer"><i>▣</i>数据管理</a>
+              <a href="admin/" target="_blank" rel="noreferrer"><i>⬡</i>模型管理</a>
+              <a href="admin/" target="_blank" rel="noreferrer"><i>⌘</i>工具管理</a>
+              <a href="admin/" target="_blank" rel="noreferrer"><i>⚙</i>系统设置</a>
+            </div>
+            <div class="ai-lab-user"><i>晏</i><div><strong>小晞柚</strong><span>AI Engineer</span></div></div>
+          </aside>
+
+          <main class="ai-lab-workspace">
+            <header class="ai-lab-toolbar">
+              <label><span>⌕</span><input type="search" placeholder="搜索实验、知识或文档..." data-lab-search /></label>
+              <a href="#graph" title="打开知识图谱">⌘</a>
+              <a href="#now" title="查看 Now">○</a>
+            </header>
+
+            <section class="ai-lab-panel is-active" data-lab-panel="overview">
+              <section class="ai-lab-hero">
+                <div>
+                  <span>AI Engineer Workspace</span>
+                  <h1>你好，小晞柚</h1>
+                  <p>欢迎来到我的 AI Lab，探索、构建和优化智能应用。</p>
+                </div>
+                <figure><img src="assets/hero-workspace.png" alt="AI 工程研发工作台" /></figure>
+              </section>
+
+              <section class="ai-lab-section">
+                <div class="ai-lab-section-head"><h2>核心能力</h2><span>从知识获取到智能执行与实验评估</span></div>
+                <div class="ai-capability-grid" data-lab-capabilities></div>
+              </section>
+
+              <section class="ai-lab-section">
+                <div class="ai-lab-section-head"><h2>系统状态</h2><span>全部来自当前公开内容与本地运行记录</span></div>
+                <div class="ai-status-grid" data-lab-system-status></div>
+              </section>
+
+              <div class="ai-lab-overview-grid">
+                <section class="ai-activity-card">
+                  <div class="ai-lab-section-head"><h2>最近活动</h2><a href="#changelog">查看全部 →</a></div>
+                  <div data-lab-activity></div>
+                </section>
+                <section class="ai-quick-card">
+                  <div class="ai-lab-section-head"><h2>快速开始</h2></div>
+                  <div data-lab-quick-actions></div>
+                </section>
+              </div>
+
+              <section class="ai-architecture-card">
+                <div class="ai-lab-section-head"><h2>系统架构概览</h2><span>能力按层组织，技术细节按需展开</span></div>
+                <div data-lab-architecture></div>
+              </section>
+            </section>
+
+            <section class="ai-lab-panel" data-lab-panel="rag" hidden>
+              <header class="ai-studio-head"><div><span>RAG Studio</span><h1>站内知识检索与问答</h1><p>指定全站、专栏、节点、文章或文档进行检索，并返回可跳转引用。</p></div><button type="button" data-lab-open="overview">返回总览</button></header>
+              <article class="lab-card qa-card rag-agent-card">
+                <div class="section-title"><p>RAG Pipeline</p><h2>Ask 小晞柚 AI</h2></div>
+                <label class="ask-box"><span>输入一个关于项目、RAG、Agent 或知识库的问题</span><textarea data-ai-question rows="4" placeholder="例如：Milvus 为什么需要 Index？"></textarea></label>
+                <div class="ai-scope-selector">
+                  <label>检索范围<select data-ai-scope-type><option value="all">全部公开内容</option><option value="column">指定知识专栏</option><option value="node">指定知识节点</option><option value="article">指定文章</option><option value="document">指定文档</option></select></label>
+                  <label data-ai-scope-value-wrap hidden>具体内容<select data-ai-scope-value></select></label>
+                  <p data-ai-scope-note>检索全部已公开且允许 AI 使用的内容。</p>
+                </div>
+                <button class="primary-button" type="button" data-ai-ask>开始检索</button>
+                <div class="agent-trace" data-ai-trace></div>
+                <div class="answer-box" data-ai-answer></div>
+                <section class="memory-panel">
+                  <div class="section-title"><p>Memory</p><h2>问答历史</h2><button type="button" data-ai-clear-history>清空</button></div>
+                  <div class="memory-list" data-ai-history></div>
+                </section>
+              </article>
+            </section>
+
+            <section class="ai-lab-panel" data-lab-panel="agent" hidden>
+              <header class="ai-studio-head"><div><span>Agent Studio</span><h1>只读任务规划与执行</h1><p>让 Agent 拆解目标、选择白名单工具、保留步骤与引用来源。</p></div><button type="button" data-lab-open="overview">返回总览</button></header>
+              <article class="lab-card agent-runtime-card">
+                <div class="section-title"><p>Agent Runtime</p><h2>执行一个站内知识任务</h2></div>
+                <label class="ask-box"><span>输入一个需要 Agent 分步骤查询的目标</span><textarea data-agent-goal rows="3" placeholder="例如：查看 Milvus 在知识网络中的关联"></textarea></label>
+                <div class="agent-runtime-actions">
+                  <button class="primary-button" type="button" data-agent-run>运行任务</button>
+                  <button type="button" data-agent-cancel hidden>取消</button>
+                  <button type="button" data-agent-retry hidden>断点重试</button>
+                  <button class="primary-button" type="button" data-agent-approve hidden>批准并继续</button>
+                  <button type="button" data-agent-deny hidden>拒绝</button>
+                </div>
+                <div class="agent-runtime-status" data-agent-status>等待任务</div>
+                <div class="agent-runtime-plan" data-agent-plan></div>
+                <div class="agent-runtime-result" data-agent-result></div>
+              </article>
+            </section>
+
+            <section class="ai-lab-panel" data-lab-panel="experiment" hidden>
+              <header class="ai-studio-head"><div><span>Experiment</span><h1>实验记录与评估</h1><p>记录 RAG 和 Agent 的评测链路、迭代状态与下一步计划。</p></div><button type="button" data-lab-open="overview">返回总览</button></header>
+              <div class="ai-experiment-grid" data-lab-experiments></div>
+            </section>
+
+            <section class="ai-lab-panel" data-lab-panel="knowledge" hidden>
+              <header class="ai-studio-head"><div><span>Knowledge Base</span><h1>知识库与图谱入口</h1><p>以专栏管理知识节点，通过真实关系为 RAG 与 Agent 补充上下文。</p></div><button type="button" data-lab-open="overview">返回总览</button></header>
+              <div class="ai-knowledge-entry" data-lab-knowledge></div>
+            </section>
+          </main>
+
+          <aside class="ai-lab-guide">
+            <div class="ai-lab-guide-title"><span>▧</span><strong>设计说明</strong></div>
+            <section><strong>1. 清晰的导航结构</strong><p>按能力组织 RAG、Agent、实验和知识系统，不直接堆叠底层配置。</p></section>
+            <section><strong>2. 核心能力入口</strong><p>首页只说明系统能做什么，进入 Studio 后再完成真实操作。</p></section>
+            <section><strong>3. 真实状态概览</strong><p>指标来自当前内容、知识关系和本地问答记录，不展示虚构数据。</p></section>
+            <section><strong>4. 活动与快速操作</strong><p>最近更新和常用入口集中呈现，让系统看起来持续运行。</p></section>
+            <section><strong>5. 架构透明</strong><p>底部保留完整技术流程，便于面试和工程审查。</p></section>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view about-dashboard-view" data-view="about">
+        <div class="about-dashboard">
+          <aside class="about-profile-card" data-about-profile></aside>
+
+          <main class="about-dashboard-main">
+            <section class="about-stat-board" data-about-stats></section>
+
+            <section class="about-building-board">
+              <div class="about-section-head"><h2>正在构建</h2><a href="#building">查看全部计划 →</a></div>
+              <div class="about-building-grid" data-about-building></div>
+            </section>
+
+            <section class="about-resource-grid">
+              <article class="about-resource-card about-stack-card">
+                <h2>技术栈</h2>
+                <div class="about-tech-list" data-about-tech></div>
+                <a href="#knowledge">查看知识专栏 →</a>
+              </article>
+              <article class="about-resource-card about-social-card">
+                <h2>链接</h2>
+                <div data-about-links></div>
+              </article>
+              <article class="about-resource-card about-reading-card">
+                <h2>阅读概览</h2>
+                <div data-about-reading></div>
+                <a href="#knowledge">查看阅读记录 →</a>
+              </article>
+            </section>
+          </main>
+
+          <section class="about-growth-board">
+            <div class="about-section-head"><h2>成长轨迹</h2><span>真实学习与工作阶段</span></div>
+            <div class="about-growth-timeline" data-about-growth></div>
+          </section>
+        </div>
       </section>
 
       <footer class="site-footer">
@@ -233,6 +506,25 @@
       </footer>
     </main>
 
-    <script src="script.js?v=19" defer></script>
+    <div class="search-overlay" data-search-overlay hidden>
+      <section class="search-panel" role="dialog" aria-modal="true" aria-label="Command Palette">
+        <div class="search-head">
+          <div>
+            <p class="kicker">Command Palette</p>
+            <h2>搜索与快速跳转</h2>
+          </div>
+          <button type="button" aria-label="关闭搜索" data-close-search>×</button>
+        </div>
+        <input data-global-search type="search" placeholder="搜索 Redis、RAG、文章、知识节点或输入命令..." autocomplete="off" />
+        <div class="search-results" data-search-results></div>
+        <div class="command-hints">
+          <span>↑↓ 选择</span>
+          <span>Enter 打开</span>
+          <span>Esc 关闭</span>
+        </div>
+      </section>
+    </div>
+
+    <script src="app.bundle.js?v=10" defer></script>
   </body>
 </html>

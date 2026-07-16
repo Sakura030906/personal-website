@@ -1,0 +1,16 @@
+dist
+.git
+__pycache__
+*.pyc
+.DS_Store
+node_modules
+aliyun-static-site.zip
+.env
+.env.*
+!.env.production.example
+backend/.env
+backend/.venv
+backend/portfolio.db
+backend/uploads
+backups
+.idea

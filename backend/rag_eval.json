@@ -1,0 +1,34 @@
+{
+  "cases": [
+    {
+      "id": "milvus-rag",
+      "category": "RAG",
+      "question": "Milvus 在 RAG 系统里负责什么？",
+      "expected_terms": ["milvus", "rag", "向量", "检索"]
+    },
+    {
+      "id": "agent-memory",
+      "category": "Agent",
+      "question": "Agent Memory 应该如何设计？",
+      "expected_terms": ["agent", "memory", "记忆"]
+    },
+    {
+      "id": "redis-cache",
+      "category": "Backend",
+      "question": "Redis 为什么适合做缓存？",
+      "expected_terms": ["redis", "缓存"]
+    },
+    {
+      "id": "transformer-attention",
+      "category": "LLM",
+      "question": "Transformer 的 Attention 解决了什么问题？",
+      "expected_terms": ["transformer", "attention"]
+    },
+    {
+      "id": "fastapi-backend",
+      "category": "Engineering",
+      "question": "FastAPI 在这个个人平台里承担什么角色？",
+      "expected_terms": ["fastapi", "api", "后端"]
+    }
+  ]
+}

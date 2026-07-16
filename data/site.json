@@ -4,7 +4,7 @@
     "initials": "晏",
     "role": "AI Agent / RAG 工程师方向",
     "headline": "Learning in Public. Building in Practice.",
-    "summary": "2025 年毕业于江西师范大学计算机专业，目前在上海阅凡自动化科技有限公司担任 C# 工程师。正在系统学习并实践大模型应用开发，重点关注企业知识库、向量检索、Agent 工作流与 RAG 系统。",
+    "summary": "2025 年毕业于江西师范大学计算机专业，正在系统学习并实践大模型应用开发，重点关注企业知识库、向量检索、Agent 工作流与 RAG 系统。",
     "status": [
       {
         "label": "当前工作",
@@ -22,7 +22,7 @@
     "focus": [
       {
         "label": "主线项目",
-        "value": "EduRAG 教育问答系统",
+        "value": "前置学习 知识问答系统",
         "note": "用完整 RAG Pipeline 验证文档检索、上下文构造和可追溯回答。"
       },
       {
@@ -54,7 +54,7 @@
       {
         "title": "江西师范大学",
         "meta": "计算机专业 · 本科 · 2021 - 2025",
-        "description": "在校成绩位于年级前 20%，系统学习计算机基础课程，并持续关注软件工程与 AI 应用方向。"
+        "description": "在校成绩位于年级前 20%，系统学习计算机基础课程，并持续关注软件工程与 AI 模型开发方向。"
       }
     ],
     "experience": [
@@ -86,7 +86,7 @@
     },
     {
       "title": "AI Lab",
-      "description": "展示站内 RAG / Agent 能力规划，并先用静态检索 Demo 验证交互方向。"
+      "description": "展示已接入 FastAPI、向量检索、重排、引用校验和只读 Agent Runtime 的站内 AI 能力。"
     }
   ],
   "techStack": [
@@ -105,28 +105,80 @@
   ],
   "projects": [
     {
-      "name": "EduRAG 教育问答系统",
-      "slug": "edurag",
+      "name": "python知识问答系统",
+      "slug": "Knowledge RAG",
       "status": "规划中",
       "summary": "面向学习资料的 RAG 问答系统，计划结合 MySQL 结构化数据、Milvus 向量检索、Redis 缓存和 LLM 生成。",
-      "stack": ["Python", "FastAPI", "Milvus", "Redis", "RAG"],
+      "stack": [
+        "Python",
+        "FastAPI",
+        "Milvus",
+        "Redis",
+        "RAG"
+      ],
       "tagline": "企业知识库 + 混合检索 + 可追溯回答",
       "visual": {
-        "label": "EduRAG Console",
+        "label": "KnowledgeRAG Console",
         "metric": "RAG Pipeline",
         "status": "MVP Planning",
-        "items": ["Document Ingestion", "Milvus Retrieval", "Citation Answer"]
+        "items": [
+          "Document Ingestion",
+          "Milvus Retrieval",
+          "Citation Answer"
+        ]
       },
       "problem": "学习资料、课程笔记和题库分散在不同文件中，普通搜索只能按关键词匹配，很难回答跨文档问题，也无法清楚说明答案来自哪里。",
       "architecture": "前端提交问题后进入 FastAPI 服务，服务层完成查询改写、Embedding、Milvus 向量检索、结构化数据补充、Rerank、上下文组装和 LLM 生成，最后返回答案与引用来源。",
-      "architectureDiagram": ["Client", "FastAPI", "Embedding", "Milvus", "Rerank", "LLM", "Citation"],
-      "directoryTree": ["app/api/question.py", "app/services/retriever.py", "app/services/reranker.py", "app/vector/milvus.py", "app/cache/redis.py", "tests/test_retrieval.py"],
-      "techChoices": ["FastAPI：提供问答 API 和后续后台接口。", "Milvus：存储文档 Chunk 向量并支持相似度检索。", "Redis：缓存高频问题、检索结果和异步任务状态。"],
-      "databaseDesign": ["documents(id, title, source, created_at)", "chunks(id, document_id, content, embedding_id, metadata)", "qa_logs(id, question, answer, sources, latency_ms)"],
-      "apiExamples": ["POST /api/questions：提交问题并返回答案与引用来源。", "POST /api/documents：导入学习资料并触发切分。", "GET /api/documents/{id}/chunks：查看文档切片。"],
-      "deployment": ["Docker Compose 管理 API、Redis、Milvus。", "环境变量管理模型 Key、数据库连接和向量库配置。", "后续接入日志与基础监控。"],
-      "performance": ["目标首响：普通问题 3 秒内。", "目标检索：TopK=8 后进入 Rerank。", "目标输出：每个回答至少返回 1 个引用来源。"],
-      "modules": ["文档解析与切分", "Embedding 生成", "Milvus 向量检索", "Rerank 排序", "LLM 生成", "答案引用"],
+      "architectureDiagram": [
+        "Client",
+        "FastAPI",
+        "Embedding",
+        "Milvus",
+        "Rerank",
+        "LLM",
+        "Citation"
+      ],
+      "directoryTree": [
+        "app/api/question.py",
+        "app/services/retriever.py",
+        "app/services/reranker.py",
+        "app/vector/milvus.py",
+        "app/cache/redis.py",
+        "tests/test_retrieval.py"
+      ],
+      "techChoices": [
+        "FastAPI：提供问答 API 和后续后台接口。",
+        "Milvus：存储文档 Chunk 向量并支持相似度检索。",
+        "Redis：缓存高频问题、检索结果和异步任务状态。"
+      ],
+      "databaseDesign": [
+        "documents(id, title, source, created_at)",
+        "chunks(id, document_id, content, embedding_id, metadata)",
+        "qa_logs(id, question, answer, sources, latency_ms)"
+      ],
+      "apiExamples": [
+        "POST /api/questions：提交问题并返回答案与引用来源。",
+        "POST /api/documents：导入学习资料并触发切分。",
+        "GET /api/documents/{id}/chunks：查看文档切片。"
+      ],
+      "deployment": [
+        "Docker Compose 管理 API、Redis、Milvus。",
+        "环境变量管理模型 Key、数据库连接和向量库配置。",
+        "后续接入日志与基础监控。"
+      ],
+      "performance": [
+        "目标首响：普通问题 3 秒内。",
+        "目标检索：TopK=8 后进入 Rerank。",
+        "目标输出：每个回答至少返回 1 个引用来源。"
+      ],
+      "modules": [
+        "文档解析与切分",
+        "Embedding 生成",
+        "Milvus 向量检索",
+        "Rerank 排序",
+        "LLM 生成",
+        "答案引用"
+      ],
       "details": [
         "目标：把课程资料、笔记和题库整理成可检索的知识库。",
         "核心模块：文档切分、Embedding、混合检索、Rerank、LLM 生成。",
@@ -142,7 +194,11 @@
         "如何让回答可追溯，避免模型凭空生成无法验证的结论。",
         "如何用缓存和检索策略控制响应时间。"
       ],
-      "pitfalls": ["Chunk 粒度过大会稀释问题相关性，过小又会丢失上下文。", "只做向量检索容易召回语义相近但事实无关的片段。", "没有引用来源时，RAG 回答很难被验证。"],
+      "pitfalls": [
+        "Chunk 粒度过大会稀释问题相关性，过小又会丢失上下文。",
+        "只做向量检索容易召回语义相近但事实无关的片段。",
+        "没有引用来源时，RAG 回答很难被验证。"
+      ],
       "nextSteps": [
         "完成最小 RAG Pipeline。",
         "加入引用来源和检索日志。",
@@ -156,24 +212,74 @@
       "slug": "agent-runtime",
       "status": "准备中",
       "summary": "用于理解 Agent 工作流、工具调用、记忆机制和任务编排的实验项目。",
-      "stack": ["Agent", "Tool Calling", "Memory", "Workflow"],
+      "stack": [
+        "Agent",
+        "Tool Calling",
+        "Memory",
+        "Workflow"
+      ],
       "tagline": "Multi-Agent Workflow + Tool Calling + Execution Logs",
       "visual": {
         "label": "Runtime Dashboard",
         "metric": "Agent Trace",
         "status": "Designing",
-        "items": ["Planner", "Tool Registry", "Memory", "Verifier"]
+        "items": [
+          "Planner",
+          "Tool Registry",
+          "Memory",
+          "Verifier"
+        ]
       },
       "problem": "很多 Agent 示例只展示结果，不容易看清楚任务拆解、工具调用、上下文传递和失败恢复的过程。",
       "architecture": "用轻量 Runtime 记录每一步计划、工具调用、输入输出、状态变化和校验结果，先从单工具任务开始，再扩展到多步骤工作流。",
-      "architectureDiagram": ["Task", "Planner", "Tool Router", "Executor", "Memory", "Verifier", "Trace Log"],
-      "directoryTree": ["runtime/agent.py", "runtime/tools.py", "runtime/memory.py", "runtime/tracing.py", "examples/research_task.py", "tests/test_tools.py"],
-      "techChoices": ["Tool Registry：统一管理可调用工具和参数 Schema。", "Trace Log：记录每一步计划、调用、输出和校验结果。", "Memory：区分短期上下文和长期可检索记忆。"],
-      "databaseDesign": ["runs(id, task, status, started_at, ended_at)", "steps(id, run_id, type, input, output, status)", "memories(id, content, tags, created_at)"],
-      "apiExamples": ["POST /api/runs：创建一次 Agent 任务。", "GET /api/runs/{id}/trace：查看执行轨迹。", "POST /api/tools/{name}/invoke：调试单个工具。"],
-      "deployment": ["先以本地 CLI 和 API 双入口运行。", "后续加入 Web Dashboard 展示 Trace。", "长期可迁移到后台任务队列。"],
-      "performance": ["目标：每一步工具调用都可回放。", "目标：失败步骤可定位输入、输出和错误原因。"],
-      "modules": ["任务规划", "工具注册", "调用日志", "状态管理", "结果校验"],
+      "architectureDiagram": [
+        "Task",
+        "Planner",
+        "Tool Router",
+        "Executor",
+        "Memory",
+        "Verifier",
+        "Trace Log"
+      ],
+      "directoryTree": [
+        "runtime/agent.py",
+        "runtime/tools.py",
+        "runtime/memory.py",
+        "runtime/tracing.py",
+        "examples/research_task.py",
+        "tests/test_tools.py"
+      ],
+      "techChoices": [
+        "Tool Registry：统一管理可调用工具和参数 Schema。",
+        "Trace Log：记录每一步计划、调用、输出和校验结果。",
+        "Memory：区分短期上下文和长期可检索记忆。"
+      ],
+      "databaseDesign": [
+        "runs(id, task, status, started_at, ended_at)",
+        "steps(id, run_id, type, input, output, status)",
+        "memories(id, content, tags, created_at)"
+      ],
+      "apiExamples": [
+        "POST /api/runs：创建一次 Agent 任务。",
+        "GET /api/runs/{id}/trace：查看执行轨迹。",
+        "POST /api/tools/{name}/invoke：调试单个工具。"
+      ],
+      "deployment": [
+        "先以本地 CLI 和 API 双入口运行。",
+        "后续加入 Web Dashboard 展示 Trace。",
+        "长期可迁移到后台任务队列。"
+      ],
+      "performance": [
+        "目标：每一步工具调用都可回放。",
+        "目标：失败步骤可定位输入、输出和错误原因。"
+      ],
+      "modules": [
+        "任务规划",
+        "工具注册",
+        "调用日志",
+        "状态管理",
+        "结果校验"
+      ],
       "details": [
         "目标：从简单工具调用开始，逐步实现可组合的 Agent Runtime。",
         "重点关注：任务拆解、上下文管理、工具结果校验和执行日志。"
@@ -188,7 +294,11 @@
         "如何保留足够日志，方便复盘每一次工具调用。",
         "如何区分短期上下文和长期记忆。"
       ],
-      "pitfalls": ["Agent 不确定时继续执行会扩大错误影响。", "工具返回结果如果不校验，模型容易基于错误状态继续推理。", "Trace 信息太少会导致 Demo 看起来能跑，但无法解释。"],
+      "pitfalls": [
+        "Agent 不确定时继续执行会扩大错误影响。",
+        "工具返回结果如果不校验，模型容易基于错误状态继续推理。",
+        "Trace 信息太少会导致 Demo 看起来能跑，但无法解释。"
+      ],
       "nextSteps": [
         "实现工具调用日志结构。",
         "加入任务状态机。",
@@ -198,44 +308,104 @@
       "demo": ""
     },
     {
-      "name": "个人网站 AI 化改造",
+      "name": "个人网站,个人博客和数据库的检索",
       "slug": "portfolio-ai-lab",
       "status": "进行中",
       "summary": "把个人网站从展示页升级为可长期维护的数字档案，并逐步接入站内检索和问答能力。",
-      "stack": ["JavaScript", "JSON", "RAG 规划", "静态部署"],
+      "stack": [
+        "JavaScript",
+        "FastAPI",
+        "PostgreSQL",
+        "Milvus",
+        "RAG",
+        "Docker"
+      ],
       "tagline": "Portfolio + Knowledge Base + Personal AI OS",
       "visual": {
         "label": "Personal AI OS",
         "metric": "Public Site",
         "status": "Live",
-        "items": ["Projects", "Blog", "Knowledge", "AI Lab"]
+        "items": [
+          "Projects",
+          "Blog",
+          "Knowledge",
+          "AI Lab"
+        ]
       },
       "problem": "普通个人网站更新成本高，信息也比较分散；如果未来要做站内问答，需要从一开始就把文章、项目和知识库组织成结构化数据。",
-      "architecture": "当前阶段使用静态前台读取 JSON 内容，本地编辑器负责维护数据；下一阶段可把 JSON 迁移到 FastAPI / PostgreSQL，并把文章和知识库向量化。",
-      "architectureDiagram": ["Static UI", "data/site.json", "Local Editor", "Sites Deploy", "Future FastAPI", "Future RAG"],
-      "directoryTree": ["index.html", "styles.css", "script.js", "data/site.json", "admin/admin.js", "scripts/build.mjs"],
-      "techChoices": ["原生 JavaScript：保持静态站点简单可部署。", "JSON 内容层：方便未来迁移 PostgreSQL。", "Sites 部署：公开访问只读，本地编辑不暴露。"],
-      "databaseDesign": ["当前：data/site.json 管理所有内容。", "未来：posts / projects / knowledge_nodes / timeline 独立建表。"],
-      "apiExamples": ["GET /data/site.json：公开站点读取内容。", "GET /api/content：本地编辑器读取内容。", "POST /api/content：本地保存内容。"],
-      "deployment": ["npm run build 生成 dist。", "保存 Sites 版本并部署公开站点。", "admin 目录不进入线上 Worker 路由。"],
-      "performance": ["公开页面静态渲染，首屏无后端依赖。", "HTML / CSS / JS 使用版本参数避免旧缓存。"],
-      "modules": ["公开只读前台", "本地编辑器", "内容 JSON", "静态检索 Demo", "部署流程"],
+      "architecture": "公开站保持静态只读；FastAPI 提供 CMS、搜索、RAG、Memory 和 Agent API；内容与运行日志持久化到 SQLite / PostgreSQL，向量检索支持本地模式和 Milvus。",
+      "architectureDiagram": [
+        "Static Public UI",
+        "FastAPI API",
+        "PostgreSQL",
+        "Embedding",
+        "Milvus",
+        "Reranker",
+        "Grounding",
+        "Agent Runtime"
+      ],
+      "directoryTree": [
+        "index.html",
+        "styles.css",
+        "script.js",
+        "data/site.json",
+        "admin/",
+        "backend/app/",
+        "docker-compose.yml"
+      ],
+      "techChoices": [
+        "静态公开前台：访问无需登录。",
+        "FastAPI + PostgreSQL：承载 CMS 和运行数据。",
+        "Milvus：持久化向量并支持语义检索。",
+        "工具白名单：公网 Agent 只允许读取已发布内容。"
+      ],
+      "databaseDesign": [
+        "content_entries / content_chunks：内容与向量片段。",
+        "ai_memories / ai_feedback：问答记忆与反馈。",
+        "agent_runs / agent_steps：任务和工具执行审计。"
+      ],
+      "apiExamples": [
+        "POST /ai/ask：带引用与 Grounding 的 RAG 问答。",
+        "POST /agent/tasks：创建只读 Agent 任务。",
+        "POST /agent/tasks/{id}/run：执行工具计划。"
+      ],
+      "deployment": [
+        "npm run build 生成 dist。",
+        "保存 Sites 版本并部署公开站点。",
+        "admin 目录不进入线上 Worker 路由。"
+      ],
+      "performance": [
+        "公开页面静态渲染，首屏无后端依赖。",
+        "HTML / CSS / JS 使用版本参数避免旧缓存。"
+      ],
+      "modules": [
+        "公开只读前台",
+        "CMS 后台",
+        "内容数据库",
+        "RAG 检索",
+        "Agent Runtime",
+        "部署流程"
+      ],
       "details": [
         "公开站点只读，编辑器只在本地运行。",
-        "所有内容集中在 data/site.json，便于后续迁移数据库。",
-        "AI Lab 先实现静态检索 Demo，后续替换为真实 RAG 服务。"
+        "CMS 内容已支持数据库持久化、草稿、发布、上传和版本恢复。",
+        "AI Lab 已接入混合检索、Multi-Query、RRF、Reranker、Grounding 和只读 Agent 工具。"
       ],
       "evidence": [
-        "已完成：公开只读网站、本地编辑器、内容 JSON 和 Sites 部署。",
-        "已完成：项目详情、博客详情、知识库详情和 AI Lab 静态检索。",
-        "待补充：真实头像、项目截图、访问统计和自定义域名验证。"
+        "已完成：公开只读网站、本地编辑器、FastAPI CMS 和内容数据库。",
+        "已完成：RAG 检索、长期 Memory、引用校验和 Agent Runtime 基础。",
+        "待补充：真实项目案例、生产部署监控和管理员 Agent 工具。"
       ],
       "challenges": [
         "如何让网站不像商品页，而像真实、克制、可持续的个人档案。",
         "如何在没有后端登录系统的情况下保证编辑入口不暴露到公网。",
         "如何让当前静态结构未来能平滑升级到数据库和 AI 服务。"
       ],
-      "pitfalls": ["一开始模块过多会让首页像后台面板。", "没有项目证据时，网站更像规划文档而不是作品集。", "静态 AI Demo 必须明确边界，不能伪装成真实 RAG。"],
+      "pitfalls": [
+        "一开始模块过多会让首页像后台面板。",
+        "没有项目证据时，网站更像规划文档而不是作品集。",
+        "Agent 工具必须按公网只读与管理员写入严格隔离。"
+      ],
       "nextSteps": [
         "补充真实项目截图和 GitHub 链接。",
         "把博客文章拆成可检索知识片段。",
@@ -245,73 +415,260 @@
       "demo": ""
     }
   ],
-  "posts": [],
+  "posts": [
+    {
+      "title": "终身学习",
+      "slug": "lifelong-learning",
+      "status": "published",
+      "category": "随笔感想",
+      "date": "2026-07-15",
+      "summary": "随笔",
+      "tags": [
+        "学习"
+      ],
+      "seoTitle": "",
+      "seoDescription": "",
+      "canonical": "",
+      "cover": "assets/blog-lifelong-learning.png",
+      "columnCover": "assets/blog-lifelong-learning.png",
+      "columnDescription": "记录生活中的观察、成长和自我理解。",
+      "bodyFontSize": 18,
+      "content": "        有些时候，我会忽然意识到，自己还可以再理解一点这个世界。\n\n       在某个瞬间，对一件原本熟悉的事，多看懂了一层。那种感觉很安静，不张扬，却会让人轻轻地往前走一步。\n\n       终身学习，或许更接近这种状态。它不只是不断获取新的知识，更像是一种持续打开的姿态——愿意让新的东西进来，也愿意让原有的理解，慢慢被修正。\n\n       生活其实会在很多地方给出提示。一句话、一段经历，甚至一次并不顺利的结果，都可能成为某种新的入口。\n\n       如果愿意停下来想一想，它们就不再只是发生过的事情，而是可以被吸收的一部分。\n\n       这种吸收很轻。它不会立刻改变什么，也不会让人马上变得更好。只是让你在下一次面对类似的情况时，多一点余地，多一种看法。\n\n       慢慢地，你会发现，自己处理事情的方式，开始有了细微的变化。这就是学习在发生。\n\n       有时候，它只是让你：少一点急躁，多一点耐心；少一点固执，多一点理解；少一点执着于答案，多一点接受变化。\n\n       终身学习，更像是一种与时间相处的方式。你不急着定型，不急着给自己下定义，也不把自己固定在某一个版本里。\n\n       允许自己在不同的阶段，有不同的理解；也允许一些旧的看法，被慢慢替换掉。\n\n       这种流动，本身就很有力量。它让人不至于停留在某个固定的位置，也不需要不断证明什么。\n\n       只是顺着时间往前走，在路上，一点一点把世界看得更清楚，也把自己看得更明白。\n\n> **终身学习，不是不断积累答案，而是不断更新自己理解世界的方式。**\n"
+    },
+    {
+      "title": "情绪稳定",
+      "slug": "emotional-stability",
+      "status": "published",
+      "category": "随笔感想",
+      "date": "2026-07-15",
+      "summary": "随笔",
+      "tags": [
+        "学习"
+      ],
+      "seoTitle": "",
+      "seoDescription": "",
+      "canonical": "",
+      "cover": "assets/blog-emotional-stability.png",
+      "bodyFontSize": 18,
+      "content": "       有一个很有名的词语“情绪稳定”，很多人都知道。可有意思的是，大多数人理解里的情绪稳定，其实更接近于，不生气、不崩溃、不失控。好像一个真正成熟的人，应该永远理性、平静，对很多事情都波澜不惊。\n\n         但如果仔细想想，这种状态本身就不太真实。因为情绪本来就是一种正常反应。会难过、会愤怒、会焦虑，甚至会在某些瞬间失控，这些都不意味着一个人“不稳定”。真正的问题，其实在于：一个人如何处理自己的情绪。\n\n         平常所认为的的稳定，更多时候或许只是压抑。你不表达、不争吵、不让别人看见自己的波动，于是看起来很平静。可情绪并不会因为被压下去就消失，它只会换一种方式存在。可能变成长期的疲惫，变成越来越低的耐心，也可能变成某一个瞬间突然的爆发。\n\n         一个真正情绪稳定的人，不意味着没有情绪。而是在于他不会被情绪完全接管。这两者的差别很大。情绪接管人的时候，会让人失去“距离感”。你会在愤怒的时候，把当下的感受当成全部事实；会在难过的时候，否定掉很多原本稳定的东西。那一刻，情绪像是变成了整个世界。\n\n       可真正稳定的人，并不是感受不到这些。而是即使情绪已经上来了，他依然保留着一点点观察自己的能力。他知道自己现在是在生气、在委屈、在焦虑，但不会立刻把这些情绪变成行为。\n\n       这种能力，其实很难。因为人的本能，是立刻回应。被冒犯了就反击，被忽视了就冷淡，被伤害了就疏远。情绪会催着你马上做点什么，好像只有这样，才能证明自己的感受是成立的。\n\n       但很多时候，真正破坏关系、破坏判断的，并不是情绪本身，而是“情绪下立刻做出的决定”。所以情绪稳定，本质上更像一种延迟能力。你能不能在情绪最强烈的时候，不急着下结论；能不能在最想发泄的时候，先停一下；能不能意识到，当下的感受是真实的，但它未必代表全部真实。\n\n       这种“停一下”的能力，会慢慢拉开人与人之间的差距。因为很多人不是输在能力上，而是输在被情绪牵着走。情绪好时充满热情，情绪差时否定一切；今天坚定，明天动摇。看起来是在跟随内心，实际上是在被状态推着生活。\n\n       而真正稳定的人，未必情绪更少。但他不会让自己的整个世界，随着情绪一起摇晃。"
+    },
+    {
+      "title": "矛盾与沟通",
+      "slug": "conflict-and-communication",
+      "status": "published",
+      "category": "感想",
+      "date": "2026-07-15",
+      "summary": "随笔",
+      "tags": [
+        "学习"
+      ],
+      "seoTitle": "",
+      "seoDescription": "",
+      "canonical": "",
+      "cover": "assets/blog-communication.png",
+      "columnCover": "assets/blog-communication.png",
+      "columnDescription": "关于关系、沟通和日常选择的思考。",
+      "bodyFontSize": 18,
+      "content": "         很多人害怕矛盾。一旦关系里出现不舒服的情绪，就会本能地选择压下去。觉得忍一忍就过去了，觉得不说出来至少还能维持表面的平静。于是那些在意的地方、委屈的地方、介意的地方，被一点点藏起来。\n\n         很多时候，真正消耗关系的，并不是矛盾本身。而是那些“没有被说出来的矛盾”。因为情绪不会凭空消失。你以为自己已经不在意了，但那些没有解决的东西，会慢慢变成一种芥蒂。它不会突然爆发，却会一点点改变你对一个人的态度。\n\n         一句话开始变得敏感，一个举动开始被过度解读，甚至连沉默都会让人多想。最麻烦的是，对方往往根本不知道问题出在哪里。你已经在心里反复难受了很久，可在别人眼里，一切还是和平时一样。于是一个人越来越委屈，一个人越来越困惑，关系也在这种“没人真正开口”的状态里慢慢变远。\n\n         其实很多矛盾，如果早点说出来，未必会变得多严重。可能会闹情绪，可能会有争执，甚至会短暂地不愉快。但这些东西至少是流动的，是被看见的。它们会过去，也有机会被解决。反而那些一直压着不说的问题，才最容易留下痕迹。沉默不会化解问题，它只会延长问题存在的时间。沟通真正重要的地方，不只是“说出来”这么简单。\n\n       很多人一提到沟通，就变成情绪的宣泄。把所有不满一口气丢给对方，希望对方立刻理解、立刻改变。可这样的表达，本质上更像攻击，而不是沟通。真正有效的沟通，其实有一个很重要的前提，你说出来，不是为了去争执对和错，而是为了让关系继续。\n\n       这个念头会决定很多东西。它会让你在表达情绪的时候，依然保留一点克制；会让你在不舒服的时候，不是急着否定对方，而是试着让对方明白自己的感受，也去试图明白对方的感受。很多时候，矛盾和芥蒂并不可怕。真正可怕的是，把“自尊”放在了“关系”前面，问题没有解决，情绪却越积越深。\n\n       关系里从来不缺矛盾。再好的关系，也一定会有误解、有情绪、有争吵,有不舒服的时候。关键不是一直都没有问题，而是问题出现之后，愿不愿意用好的方向去处理。\n\n       好的关系，不是从不争吵。而是即使有矛盾，也依然愿意认真沟通；即使有情绪，也没有放弃理解对方\n"
+    }
+  ],
   "knowledgeBase": [
     {
       "topic": "RAG",
       "summary": "把外部知识检索结果作为上下文提供给大模型，让回答更贴近私有资料并保留来源。",
-      "items": ["Chunk", "Embedding", "Milvus", "Hybrid Search", "Rerank", "LLM 生成"],
+      "items": [
+        "Chunk",
+        "Embedding",
+        "Milvus",
+        "Hybrid Search",
+        "Rerank",
+        "LLM 生成"
+      ],
+      "relatedProjects": [
+        "EduRAG 教育问答系统",
+        "个人网站 AI 化改造"
+      ],
+      "relatedKnowledge": [
+        "Milvus",
+        "Redis",
+        "Embedding",
+        "Rerank",
+        "引用来源"
+      ],
+      "relatedReading": [
+        "Designing Machine Learning Systems"
+      ],
+      "relatedPosts": [],
       "notes": [
         {
           "name": "Chunk",
-          "description": "文本切分单元，粒度会直接影响召回率和上下文质量。"
+          "description": "文本切分单元，粒度会直接影响召回率和上下文质量。",
+          "example": "chunk_size = 500\nchunk_overlap = 80\nmetadata = { source, title, section }",
+          "links": [
+            "EduRAG",
+            "站内 AI 助手"
+          ]
         },
         {
           "name": "Rerank",
-          "description": "对初次召回结果重新排序，减少无关片段进入 Prompt。"
+          "description": "对初次召回结果重新排序，减少无关片段进入 Prompt。",
+          "example": "retrieve_top_k = 20\nrerank_top_k = 6\nanswer_context = top_chunks[:6]",
+          "links": [
+            "Hybrid Search",
+            "Citation"
+          ]
         },
         {
           "name": "引用来源",
-          "description": "回答中保留文档、章节或片段来源，方便验证和调试。"
+          "description": "回答中保留文档、章节或片段来源，方便验证和调试。",
+          "example": "sources = [\n  { title: \"Redis 缓存笔记\", chunk_id: \"redis-001\" }\n]",
+          "links": [
+            "可追溯回答",
+            "项目复盘"
+          ]
         }
       ]
     },
     {
       "topic": "Agent",
       "summary": "围绕任务规划、工具调用、状态管理和记忆机制构建可执行的大模型工作流。",
-      "items": ["Tool Calling", "Memory", "Workflow", "Planning", "MCP"],
+      "items": [
+        "Tool Calling",
+        "Memory",
+        "Workflow",
+        "Planning",
+        "MCP"
+      ],
+      "relatedProjects": [
+        "Agent Runtime 学习项目",
+        "个人网站 AI 化改造"
+      ],
+      "relatedKnowledge": [
+        "RAG",
+        "Tool Calling",
+        "Memory",
+        "Workflow"
+      ],
+      "relatedReading": [
+        "Designing Machine Learning Systems"
+      ],
+      "relatedPosts": [],
       "notes": [
         {
           "name": "Tool Calling",
-          "description": "让模型在需要时调用外部函数、数据库或服务。"
+          "description": "让模型在需要时调用外部函数、数据库或服务。",
+          "example": "tool = search_knowledge(query)\nobservation = tool.run(arguments)",
+          "links": [
+            "工具注册",
+            "Trace Log"
+          ]
         },
         {
           "name": "Memory",
-          "description": "区分会话内短期上下文和长期可检索记忆。"
+          "description": "区分会话内短期上下文和长期可检索记忆。",
+          "example": "short_term = conversation[-8:]\nlong_term = vector_search(user_goal)",
+          "links": [
+            "Agent Runtime",
+            "Personal Memory"
+          ]
         },
         {
           "name": "Workflow",
-          "description": "把多步骤任务拆成可观察、可重试、可校验的流程。"
+          "description": "把多步骤任务拆成可观察、可重试、可校验的流程。",
+          "example": "Plan -> Execute -> Verify -> Reflect -> Answer",
+          "links": [
+            "状态机",
+            "执行日志"
+          ]
         }
       ]
     },
     {
       "topic": "Redis",
       "summary": "用于缓存、限流、分布式锁和异步任务状态管理，是后端系统性能优化的重要组件。",
-      "items": ["缓存穿透", "缓存雪崩", "分布式锁", "持久化", "过期策略"],
+      "items": [
+        "缓存穿透",
+        "缓存雪崩",
+        "分布式锁",
+        "持久化",
+        "过期策略"
+      ],
+      "relatedProjects": [
+        "EduRAG 教育问答系统"
+      ],
+      "relatedKnowledge": [
+        "RAG",
+        "缓存穿透",
+        "分布式锁",
+        "任务队列"
+      ],
+      "relatedReading": [
+        "Designing Machine Learning Systems"
+      ],
+      "relatedPosts": [],
       "notes": [
         {
           "name": "缓存穿透",
-          "description": "查询不存在的数据导致请求持续打到数据库，可用空值缓存或布隆过滤器缓解。"
+          "description": "查询不存在的数据导致请求持续打到数据库，可用空值缓存或布隆过滤器缓解。",
+          "example": "if result is None:\n    redis.setex(cache_key, 60, \"__empty__\")",
+          "links": [
+            "空值缓存",
+            "布隆过滤器"
+          ]
         },
         {
           "name": "分布式锁",
-          "description": "控制多实例并发访问共享资源，需要关注过期时间和释放安全。"
+          "description": "控制多实例并发访问共享资源，需要关注过期时间和释放安全。",
+          "example": "SET lock:doc:123 request_id NX EX 30",
+          "links": [
+            "任务队列",
+            "文档导入"
+          ]
         }
       ]
     },
     {
       "topic": "Milvus",
       "summary": "向量数据库，用于存储和检索 Embedding，是 RAG 系统的核心基础设施之一。",
-      "items": ["Collection", "Schema", "Index", "IVF_FLAT", "HNSW", "Hybrid Search"],
+      "items": [
+        "Collection",
+        "Schema",
+        "Index",
+        "IVF_FLAT",
+        "HNSW",
+        "Hybrid Search"
+      ],
+      "relatedProjects": [
+        "EduRAG 教育问答系统"
+      ],
+      "relatedKnowledge": [
+        "RAG",
+        "Embedding",
+        "IVF_FLAT",
+        "Hybrid Search"
+      ],
+      "relatedReading": [
+        "Designing Machine Learning Systems"
+      ],
+      "relatedPosts": [],
       "notes": [
         {
           "name": "Collection",
-          "description": "向量数据集合，需要提前设计字段、主键和向量维度。"
+          "description": "向量数据集合，需要提前设计字段、主键和向量维度。",
+          "example": "fields = [id, document_id, content, embedding, metadata]\ndim = 1536",
+          "links": [
+            "Schema",
+            "Embedding"
+          ]
         },
         {
           "name": "Index",
-          "description": "索引影响召回速度和质量，通常要结合数据规模调参。"
+          "description": "索引影响召回速度和质量，通常要结合数据规模调参。",
+          "example": "index_type = \"IVF_FLAT\"\nmetric_type = \"COSINE\"\nnlist = 1024",
+          "links": [
+            "IVF_FLAT",
+            "Hybrid Search"
+          ]
         }
       ]
     }
@@ -320,43 +677,94 @@
     {
       "layer": "基础层",
       "items": [
-        { "name": "Python", "status": "学习中" },
-        { "name": "SQL", "status": "学习中" },
-        { "name": "Linux", "status": "学习中" },
-        { "name": "HTTP / API", "status": "持续巩固" }
+        {
+          "name": "Python",
+          "status": "学习中"
+        },
+        {
+          "name": "SQL",
+          "status": "学习中"
+        },
+        {
+          "name": "Linux",
+          "status": "学习中"
+        },
+        {
+          "name": "HTTP / API",
+          "status": "持续巩固"
+        }
       ]
     },
     {
       "layer": "工程层",
       "items": [
-        { "name": "FastAPI", "status": "学习中" },
-        { "name": "Docker", "status": "准备中" },
-        { "name": "日志与可观测性", "status": "准备中" }
+        {
+          "name": "FastAPI",
+          "status": "学习中"
+        },
+        {
+          "name": "Docker",
+          "status": "准备中"
+        },
+        {
+          "name": "日志与可观测性",
+          "status": "准备中"
+        }
       ]
     },
     {
       "layer": "机器学习层",
       "items": [
-        { "name": "回归 / 分类", "status": "未开始" },
-        { "name": "集成学习", "status": "未开始" },
-        { "name": "模型评估", "status": "准备中" }
+        {
+          "name": "回归 / 分类",
+          "status": "未开始"
+        },
+        {
+          "name": "集成学习",
+          "status": "未开始"
+        },
+        {
+          "name": "模型评估",
+          "status": "准备中"
+        }
       ]
     },
     {
       "layer": "深度学习与 NLP",
       "items": [
-        { "name": "Transformer", "status": "学习中" },
-        { "name": "Embedding", "status": "学习中" },
-        { "name": "Attention", "status": "未开始" }
+        {
+          "name": "Transformer",
+          "status": "学习中"
+        },
+        {
+          "name": "Embedding",
+          "status": "学习中"
+        },
+        {
+          "name": "Attention",
+          "status": "未开始"
+        }
       ]
     },
     {
       "layer": "RAG 与 Agent",
       "items": [
-        { "name": "RAG Pipeline", "status": "学习中" },
-        { "name": "Tool Calling", "status": "学习中" },
-        { "name": "Agent Memory", "status": "未开始" },
-        { "name": "LangGraph", "status": "准备中" }
+        {
+          "name": "RAG Pipeline",
+          "status": "学习中"
+        },
+        {
+          "name": "Tool Calling",
+          "status": "学习中"
+        },
+        {
+          "name": "Agent Memory",
+          "status": "未开始"
+        },
+        {
+          "name": "LangGraph",
+          "status": "准备中"
+        }
       ]
     }
   ],
@@ -365,32 +773,193 @@
       "title": "动手学深度学习",
       "author": "Aston Zhang 等",
       "status": "在读",
-      "note": "用于补齐深度学习基础。"
+      "progress": 35,
+      "note": "用于补齐深度学习基础，重点关注神经网络、注意力机制和工程实现。",
+      "relatedKnowledge": [
+        "Transformer",
+        "Embedding",
+        "Attention"
+      ],
+      "relatedProjects": [
+        "EduRAG 教育问答系统"
+      ],
+      "relatedPosts": [],
+      "highlights": [
+        "把模型结构、训练过程和代码实现放在一起理解。",
+        "先建立直觉，再补数学细节和工程经验。"
+      ]
     },
     {
       "title": "Designing Machine Learning Systems",
       "author": "Chip Huyen",
       "status": "想读",
-      "note": "关注 ML 系统工程化。"
+      "progress": 0,
+      "note": "关注 ML 系统工程化，后续用于反哺 RAG、评估、部署和监控设计。",
+      "relatedKnowledge": [
+        "RAG",
+        "Milvus",
+        "Agent"
+      ],
+      "relatedProjects": [
+        "EduRAG 教育问答系统",
+        "个人网站 AI 化改造"
+      ],
+      "relatedPosts": [],
+      "highlights": [
+        "重点关注数据、特征、评估、部署和反馈闭环。"
+      ]
     },
     {
       "title": "Fluent Python",
       "author": "Luciano Ramalho",
       "status": "想读",
-      "note": "用于提升 Python 工程能力。"
+      "progress": 0,
+      "note": "用于提升 Python 工程能力，为 FastAPI、RAG Pipeline 和 Agent 工程打基础。",
+      "relatedKnowledge": [
+        "Python",
+        "FastAPI",
+        "工程化"
+      ],
+      "relatedProjects": [
+        "个人网站 AI 化改造"
+      ],
+      "relatedPosts": [],
+      "highlights": [
+        "重点关注数据模型、函数、迭代器、异步和工程可读性。"
+      ]
     }
   ],
   "timeline": [
-    { "time": "2021", "event": "进入江西师范大学计算机专业学习。" },
-    { "time": "2025", "event": "毕业于江西师范大学计算机专业，加入上海阅凡自动化科技有限公司。" },
-    { "time": "2026", "event": "系统转向 AI Agent / RAG 应用开发，开始沉淀技术博客和项目作品。" },
-    { "time": "2026", "event": "计划完成 EduRAG、Agent Runtime 和个人站内 AI 助手 MVP。" }
+    {
+      "time": "2021",
+      "event": "进入江西师范大学计算机专业学习。"
+    },
+    {
+      "time": "2025",
+      "event": "毕业于江西师范大学计算机专业，加入上海阅凡自动化科技有限公司。"
+    },
+    {
+      "time": "2026",
+      "event": "系统转向 AI Agent / RAG 应用开发，开始沉淀技术博客和项目作品。"
+    },
+    {
+      "time": "2026",
+      "event": "计划完成 EduRAG、Agent Runtime 和个人站内 AI 助手 MVP。"
+    }
+  ],
+  "now": {
+    "updatedAt": "2026-07-14",
+    "currentlyBuilding": [
+      {
+        "title": "Personal AI Platform",
+        "status": "v2.0 打磨中",
+        "description": "把个人网站从展示站升级为可持续更新的内容平台、知识网络和 AI Lab。"
+      },
+      {
+        "title": "EduRAG",
+        "status": "规划与学习中",
+        "description": "围绕企业知识库、混合检索、引用来源和 RAG Pipeline 做项目准备。"
+      }
+    ],
+    "currentlyLearning": [
+      "Milvus",
+      "Redis",
+      "FastAPI",
+      "Agent Memory",
+      "RAG Evaluation"
+    ],
+    "currentlyReading": [
+      "动手学深度学习",
+      "Designing Machine Learning Systems"
+    ],
+    "currentFocus": "先把网站的搜索、Now、Building、Changelog、知识网络和 AI Lab 打磨成稳定产品体验。",
+    "nextGoal": "完成知识库双向关联，让文章、项目、阅读和知识节点真正互相连接。"
+  },
+  "building": {
+    "updatedAt": "2026-07-14",
+    "items": [
+      {
+        "title": "Personal AI Platform",
+        "progress": 78,
+        "status": "Building",
+        "description": "完成展示层、CMS、FastAPI、RAG 原型和 Command Palette，正在补 Now / Building / Changelog。"
+      },
+      {
+        "title": "Knowledge Network",
+        "progress": 45,
+        "status": "Next",
+        "description": "下一步把知识库从分类列表升级为可关联文章、项目、阅读记录的知识网络。"
+      },
+      {
+        "title": "AI Lab",
+        "progress": 52,
+        "status": "Prototype",
+        "description": "已接入后端 /ai/ask、本地检索和 Memory，后续增强真实 RAG 引用质量。"
+      },
+      {
+        "title": "EduRAG",
+        "progress": 20,
+        "status": "Planning",
+        "description": "项目内容先保留规划状态，等真实实现后再升级为工程 Case Study。"
+      }
+    ]
+  },
+  "changelog": [
+    {
+      "version": "v0.6",
+      "date": "2026-07-14",
+      "title": "Command Palette",
+      "items": [
+        "升级 Ctrl/⌘ + K 全站搜索",
+        "支持键盘选择与快速跳转",
+        "搜索文章、项目、知识库、阅读和时间线"
+      ]
+    },
+    {
+      "version": "v0.5",
+      "date": "2026-07-14",
+      "title": "FastAPI CMS + AI Lab",
+      "items": [
+        "接入 FastAPI 后台",
+        "支持内容 CRUD、发布、上传和版本恢复",
+        "AI Lab 接入 /ai/ask、检索来源和 Memory"
+      ]
+    },
+    {
+      "version": "v0.4",
+      "date": "2026-07-13",
+      "title": "Knowledge & Blog",
+      "items": [
+        "知识库实例化",
+        "文章支持 Markdown、代码块、Mermaid 和 RSS",
+        "移除虚假统计和无效订阅"
+      ]
+    },
+    {
+      "version": "v0.3",
+      "date": "2026-07-13",
+      "title": "Product Redesign",
+      "items": [
+        "首页改为项目优先结构",
+        "视觉风格收敛为克制型技术编辑部",
+        "明确个人品牌：Learning in Public, Building in Practice"
+      ]
+    }
   ],
   "aiShowcase": {
-    "title": "站内 AI 助手规划",
-    "summary": "后续会把文章、知识库、项目文档切块并向量化，基于 Milvus / pgvector 做站内 RAG 问答。当前版本先提供静态检索 Demo，用来验证内容结构和交互方式。",
-    "pipeline": ["文章与笔记", "切块", "Embedding", "向量检索", "Rerank", "LLM 回答", "引用来源"],
-    "status": "规划中",
+    "title": "站内 RAG 与 Agent Runtime",
+    "summary": "已将文章、知识库、项目和阅读记录切块并向量化，通过本地索引或 Milvus 执行混合检索；问答链路包含 Multi-Query、RRF、Reranker、上下文压缩、Grounding、引用校验和长期 Memory。公网 Agent 仅能调用只读白名单工具。",
+    "pipeline": [
+      "内容切块",
+      "Embedding",
+      "Milvus",
+      "Multi-Query",
+      "RRF",
+      "Reranker",
+      "Grounding",
+      "Agent Tools"
+    ],
+    "status": "运行中",
     "capabilities": [
       {
         "title": "站内内容检索",
@@ -411,14 +980,1295 @@
         "answer": "计划使用 Python、FastAPI、Milvus、Redis 和 RAG Pipeline，重点实现文档切分、向量检索、Rerank、LLM 生成和引用来源。"
       },
       {
+        "question": "Milvus 为什么需要 Index？",
+        "answer": "Milvus 的索引用来提升向量检索效率。对 EduRAG 这类 RAG 系统来说，索引会影响召回速度、召回质量和资源消耗，需要根据数据规模、向量维度和查询延迟目标调参。"
+      },
+      {
+        "question": "Redis 在 EduRAG 里能做什么？",
+        "answer": "Redis 可以缓存高频问题、检索结果和文档导入任务状态，也可以用于限流或简单分布式锁。这样能减少重复检索和数据库压力。"
+      },
+      {
         "question": "这个网站为什么要做 AI Lab？",
         "answer": "因为它不仅是展示页，也会逐步沉淀文章、项目和知识库，并在后续接入站内问答能力。"
       }
     ],
     "roadmap": [
-      "当前：静态内容检索 Demo。",
-      "下一步：把文章和知识库切块，生成 Embedding。",
-      "后续：接入 FastAPI + Milvus，实现真实站内 RAG 问答。"
+      "已完成：FastAPI、内容切块、Embedding、Milvus 和混合检索。",
+      "已完成：Multi-Query、RRF、Reranker、Grounding、Memory 和评测。",
+      "当前：完善只读 Agent Runtime、任务规划和执行审计。",
+      "后续：加入管理员草稿工具、权限确认和生产监控。"
     ]
+  },
+  "knowledgeColumns": [
+    {
+      "id": 1,
+      "name": "RAG",
+      "slug": "rag",
+      "description": "把外部知识检索结果作为上下文提供给大模型，让回答更贴近私有资料并保留来源。",
+      "cover_url": "",
+      "icon": "book-open",
+      "article_count": 0,
+      "node_count": 7,
+      "updated_at": "2026-07-14T06:29:46"
+    },
+    {
+      "id": 2,
+      "name": "Agent",
+      "slug": "agent",
+      "description": "围绕任务规划、工具调用、状态管理和记忆机制构建可执行的大模型工作流。",
+      "cover_url": "",
+      "icon": "book-open",
+      "article_count": 0,
+      "node_count": 5,
+      "updated_at": "2026-07-14T06:29:46"
+    },
+    {
+      "id": 3,
+      "name": "Redis",
+      "slug": "redis",
+      "description": "用于缓存、限流、分布式锁和异步任务状态管理，是后端系统性能优化的重要组件。",
+      "cover_url": "",
+      "icon": "book-open",
+      "article_count": 0,
+      "node_count": 5,
+      "updated_at": "2026-07-14T06:29:46"
+    },
+    {
+      "id": 4,
+      "name": "Milvus",
+      "slug": "milvus",
+      "description": "向量数据库，用于存储和检索 Embedding，是 RAG 系统的核心基础设施之一。",
+      "cover_url": "",
+      "icon": "book-open",
+      "article_count": 0,
+      "node_count": 6,
+      "updated_at": "2026-07-14T06:29:46"
+    }
+  ],
+  "knowledgeNodes": [
+    {
+      "id": 1,
+      "title": "Chunk",
+      "slug": "chunk",
+      "summary": "文本切分单元，粒度会直接影响召回率和上下文质量。",
+      "content_markdown": "# Chunk\n\n文本切分单元，粒度会直接影响召回率和上下文质量。\n\n## 示例\n\n```text\nchunk_size = 500\nchunk_overlap = 80\nmetadata = { source, title, section }\n```",
+      "content": "# Chunk\n\n文本切分单元，粒度会直接影响召回率和上下文质量。\n\n## 示例\n\n```text\nchunk_size = 500\nchunk_overlap = 80\nmetadata = { source, title, section }\n```",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "RAG"
+      ],
+      "column_ids": [
+        1
+      ],
+      "primary_column_id": 1,
+      "columns": [
+        {
+          "id": 1,
+          "name": "RAG",
+          "slug": "rag",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 18,
+      "title": "Collection",
+      "slug": "collection",
+      "summary": "向量数据集合，需要提前设计字段、主键和向量维度。",
+      "content_markdown": "# Collection\n\n向量数据集合，需要提前设计字段、主键和向量维度。\n\n## 示例\n\n```text\nfields = [id, document_id, content, embedding, metadata]\ndim = 1536\n```",
+      "content": "# Collection\n\n向量数据集合，需要提前设计字段、主键和向量维度。\n\n## 示例\n\n```text\nfields = [id, document_id, content, embedding, metadata]\ndim = 1536\n```",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Milvus"
+      ],
+      "column_ids": [
+        4
+      ],
+      "primary_column_id": 4,
+      "columns": [
+        {
+          "id": 4,
+          "name": "Milvus",
+          "slug": "milvus",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 2,
+      "title": "Embedding",
+      "slug": "embedding",
+      "summary": "",
+      "content_markdown": "# Embedding",
+      "content": "# Embedding",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "RAG"
+      ],
+      "column_ids": [
+        1
+      ],
+      "primary_column_id": 1,
+      "columns": [
+        {
+          "id": 1,
+          "name": "RAG",
+          "slug": "rag",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 22,
+      "title": "HNSW",
+      "slug": "hnsw",
+      "summary": "",
+      "content_markdown": "# HNSW",
+      "content": "# HNSW",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Milvus"
+      ],
+      "column_ids": [
+        4
+      ],
+      "primary_column_id": 4,
+      "columns": [
+        {
+          "id": 4,
+          "name": "Milvus",
+          "slug": "milvus",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 4,
+      "title": "Hybrid Search",
+      "slug": "hybrid-search",
+      "summary": "",
+      "content_markdown": "# Hybrid Search",
+      "content": "# Hybrid Search",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Milvus",
+        "RAG"
+      ],
+      "column_ids": [
+        1,
+        4
+      ],
+      "primary_column_id": 1,
+      "columns": [
+        {
+          "id": 1,
+          "name": "RAG",
+          "slug": "rag",
+          "is_primary": true
+        },
+        {
+          "id": 4,
+          "name": "Milvus",
+          "slug": "milvus",
+          "is_primary": false
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 21,
+      "title": "IVF_FLAT",
+      "slug": "ivf_flat",
+      "summary": "",
+      "content_markdown": "# IVF_FLAT",
+      "content": "# IVF_FLAT",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Milvus"
+      ],
+      "column_ids": [
+        4
+      ],
+      "primary_column_id": 4,
+      "columns": [
+        {
+          "id": 4,
+          "name": "Milvus",
+          "slug": "milvus",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 20,
+      "title": "Index",
+      "slug": "index",
+      "summary": "索引影响召回速度和质量，通常要结合数据规模调参。",
+      "content_markdown": "# Index\n\n索引影响召回速度和质量，通常要结合数据规模调参。\n\n## 示例\n\n```text\nindex_type = \"IVF_FLAT\"\nmetric_type = \"COSINE\"\nnlist = 1024\n```",
+      "content": "# Index\n\n索引影响召回速度和质量，通常要结合数据规模调参。\n\n## 示例\n\n```text\nindex_type = \"IVF_FLAT\"\nmetric_type = \"COSINE\"\nnlist = 1024\n```",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Milvus"
+      ],
+      "column_ids": [
+        4
+      ],
+      "primary_column_id": 4,
+      "columns": [
+        {
+          "id": 4,
+          "name": "Milvus",
+          "slug": "milvus",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 6,
+      "title": "LLM 生成",
+      "slug": "llm-生成",
+      "summary": "",
+      "content_markdown": "# LLM 生成",
+      "content": "# LLM 生成",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "RAG"
+      ],
+      "column_ids": [
+        1
+      ],
+      "primary_column_id": 1,
+      "columns": [
+        {
+          "id": 1,
+          "name": "RAG",
+          "slug": "rag",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 12,
+      "title": "MCP",
+      "slug": "mcp",
+      "summary": "",
+      "content_markdown": "# MCP",
+      "content": "# MCP",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Agent"
+      ],
+      "column_ids": [
+        2
+      ],
+      "primary_column_id": 2,
+      "columns": [
+        {
+          "id": 2,
+          "name": "Agent",
+          "slug": "agent",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 9,
+      "title": "Memory",
+      "slug": "memory",
+      "summary": "区分会话内短期上下文和长期可检索记忆。",
+      "content_markdown": "# Memory\n\n区分会话内短期上下文和长期可检索记忆。\n\n## 示例\n\n```text\nshort_term = conversation[-8:]\nlong_term = vector_search(user_goal)\n```",
+      "content": "# Memory\n\n区分会话内短期上下文和长期可检索记忆。\n\n## 示例\n\n```text\nshort_term = conversation[-8:]\nlong_term = vector_search(user_goal)\n```",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Agent"
+      ],
+      "column_ids": [
+        2
+      ],
+      "primary_column_id": 2,
+      "columns": [
+        {
+          "id": 2,
+          "name": "Agent",
+          "slug": "agent",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 3,
+      "title": "Milvus",
+      "slug": "milvus",
+      "summary": "",
+      "content_markdown": "# Milvus",
+      "content": "# Milvus",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "RAG"
+      ],
+      "column_ids": [
+        1
+      ],
+      "primary_column_id": 1,
+      "columns": [
+        {
+          "id": 1,
+          "name": "RAG",
+          "slug": "rag",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 11,
+      "title": "Planning",
+      "slug": "planning",
+      "summary": "",
+      "content_markdown": "# Planning",
+      "content": "# Planning",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Agent"
+      ],
+      "column_ids": [
+        2
+      ],
+      "primary_column_id": 2,
+      "columns": [
+        {
+          "id": 2,
+          "name": "Agent",
+          "slug": "agent",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 5,
+      "title": "Rerank",
+      "slug": "rerank",
+      "summary": "对初次召回结果重新排序，减少无关片段进入 Prompt。",
+      "content_markdown": "# Rerank\n\n对初次召回结果重新排序，减少无关片段进入 Prompt。\n\n## 示例\n\n```text\nretrieve_top_k = 20\nrerank_top_k = 6\nanswer_context = top_chunks[:6]\n```",
+      "content": "# Rerank\n\n对初次召回结果重新排序，减少无关片段进入 Prompt。\n\n## 示例\n\n```text\nretrieve_top_k = 20\nrerank_top_k = 6\nanswer_context = top_chunks[:6]\n```",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "RAG"
+      ],
+      "column_ids": [
+        1
+      ],
+      "primary_column_id": 1,
+      "columns": [
+        {
+          "id": 1,
+          "name": "RAG",
+          "slug": "rag",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 19,
+      "title": "Schema",
+      "slug": "schema",
+      "summary": "",
+      "content_markdown": "# Schema",
+      "content": "# Schema",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Milvus"
+      ],
+      "column_ids": [
+        4
+      ],
+      "primary_column_id": 4,
+      "columns": [
+        {
+          "id": 4,
+          "name": "Milvus",
+          "slug": "milvus",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 8,
+      "title": "Tool Calling",
+      "slug": "tool-calling",
+      "summary": "让模型在需要时调用外部函数、数据库或服务。",
+      "content_markdown": "# Tool Calling\n\n让模型在需要时调用外部函数、数据库或服务。\n\n## 示例\n\n```text\ntool = search_knowledge(query)\nobservation = tool.run(arguments)\n```",
+      "content": "# Tool Calling\n\n让模型在需要时调用外部函数、数据库或服务。\n\n## 示例\n\n```text\ntool = search_knowledge(query)\nobservation = tool.run(arguments)\n```",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Agent"
+      ],
+      "column_ids": [
+        2
+      ],
+      "primary_column_id": 2,
+      "columns": [
+        {
+          "id": 2,
+          "name": "Agent",
+          "slug": "agent",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 10,
+      "title": "Workflow",
+      "slug": "workflow",
+      "summary": "把多步骤任务拆成可观察、可重试、可校验的流程。",
+      "content_markdown": "# Workflow\n\n把多步骤任务拆成可观察、可重试、可校验的流程。\n\n## 示例\n\n```text\nPlan -> Execute -> Verify -> Reflect -> Answer\n```",
+      "content": "# Workflow\n\n把多步骤任务拆成可观察、可重试、可校验的流程。\n\n## 示例\n\n```text\nPlan -> Execute -> Verify -> Reflect -> Answer\n```",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Agent"
+      ],
+      "column_ids": [
+        2
+      ],
+      "primary_column_id": 2,
+      "columns": [
+        {
+          "id": 2,
+          "name": "Agent",
+          "slug": "agent",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 15,
+      "title": "分布式锁",
+      "slug": "分布式锁",
+      "summary": "控制多实例并发访问共享资源，需要关注过期时间和释放安全。",
+      "content_markdown": "# 分布式锁\n\n控制多实例并发访问共享资源，需要关注过期时间和释放安全。\n\n## 示例\n\n```text\nSET lock:doc:123 request_id NX EX 30\n```",
+      "content": "# 分布式锁\n\n控制多实例并发访问共享资源，需要关注过期时间和释放安全。\n\n## 示例\n\n```text\nSET lock:doc:123 request_id NX EX 30\n```",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Redis"
+      ],
+      "column_ids": [
+        3
+      ],
+      "primary_column_id": 3,
+      "columns": [
+        {
+          "id": 3,
+          "name": "Redis",
+          "slug": "redis",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 7,
+      "title": "引用来源",
+      "slug": "引用来源",
+      "summary": "回答中保留文档、章节或片段来源，方便验证和调试。",
+      "content_markdown": "# 引用来源\n\n回答中保留文档、章节或片段来源，方便验证和调试。\n\n## 示例\n\n```text\nsources = [\n  { title: \"Redis 缓存笔记\", chunk_id: \"redis-001\" }\n]\n```",
+      "content": "# 引用来源\n\n回答中保留文档、章节或片段来源，方便验证和调试。\n\n## 示例\n\n```text\nsources = [\n  { title: \"Redis 缓存笔记\", chunk_id: \"redis-001\" }\n]\n```",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "RAG"
+      ],
+      "column_ids": [
+        1
+      ],
+      "primary_column_id": 1,
+      "columns": [
+        {
+          "id": 1,
+          "name": "RAG",
+          "slug": "rag",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 16,
+      "title": "持久化",
+      "slug": "持久化",
+      "summary": "",
+      "content_markdown": "# 持久化",
+      "content": "# 持久化",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Redis"
+      ],
+      "column_ids": [
+        3
+      ],
+      "primary_column_id": 3,
+      "columns": [
+        {
+          "id": 3,
+          "name": "Redis",
+          "slug": "redis",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 13,
+      "title": "缓存穿透",
+      "slug": "缓存穿透",
+      "summary": "查询不存在的数据导致请求持续打到数据库，可用空值缓存或布隆过滤器缓解。",
+      "content_markdown": "# 缓存穿透\n\n查询不存在的数据导致请求持续打到数据库，可用空值缓存或布隆过滤器缓解。\n\n## 示例\n\n```text\nif result is None:\n    redis.setex(cache_key, 60, \"__empty__\")\n```",
+      "content": "# 缓存穿透\n\n查询不存在的数据导致请求持续打到数据库，可用空值缓存或布隆过滤器缓解。\n\n## 示例\n\n```text\nif result is None:\n    redis.setex(cache_key, 60, \"__empty__\")\n```",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Redis"
+      ],
+      "column_ids": [
+        3
+      ],
+      "primary_column_id": 3,
+      "columns": [
+        {
+          "id": 3,
+          "name": "Redis",
+          "slug": "redis",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 14,
+      "title": "缓存雪崩",
+      "slug": "缓存雪崩",
+      "summary": "",
+      "content_markdown": "# 缓存雪崩",
+      "content": "# 缓存雪崩",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Redis"
+      ],
+      "column_ids": [
+        3
+      ],
+      "primary_column_id": 3,
+      "columns": [
+        {
+          "id": 3,
+          "name": "Redis",
+          "slug": "redis",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    },
+    {
+      "id": 17,
+      "title": "过期策略",
+      "slug": "过期策略",
+      "summary": "",
+      "content_markdown": "# 过期策略",
+      "content": "# 过期策略",
+      "node_type": "concept",
+      "importance": 3,
+      "visibility": "public",
+      "allow_ai_search": true,
+      "revision": 1,
+      "tag_names": [
+        "Redis"
+      ],
+      "column_ids": [
+        3
+      ],
+      "primary_column_id": 3,
+      "columns": [
+        {
+          "id": 3,
+          "name": "Redis",
+          "slug": "redis",
+          "is_primary": true
+        }
+      ],
+      "article_ids": [],
+      "article_relation_type": "references",
+      "articles": [],
+      "created_at": "2026-07-14T06:50:58",
+      "updated_at": "2026-07-14T06:50:58"
+    }
+  ],
+  "knowledgeGraph": {
+    "nodes": [
+      {
+        "id": "1",
+        "slug": "chunk",
+        "title": "Chunk",
+        "summary": "文本切分单元，粒度会直接影响召回率和上下文质量。",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 0,
+        "tags": [
+          "RAG"
+        ],
+        "columns": [
+          {
+            "name": "RAG",
+            "slug": "rag"
+          }
+        ],
+        "href": "#node-chunk"
+      },
+      {
+        "id": "18",
+        "slug": "collection",
+        "title": "Collection",
+        "summary": "向量数据集合，需要提前设计字段、主键和向量维度。",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 2,
+        "tags": [
+          "Milvus"
+        ],
+        "columns": [
+          {
+            "name": "Milvus",
+            "slug": "milvus"
+          }
+        ],
+        "href": "#node-collection"
+      },
+      {
+        "id": "2",
+        "slug": "embedding",
+        "title": "Embedding",
+        "summary": "",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 1,
+        "tags": [
+          "RAG"
+        ],
+        "columns": [
+          {
+            "name": "RAG",
+            "slug": "rag"
+          }
+        ],
+        "href": "#node-embedding"
+      },
+      {
+        "id": "22",
+        "slug": "hnsw",
+        "title": "HNSW",
+        "summary": "",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 0,
+        "tags": [
+          "Milvus"
+        ],
+        "columns": [
+          {
+            "name": "Milvus",
+            "slug": "milvus"
+          }
+        ],
+        "href": "#node-hnsw"
+      },
+      {
+        "id": "4",
+        "slug": "hybrid-search",
+        "title": "Hybrid Search",
+        "summary": "",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 2,
+        "tags": [
+          "Milvus",
+          "RAG"
+        ],
+        "columns": [
+          {
+            "name": "RAG",
+            "slug": "rag"
+          },
+          {
+            "name": "Milvus",
+            "slug": "milvus"
+          }
+        ],
+        "href": "#node-hybrid-search"
+      },
+      {
+        "id": "21",
+        "slug": "ivf_flat",
+        "title": "IVF_FLAT",
+        "summary": "",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 1,
+        "tags": [
+          "Milvus"
+        ],
+        "columns": [
+          {
+            "name": "Milvus",
+            "slug": "milvus"
+          }
+        ],
+        "href": "#node-ivf_flat"
+      },
+      {
+        "id": "20",
+        "slug": "index",
+        "title": "Index",
+        "summary": "索引影响召回速度和质量，通常要结合数据规模调参。",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 2,
+        "tags": [
+          "Milvus"
+        ],
+        "columns": [
+          {
+            "name": "Milvus",
+            "slug": "milvus"
+          }
+        ],
+        "href": "#node-index"
+      },
+      {
+        "id": "6",
+        "slug": "llm-生成",
+        "title": "LLM 生成",
+        "summary": "",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 0,
+        "tags": [
+          "RAG"
+        ],
+        "columns": [
+          {
+            "name": "RAG",
+            "slug": "rag"
+          }
+        ],
+        "href": "#node-llm-生成"
+      },
+      {
+        "id": "12",
+        "slug": "mcp",
+        "title": "MCP",
+        "summary": "",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 0,
+        "tags": [
+          "Agent"
+        ],
+        "columns": [
+          {
+            "name": "Agent",
+            "slug": "agent"
+          }
+        ],
+        "href": "#node-mcp"
+      },
+      {
+        "id": "9",
+        "slug": "memory",
+        "title": "Memory",
+        "summary": "区分会话内短期上下文和长期可检索记忆。",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 0,
+        "tags": [
+          "Agent"
+        ],
+        "columns": [
+          {
+            "name": "Agent",
+            "slug": "agent"
+          }
+        ],
+        "href": "#node-memory"
+      },
+      {
+        "id": "3",
+        "slug": "milvus",
+        "title": "Milvus",
+        "summary": "",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 0,
+        "tags": [
+          "RAG"
+        ],
+        "columns": [
+          {
+            "name": "RAG",
+            "slug": "rag"
+          }
+        ],
+        "href": "#node-milvus"
+      },
+      {
+        "id": "11",
+        "slug": "planning",
+        "title": "Planning",
+        "summary": "",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 0,
+        "tags": [
+          "Agent"
+        ],
+        "columns": [
+          {
+            "name": "Agent",
+            "slug": "agent"
+          }
+        ],
+        "href": "#node-planning"
+      },
+      {
+        "id": "5",
+        "slug": "rerank",
+        "title": "Rerank",
+        "summary": "对初次召回结果重新排序，减少无关片段进入 Prompt。",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 1,
+        "tags": [
+          "RAG"
+        ],
+        "columns": [
+          {
+            "name": "RAG",
+            "slug": "rag"
+          }
+        ],
+        "href": "#node-rerank"
+      },
+      {
+        "id": "19",
+        "slug": "schema",
+        "title": "Schema",
+        "summary": "",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 1,
+        "tags": [
+          "Milvus"
+        ],
+        "columns": [
+          {
+            "name": "Milvus",
+            "slug": "milvus"
+          }
+        ],
+        "href": "#node-schema"
+      },
+      {
+        "id": "8",
+        "slug": "tool-calling",
+        "title": "Tool Calling",
+        "summary": "让模型在需要时调用外部函数、数据库或服务。",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 0,
+        "tags": [
+          "Agent"
+        ],
+        "columns": [
+          {
+            "name": "Agent",
+            "slug": "agent"
+          }
+        ],
+        "href": "#node-tool-calling"
+      },
+      {
+        "id": "10",
+        "slug": "workflow",
+        "title": "Workflow",
+        "summary": "把多步骤任务拆成可观察、可重试、可校验的流程。",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 0,
+        "tags": [
+          "Agent"
+        ],
+        "columns": [
+          {
+            "name": "Agent",
+            "slug": "agent"
+          }
+        ],
+        "href": "#node-workflow"
+      },
+      {
+        "id": "15",
+        "slug": "分布式锁",
+        "title": "分布式锁",
+        "summary": "控制多实例并发访问共享资源，需要关注过期时间和释放安全。",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 0,
+        "tags": [
+          "Redis"
+        ],
+        "columns": [
+          {
+            "name": "Redis",
+            "slug": "redis"
+          }
+        ],
+        "href": "#node-分布式锁"
+      },
+      {
+        "id": "7",
+        "slug": "引用来源",
+        "title": "引用来源",
+        "summary": "回答中保留文档、章节或片段来源，方便验证和调试。",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 0,
+        "tags": [
+          "RAG"
+        ],
+        "columns": [
+          {
+            "name": "RAG",
+            "slug": "rag"
+          }
+        ],
+        "href": "#node-引用来源"
+      },
+      {
+        "id": "16",
+        "slug": "持久化",
+        "title": "持久化",
+        "summary": "",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 0,
+        "tags": [
+          "Redis"
+        ],
+        "columns": [
+          {
+            "name": "Redis",
+            "slug": "redis"
+          }
+        ],
+        "href": "#node-持久化"
+      },
+      {
+        "id": "13",
+        "slug": "缓存穿透",
+        "title": "缓存穿透",
+        "summary": "查询不存在的数据导致请求持续打到数据库，可用空值缓存或布隆过滤器缓解。",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 0,
+        "tags": [
+          "Redis"
+        ],
+        "columns": [
+          {
+            "name": "Redis",
+            "slug": "redis"
+          }
+        ],
+        "href": "#node-缓存穿透"
+      },
+      {
+        "id": "14",
+        "slug": "缓存雪崩",
+        "title": "缓存雪崩",
+        "summary": "",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 0,
+        "tags": [
+          "Redis"
+        ],
+        "columns": [
+          {
+            "name": "Redis",
+            "slug": "redis"
+          }
+        ],
+        "href": "#node-缓存雪崩"
+      },
+      {
+        "id": "17",
+        "slug": "过期策略",
+        "title": "过期策略",
+        "summary": "",
+        "node_type": "concept",
+        "importance": 3,
+        "degree": 0,
+        "tags": [
+          "Redis"
+        ],
+        "columns": [
+          {
+            "name": "Redis",
+            "slug": "redis"
+          }
+        ],
+        "href": "#node-过期策略"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge-1",
+        "source": "5",
+        "target": "4",
+        "relation_type": "related_to",
+        "label": "相关知识",
+        "description": "由已有知识笔记中的显式链接迁移。",
+        "weight": 1,
+        "direction": "directed"
+      },
+      {
+        "id": "edge-2",
+        "source": "18",
+        "target": "19",
+        "relation_type": "related_to",
+        "label": "相关知识",
+        "description": "由已有知识笔记中的显式链接迁移。",
+        "weight": 1,
+        "direction": "directed"
+      },
+      {
+        "id": "edge-3",
+        "source": "18",
+        "target": "2",
+        "relation_type": "related_to",
+        "label": "相关知识",
+        "description": "由已有知识笔记中的显式链接迁移。",
+        "weight": 1,
+        "direction": "directed"
+      },
+      {
+        "id": "edge-4",
+        "source": "20",
+        "target": "21",
+        "relation_type": "related_to",
+        "label": "相关知识",
+        "description": "由已有知识笔记中的显式链接迁移。",
+        "weight": 1,
+        "direction": "directed"
+      },
+      {
+        "id": "edge-5",
+        "source": "20",
+        "target": "4",
+        "relation_type": "related_to",
+        "label": "相关知识",
+        "description": "由已有知识笔记中的显式链接迁移。",
+        "weight": 1,
+        "direction": "directed"
+      }
+    ],
+    "stats": {
+      "node_count": 22,
+      "edge_count": 5,
+      "connected_node_count": 7
+    },
+    "filters": {
+      "column": "",
+      "node_type": "",
+      "relation_type": "",
+      "q": ""
+    }
   }
 }

@@ -6,6 +6,10 @@
   "description": "A public personal archive, blog, portfolio and AI learning platform.",
   "scripts": {
     "build": "node scripts/build.mjs",
+    "publish:oss": "npm run build && backend/.venv/bin/python backend/scripts/publish_static.py",
+    "publish:oss:dry-run": "npm run build && backend/.venv/bin/python backend/scripts/publish_static.py --dry-run",
+    "deploy:check": "python3 ops/deploy/preflight.py && docker compose -f docker-compose.prod.yml --env-file .env.production config --quiet",
+    "backup:verify": "python3 ops/backup/verify_backup.py",
     "dev": "python3 -m http.server 4173",
     "edit": "node scripts/edit-server.mjs",
     "start": "python3 -m http.server 4173"
@@ -16,5 +20,11 @@
     "software-engineer"
   ],
   "author": "",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "dependencies": {
+    "cytoscape": "^3.33.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.6"
+  }
 }

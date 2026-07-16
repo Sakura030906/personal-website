@@ -1,0 +1,138 @@
+name: portfolio
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: portfolio-postgres
+    environment:
+      POSTGRES_DB: portfolio
+      POSTGRES_USER: portfolio
+      POSTGRES_PASSWORD: portfolio
+    ports:
+      - "5432:5432"
+    volumes:
+      - portfolio-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portfolio -d portfolio"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.18
+    container_name: portfolio-milvus-etcd
+    environment:
+      ETCD_AUTO_COMPACTION_MODE: revision
+      ETCD_AUTO_COMPACTION_RETENTION: "1000"
+      ETCD_QUOTA_BACKEND_BYTES: "4294967296"
+      ETCD_SNAPSHOT_COUNT: "50000"
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    volumes:
+      - portfolio-milvus-etcd:/etcd
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: portfolio-milvus-minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    command: minio server /minio_data
+    ports:
+      - "9001:9001"
+    volumes:
+      - portfolio-milvus-minio:/minio_data
+
+  milvus:
+    image: milvusdb/milvus:v2.5.14
+    container_name: portfolio-milvus
+    command: ["milvus", "run", "standalone"]
+    depends_on:
+      - etcd
+      - minio
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    volumes:
+      - portfolio-milvus-data:/var/lib/milvus
+
+  api:
+    build:
+      context: ./backend
+    container_name: portfolio-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      milvus:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql+psycopg://portfolio:portfolio@postgres:5432/portfolio
+      JWT_SECRET: change-this-before-deploy
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: change-me
+      UPLOAD_DIR: /app/uploads
+      CORS_ORIGINS: http://127.0.0.1:4180,http://localhost:4180,http://127.0.0.1:4173,http://localhost:4173
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+      LLM_PROVIDER: ${LLM_PROVIDER:-auto}
+      LLM_INPUT_COST_PER_MILLION: ${LLM_INPUT_COST_PER_MILLION:-0}
+      LLM_OUTPUT_COST_PER_MILLION: ${LLM_OUTPUT_COST_PER_MILLION:-0}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-local}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS:-128}
+      EMBEDDING_TIMEOUT_SECONDS: ${EMBEDDING_TIMEOUT_SECONDS:-30}
+      EMBEDDING_BATCH_SIZE: ${EMBEDDING_BATCH_SIZE:-64}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-bge-m3}
+      OLLAMA_CHAT_MODEL: ${OLLAMA_CHAT_MODEL:-qwen3.5:2b}
+      VECTOR_STORE: ${VECTOR_STORE:-local}
+      MILVUS_URI: ${MILVUS_URI:-http://milvus:19530}
+      MILVUS_TOKEN: ${MILVUS_TOKEN:-}
+      MILVUS_COLLECTION: ${MILVUS_COLLECTION:-portfolio_chunks}
+      MILVUS_NODE_COLLECTION: ${MILVUS_NODE_COLLECTION:-portfolio_knowledge_nodes}
+      MILVUS_METRIC_TYPE: ${MILVUS_METRIC_TYPE:-COSINE}
+      RAG_EVAL_PATH: ${RAG_EVAL_PATH:-./rag_eval.json}
+      RAG_LEXICAL_WEIGHT: ${RAG_LEXICAL_WEIGHT:-1.0}
+      RAG_VECTOR_WEIGHT: ${RAG_VECTOR_WEIGHT:-12.0}
+      RAG_ENTRY_VECTOR_WEIGHT: ${RAG_ENTRY_VECTOR_WEIGHT:-10.0}
+      RAG_MIN_SCORE: ${RAG_MIN_SCORE:-0.15}
+      RAG_MILVUS_EXPAND: ${RAG_MILVUS_EXPAND:-5}
+      RAG_RERANKER: ${RAG_RERANKER:-local}
+      RAG_RERANK_TOP_K: ${RAG_RERANK_TOP_K:-20}
+      RAG_RERANK_WEIGHT: ${RAG_RERANK_WEIGHT:-4.0}
+      RAG_QUERY_EXPANSION: ${RAG_QUERY_EXPANSION:-local}
+      RAG_MULTI_QUERY_LIMIT: ${RAG_MULTI_QUERY_LIMIT:-4}
+      RAG_FUSION_K: ${RAG_FUSION_K:-60}
+      RAG_FUSION_WEIGHT: ${RAG_FUSION_WEIGHT:-20.0}
+      RAG_CONTEXT_MAX_CHARS: ${RAG_CONTEXT_MAX_CHARS:-700}
+      RAG_EVIDENCE_THRESHOLD: ${RAG_EVIDENCE_THRESHOLD:-0.18}
+      RAG_CLAIM_SUPPORT_THRESHOLD: ${RAG_CLAIM_SUPPORT_THRESHOLD:-0.16}
+      RAG_MIN_ANSWER_SUPPORT: ${RAG_MIN_ANSWER_SUPPORT:-0.25}
+      AGENT_MAX_STEPS: ${AGENT_MAX_STEPS:-6}
+      AGENT_MAX_TOOL_CALLS: ${AGENT_MAX_TOOL_CALLS:-8}
+      AGENT_TIMEOUT_SECONDS: ${AGENT_TIMEOUT_SECONDS:-30}
+      AGENT_TOOL_RESULT_CHARS: ${AGENT_TOOL_RESULT_CHARS:-8000}
+      AGENT_PLANNER_PROVIDER: ${AGENT_PLANNER_PROVIDER:-auto}
+      AGENT_PLANNER_MODEL: ${AGENT_PLANNER_MODEL:-}
+      AGENT_PLANNER_TIMEOUT_SECONDS: ${AGENT_PLANNER_TIMEOUT_SECONDS:-20}
+      AGENT_PLANNER_OBSERVATION_CHARS: ${AGENT_PLANNER_OBSERVATION_CHARS:-12000}
+      AGENT_EVAL_PATH: ${AGENT_EVAL_PATH:-./agent_eval.json}
+    ports:
+      - "8000:8000"
+    volumes:
+      - portfolio-uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  portfolio-postgres-data:
+  portfolio-uploads:
+  portfolio-milvus-etcd:
+  portfolio-milvus-minio:
+  portfolio-milvus-data:

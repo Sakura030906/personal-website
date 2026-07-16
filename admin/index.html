@@ -7,18 +7,627 @@
     <link rel="stylesheet" href="/admin/admin.css" />
   </head>
   <body>
-    <header class="topbar">
-      <div>
-        <p>Local Editor</p>
-        <h1>个人网站内容编辑</h1>
-      </div>
-      <div class="actions">
-        <a href="http://127.0.0.1:4173" target="_blank" rel="noreferrer">预览公开页</a>
-        <button type="button" data-save>保存修改</button>
-      </div>
-    </header>
+    <div class="admin-app">
+      <aside class="admin-sidebar">
+        <div class="admin-brand">
+          <i>AI</i>
+          <div><strong>AI Engineer</strong><span>知识管理系统</span></div>
+        </div>
+        <nav class="admin-navigation" aria-label="后台导航">
+          <button class="is-active" type="button" data-admin-route="dashboard"><i>⌂</i><span>控制台</span></button>
 
-    <main>
+          <p>内容管理</p>
+          <button type="button" data-admin-route="articles"><i>□</i><span>文章</span></button>
+          <button type="button" data-admin-route="article-columns"><i>▣</i><span>文章专栏</span></button>
+          <button type="button" data-admin-route="projects"><i>⌘</i><span>项目</span></button>
+
+          <p>知识系统</p>
+          <button type="button" data-admin-route="knowledge-columns"><i>▧</i><span>知识专栏</span></button>
+          <button type="button" data-admin-route="knowledge-nodes"><i>⌘</i><span>知识节点</span></button>
+          <button type="button" data-admin-route="knowledge-relations"><i>⌁</i><span>知识关系</span></button>
+          <button type="button" data-admin-route="documents"><i>▤</i><span>文档知识库</span></button>
+
+          <p>AI 系统</p>
+          <button type="button" data-admin-route="rag"><i>◎</i><span>RAG 管理</span></button>
+          <button type="button" data-admin-route="agent"><i>◇</i><span>Agent 运行</span></button>
+          <button type="button" data-admin-route="experiments"><i>△</i><span>实验评测</span></button>
+          <button type="button" data-admin-route="ai-feedback"><i>○</i><span>AI 反馈与记忆</span></button>
+
+          <p>资源与发布</p>
+          <button type="button" data-admin-route="files"><i>▱</i><span>图片与文件</span></button>
+          <button type="button" data-admin-route="versions"><i>↶</i><span>版本与流程</span></button>
+          <button type="button" data-admin-route="publishing"><i>◉</i><span>网站发布</span></button>
+
+          <p>系统</p>
+          <button type="button" data-admin-route="security"><i>♢</i><span>账号安全</span></button>
+          <button type="button" data-admin-route="site-settings"><i>⚙</i><span>网站设置</span></button>
+          <button type="button" data-admin-route="runtime"><i>⌁</i><span>运行状态</span></button>
+        </nav>
+        <div class="admin-sidebar-user">
+          <i>C</i>
+          <div><strong>Cecilia</strong><span>Administrator</span></div>
+          <button type="button" data-admin-route="security" title="账号设置">›</button>
+        </div>
+      </aside>
+
+      <section class="admin-main-shell">
+        <header class="admin-topbar">
+          <div class="admin-breadcrumb"><span>‹</span><strong data-admin-page-title>控制台</strong></div>
+          <label class="admin-global-search"><span>⌕</span><input data-admin-search type="search" placeholder="搜索文章、节点、文档..." /><kbd>⌘ K</kbd></label>
+          <div class="admin-top-actions">
+            <span class="admin-login-state" data-cms-status>未连接</span>
+            <a href="http://127.0.0.1:4173" target="_blank" rel="noreferrer" title="预览公开页">预览</a>
+            <button type="button" data-save>保存</button>
+            <i>C</i>
+          </div>
+        </header>
+
+        <main class="admin-workspace">
+          <section class="admin-dashboard" data-admin-page="dashboard">
+            <header class="admin-page-head">
+              <div><h1>控制台</h1><p>管理内容、知识与 AI 系统</p></div>
+            </header>
+            <div class="admin-dashboard-stats" data-admin-dashboard-stats></div>
+            <div class="admin-dashboard-grid">
+              <section class="dashboard-recent-card">
+                <div class="dashboard-card-head"><h2>最近修改</h2><button type="button" data-admin-route="articles">查看全部 →</button></div>
+                <div data-admin-recent-content></div>
+              </section>
+              <section class="dashboard-quick-card">
+                <div class="dashboard-card-head"><h2>快速新建</h2></div>
+                <div class="dashboard-quick-actions">
+                  <button type="button" data-dashboard-action="new-article"><i>□</i><span><strong>新建文章</strong><small>撰写 Markdown 文章</small></span><b>›</b></button>
+                  <button type="button" data-dashboard-action="new-node"><i>⌘</i><span><strong>新建知识节点</strong><small>创建独立知识点</small></span><b>›</b></button>
+                  <button type="button" data-admin-route="documents"><i>⇧</i><span><strong>上传文档</strong><small>解析并拆分文档到知识库</small></span><b>›</b></button>
+                  <button type="button" data-dashboard-action="new-relation"><i>⌁</i><span><strong>创建知识关系</strong><small>建立节点之间的关联</small></span><b>›</b></button>
+                </div>
+              </section>
+            </div>
+            <div class="admin-dashboard-lower">
+              <section>
+                <div class="dashboard-card-head"><h2>发布状态</h2></div>
+                <div data-admin-publish-summary></div>
+              </section>
+              <section>
+                <div class="dashboard-card-head"><h2>RAG 索引状态</h2></div>
+                <div data-admin-rag-summary></div>
+              </section>
+              <section>
+                <div class="dashboard-card-head"><h2>最近活动</h2></div>
+                <div data-admin-activity-summary></div>
+              </section>
+            </div>
+          </section>
+
+      <section class="panel cms-panel">
+        <div class="panel-title">
+          <div>
+            <h2>FastAPI CMS</h2>
+            <p>把当前内容同步到数据库，用于搜索、AI Lab 和后续真正后台。</p>
+          </div>
+          <span data-cms-status>未连接</span>
+        </div>
+        <div class="grid three">
+          <label>API 地址<input data-cms-api placeholder="自动使用当前站点 /api" /></label>
+          <label>邮箱<input data-cms-email placeholder="admin@example.com" /></label>
+          <label>密码<input data-cms-password type="password" placeholder="后台密码" /></label>
+        </div>
+        <div class="actions left">
+          <button type="button" data-cms-login>登录 CMS</button>
+          <button type="button" data-cms-push>同步到 CMS</button>
+          <button type="button" data-cms-pull>从 CMS 读取</button>
+          <a data-api-docs target="_blank" rel="noreferrer">打开 API 文档</a>
+        </div>
+      </section>
+
+      <section class="panel health-panel">
+        <div class="panel-title">
+          <div>
+            <h2>内容健康度</h2>
+            <p>检查文章 SEO、知识关联、阅读记录和 CMS 草稿，帮助网站持续更新。</p>
+          </div>
+          <button type="button" data-health-refresh>刷新检查</button>
+        </div>
+        <div class="health-grid" data-health-stats></div>
+        <div class="health-issues" data-health-issues></div>
+      </section>
+
+      <section class="panel content-ops-panel">
+        <div class="panel-title">
+          <div>
+            <h2>Content Ops</h2>
+            <p>把搜索缺口、AI 反馈、关系问题和发布流程合成一个优先级任务板。</p>
+          </div>
+          <button type="button" data-content-ops-refresh>刷新任务</button>
+        </div>
+        <div class="content-ops-stats" data-content-ops-stats></div>
+        <div class="content-ops-board" data-content-ops-board>
+          <p class="empty">登录 CMS 后加载 Content Ops。</p>
+        </div>
+      </section>
+
+      <section class="panel ai-runs-panel">
+        <div class="panel-title">
+          <div>
+            <h2>AI Runs</h2>
+            <p>查看 AI Lab 每次 RAG 问答的质量分、延迟、引用来源和 Prompt Context。</p>
+          </div>
+          <div class="actions left">
+            <input data-ai-runs-session placeholder="session_id 可选" />
+            <button type="button" data-ai-runs-refresh>刷新日志</button>
+          </div>
+        </div>
+        <div class="ai-run-stats" data-ai-run-stats></div>
+        <div class="ai-run-workspace">
+          <div class="ai-run-list" data-ai-run-list>
+            <p class="empty">登录 CMS 后加载 AI Runs。</p>
+          </div>
+          <article class="ai-run-detail" data-ai-run-detail>
+            <p class="empty">选择一条问答日志查看详情。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel agent-runs-panel">
+        <div class="panel-title">
+          <div>
+            <h2>Agent Runs</h2>
+            <p>审计动态规划、只读工具调用、答案 Grounding 和每一步执行结果。</p>
+          </div>
+          <div class="actions left">
+            <input data-agent-runs-session placeholder="session_id 可选" />
+            <button type="button" data-agent-runs-refresh>刷新任务</button>
+            <button type="button" data-agent-evaluate>运行评测</button>
+          </div>
+        </div>
+        <div class="ai-run-stats" data-agent-run-stats></div>
+        <div class="rag-eval-list" data-agent-eval-results>
+          <p class="empty">运行评测后查看 Agent 工具路由、来源、质量和延迟。</p>
+        </div>
+        <div class="ai-run-workspace">
+          <div class="ai-run-list" data-agent-run-list>
+            <p class="empty">登录 CMS 后加载 Agent Runs。</p>
+          </div>
+          <article class="ai-run-detail" data-agent-run-detail>
+            <p class="empty">选择一条 Agent 任务查看详情。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel ai-feedback-panel">
+        <div class="panel-title">
+          <div>
+            <h2>AI Feedback</h2>
+            <p>把 AI Lab 的有用/无用反馈转成内容改进线索，补文章、知识节点或阅读记录。</p>
+          </div>
+          <button type="button" data-ai-feedback-refresh>刷新反馈</button>
+        </div>
+        <div class="ai-feedback-stats" data-ai-feedback-stats></div>
+        <div class="ai-feedback-list" data-ai-feedback-list>
+          <p class="empty">登录 CMS 后加载 AI 反馈。</p>
+        </div>
+      </section>
+
+      <section class="panel rag-index-panel">
+        <div class="panel-title">
+          <div>
+            <h2>RAG Index</h2>
+            <p>把文章、项目、阅读和标准化知识节点切成持久化向量片段，用于 AI Lab 与 Agent 的混合检索。</p>
+          </div>
+          <div class="actions left">
+            <button type="button" data-rag-index-refresh>刷新索引</button>
+            <button type="button" data-rag-index-rebuild>重建索引</button>
+            <button type="button" data-rag-evaluate>运行评测</button>
+          </div>
+        </div>
+        <div class="rag-index-stats" data-rag-index-stats></div>
+        <div class="rag-eval-list" data-rag-eval-list>
+          <p class="empty">运行评测后查看 RAG 召回质量。</p>
+        </div>
+        <div class="rag-index-list" data-rag-index-list>
+          <p class="empty">登录 CMS 后加载 RAG 索引状态。</p>
+        </div>
+      </section>
+
+      <section class="panel document-library-panel">
+        <div class="panel-title">
+          <div>
+            <h2>文档知识库</h2>
+            <p>上传 PDF、DOCX、Markdown 或 TXT，检查解析结果、编辑切片并控制是否进入 AI 检索。</p>
+          </div>
+          <button type="button" data-document-refresh>刷新文档</button>
+        </div>
+
+        <form class="document-upload" data-document-upload-form>
+          <label>选择文档<input type="file" data-document-file accept=".pdf,.docx,.md,.markdown,.txt" required /></label>
+          <label>标题（可选）<input data-document-upload-title placeholder="默认使用文件名" /></label>
+          <label>所属专栏<select data-document-upload-column><option value="">未指定</option></select></label>
+          <label>可见性
+            <select data-document-upload-visibility>
+              <option value="private">private</option>
+              <option value="unlisted">unlisted</option>
+              <option value="public">public</option>
+            </select>
+          </label>
+          <button type="submit">上传并解析</button>
+        </form>
+
+        <div class="document-stats" data-document-stats></div>
+        <div class="document-workspace">
+          <aside class="document-list" data-document-list>
+            <p class="empty">登录 CMS 后加载文档。</p>
+          </aside>
+
+          <article class="document-editor" data-document-editor>
+            <p class="empty">选择一份文档查看解析结果。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel search-analytics-panel">
+        <div class="panel-title">
+          <div>
+            <h2>Search Analytics</h2>
+            <p>分析 Command Palette、文章搜索和知识库搜索，发现内容缺口和真实访问意图。</p>
+          </div>
+          <button type="button" data-search-analytics-refresh>刷新分析</button>
+        </div>
+        <div class="search-analytics-stats" data-search-analytics-stats></div>
+        <div class="search-analytics-grid">
+          <article>
+            <h3>热门关键词</h3>
+            <div data-top-search-queries class="analytics-list"></div>
+          </article>
+          <article>
+            <h3>无结果搜索</h3>
+            <div data-empty-search-queries class="analytics-list"></div>
+          </article>
+          <article>
+            <h3>最近事件</h3>
+            <div data-recent-search-events class="analytics-list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel content-gaps-panel">
+        <div class="panel-title">
+          <div>
+            <h2>Content Gaps</h2>
+            <p>把无结果搜索转成可执行内容任务，一键生成文章、知识库或项目草稿。</p>
+          </div>
+          <button type="button" data-content-gaps-refresh>刷新缺口</button>
+        </div>
+        <div class="content-gap-stats" data-content-gap-stats></div>
+        <div class="content-gap-list" data-content-gap-list>
+          <p class="empty">登录 CMS 后加载内容缺口。</p>
+        </div>
+      </section>
+
+      <section class="panel relation-health-panel">
+        <div class="panel-title">
+          <div>
+            <h2>Relation Health</h2>
+            <p>检查文章、知识节点和项目之间的双向关联，发现缺失反链并支持一键修复。</p>
+          </div>
+          <button type="button" data-relation-health-refresh>刷新关系</button>
+        </div>
+        <div class="relation-health-stats" data-relation-health-stats></div>
+        <div class="relation-health-list" data-relation-health-list>
+          <p class="empty">登录 CMS 后加载关系健康检查。</p>
+        </div>
+      </section>
+
+      <section class="panel publish-workflow-panel">
+        <div class="panel-title">
+          <div>
+            <h2>Publish Workflow</h2>
+            <p>把草稿、待补正文、待补 SEO、待补关系、可发布和已发布内容放进一个流程板。</p>
+          </div>
+          <button type="button" data-publish-workflow-refresh>刷新流程</button>
+        </div>
+        <div class="publish-workflow-stats" data-publish-workflow-stats></div>
+        <div class="publish-board" data-publish-board>
+          <p class="empty">登录 CMS 后加载发布流程。</p>
+        </div>
+      </section>
+
+      <section class="panel knowledge-column-panel">
+        <div class="panel-title">
+          <div>
+            <h2>知识专栏</h2>
+            <p>专栏是独立知识空间。文章可加入多个专栏，并指定一个主专栏。</p>
+          </div>
+          <button type="button" data-column-new>新建专栏</button>
+        </div>
+        <div class="column-manager">
+          <div class="column-list" data-column-list><p class="empty">登录 CMS 后加载专栏。</p></div>
+          <div class="column-form">
+            <div class="grid two">
+              <label>名称<input data-column-name placeholder="例如：RAG 系统" /></label>
+              <label>URL 标识<input data-column-slug placeholder="rag-systems" /></label>
+              <label>图标<input data-column-icon value="book-open" /></label>
+              <label>排序<input data-column-sort type="number" value="0" /></label>
+              <label>可见性
+                <select data-column-visibility>
+                  <option value="public">public</option>
+                  <option value="unlisted">unlisted</option>
+                  <option value="private">private</option>
+                </select>
+              </label>
+              <label class="check-field"><input data-column-ai-search type="checkbox" checked />允许 AI 检索</label>
+            </div>
+            <label>专栏简介<textarea data-column-description rows="4"></textarea></label>
+            <label>封面图 URL<input data-column-cover placeholder="可选" /></label>
+            <div class="actions left">
+              <button type="button" data-column-save>保存专栏</button>
+              <button type="button" data-column-delete class="danger">删除专栏</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel knowledge-node-panel">
+        <div class="panel-title">
+          <div>
+            <h2>知识节点与关系</h2>
+            <p>节点是可独立阅读的知识单元；关系明确记录依赖、引用、使用和相似等语义。</p>
+          </div>
+          <div class="actions left">
+            <button type="button" data-node-new>新建节点</button>
+            <button type="button" data-node-refresh>刷新</button>
+          </div>
+        </div>
+        <div class="node-manager">
+          <div class="node-list" data-node-list><p class="empty">登录 CMS 后加载知识节点。</p></div>
+          <div class="node-form">
+            <div class="grid two">
+              <label>标题<input data-node-title placeholder="例如：Hybrid Search" /></label>
+              <label>URL 标识<input data-node-slug placeholder="hybrid-search" /></label>
+              <label>节点类型
+                <select data-node-type>
+                  <option value="concept">concept</option><option value="article">article</option>
+                  <option value="question">question</option><option value="tool">tool</option>
+                  <option value="project">project</option><option value="reference">reference</option>
+                </select>
+              </label>
+              <label>重要程度（1-5）<input data-node-importance type="number" min="1" max="5" value="3" /></label>
+              <label>可见性
+                <select data-node-visibility><option value="public">public</option><option value="unlisted">unlisted</option><option value="private">private</option></select>
+              </label>
+              <label class="check-field"><input data-node-ai-search type="checkbox" checked />允许 AI 检索</label>
+            </div>
+            <label>摘要<textarea data-node-summary rows="3"></textarea></label>
+            <label>标签（逗号分隔）<input data-node-tags placeholder="RAG, Retrieval" /></label>
+            <div class="node-link-editor">
+              <strong>所属专栏</strong>
+              <div class="article-column-options" data-node-columns></div>
+              <label>主专栏<select data-node-primary-column><option value="">未指定</option></select></label>
+            </div>
+            <div class="node-link-editor">
+              <strong>关联文章</strong>
+              <div class="article-column-options" data-node-articles></div>
+            </div>
+            <label>Markdown 正文<textarea data-node-content rows="12" spellcheck="false"></textarea></label>
+            <div class="actions left">
+              <button type="button" data-node-save>保存节点</button>
+              <button type="button" data-node-delete class="danger">删除节点</button>
+              <span class="form-note" data-node-version-note></span>
+            </div>
+            <div class="node-version-list" data-node-version-list><p class="empty">保存后会记录节点版本。</p></div>
+          </div>
+        </div>
+
+        <div class="relation-manager">
+          <div class="panel-title compact">
+            <div><h3>节点关系</h3><p>每条关系均可控制方向、公开状态和权重。</p></div>
+            <button type="button" data-node-relation-new>新建关系</button>
+          </div>
+          <div class="relation-workspace">
+            <div class="node-list" data-node-relation-list><p class="empty">暂无关系。</p></div>
+            <div class="node-form">
+              <div class="grid two">
+                <label>源节点<select data-node-relation-source></select></label>
+                <label>目标节点<select data-node-relation-target></select></label>
+                <label>关系类型
+                  <select data-node-relation-type>
+                    <option value="related_to">related_to</option><option value="contains">contains</option>
+                    <option value="depends_on">depends_on</option><option value="prerequisite">prerequisite</option>
+                    <option value="similar_to">similar_to</option><option value="contrasts_with">contrasts_with</option>
+                    <option value="uses">uses</option><option value="references">references</option><option value="extends">extends</option>
+                  </select>
+                </label>
+                <label>方向<select data-node-relation-direction><option value="directed">directed</option><option value="bidirectional">bidirectional</option></select></label>
+                <label>显示标签<input data-node-relation-label placeholder="例如：使用向量检索" /></label>
+                <label>权重<input data-node-relation-weight type="number" min="0" max="10" step="0.1" value="1" /></label>
+                <label class="check-field"><input data-node-relation-active type="checkbox" checked />启用关系</label>
+                <label class="check-field"><input data-node-relation-public type="checkbox" checked />公开展示</label>
+              </div>
+              <label>关系说明<textarea data-node-relation-description rows="3"></textarea></label>
+              <div class="actions left">
+                <button type="button" data-node-relation-save>保存关系</button>
+                <button type="button" data-node-relation-delete class="danger">删除关系</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel content-cms-panel">
+        <div class="panel-title">
+          <div>
+            <h2>内容 CMS</h2>
+            <p>文章、知识库和项目独立编辑，支持 Markdown 预览、图片上传、草稿/发布和版本恢复。</p>
+          </div>
+          <div class="segmented" role="tablist" aria-label="内容类型">
+            <button type="button" data-entity-tab="post" class="is-active">文章</button>
+            <button type="button" data-entity-tab="knowledge">知识库</button>
+            <button type="button" data-entity-tab="project">项目</button>
+            <button type="button" data-entity-tab="reading">阅读</button>
+          </div>
+        </div>
+
+        <div class="cms-workspace">
+          <aside class="cms-sidebar">
+            <div class="actions left">
+              <button type="button" data-entry-new>新建</button>
+              <button type="button" data-entry-refresh>刷新</button>
+            </div>
+            <div class="entry-list" data-entry-list>
+              <p class="empty">登录 CMS 后加载内容。</p>
+            </div>
+          </aside>
+
+          <section class="cms-editor" data-entry-editor>
+            <div class="grid four">
+              <label>标题<input data-entry-title /></label>
+              <label>URL 标识<input data-entry-slug /></label>
+              <label>分类 / 专栏名称<input data-entry-category /></label>
+              <label>状态
+                <select data-entry-status>
+                  <option value="draft">draft</option>
+                  <option value="published">published</option>
+                  <option value="archived">archived</option>
+                </select>
+              </label>
+              <label>可见性
+                <select data-entry-visibility>
+                  <option value="public">public</option>
+                  <option value="unlisted">unlisted</option>
+                  <option value="private">private</option>
+                </select>
+              </label>
+            </div>
+
+            <label>摘要<textarea data-entry-summary rows="3"></textarea></label>
+
+            <div class="grid two">
+              <label data-keywords-label>标签 / 技术栈 / 知识点<input data-entry-keywords /></label>
+              <label>关联项目<input data-entry-related /></label>
+            </div>
+
+            <section class="post-seo-editor" data-post-seo-editor hidden>
+              <div class="panel-title compact">
+                <div>
+                  <h3>文章 SEO</h3>
+                  <p>用于文章标题、分享摘要和后续 OpenGraph 封面。</p>
+                </div>
+              </div>
+              <div class="grid two">
+                <label>SEO 标题<input data-entry-seo-title placeholder="默认使用文章标题" /></label>
+                <label>Canonical URL<input data-entry-canonical placeholder="可选，例如 https://sakura000702.me/..." /></label>
+              </div>
+              <label>SEO 描述<textarea data-entry-seo-description rows="3" placeholder="默认使用文章摘要"></textarea></label>
+              <div class="grid two">
+                <label>文章封面图 URL<input data-entry-cover placeholder="assets/article-cover.png 或 https://..." /></label>
+                <label>专栏封面图 URL<input data-entry-column-cover placeholder="assets/column-cover.png 或 https://..." /></label>
+              </div>
+              <label>正文字号（14–24px）<input data-entry-body-font-size type="number" min="14" max="24" step="1" value="18" /></label>
+              <label>专栏简介<textarea data-entry-column-description rows="2" placeholder="显示在专栏总览卡片上"></textarea></label>
+              <div class="article-column-editor">
+                <div>
+                  <strong>所属知识专栏</strong>
+                  <span>可以多选；主专栏用于公开页优先展示。</span>
+                </div>
+                <div class="article-column-options" data-entry-columns></div>
+                <label>主专栏
+                  <select data-entry-primary-column><option value="">未指定</option></select>
+                </label>
+              </div>
+            </section>
+
+            <section class="relation-editor" data-knowledge-relation-editor hidden>
+              <div class="panel-title compact">
+                <div>
+                  <h3>知识关系</h3>
+                  <p>这些字段会驱动前台知识图谱、AI Lab 引用来源和反向链接。</p>
+                </div>
+              </div>
+              <div class="grid two">
+                <label>相关知识<input data-entry-related-knowledge placeholder="RAG, Milvus, Redis" /></label>
+                <label>阅读材料<input data-entry-related-reading placeholder="Designing Machine Learning Systems" /></label>
+                <label>相关文章<input data-entry-related-posts placeholder="文章标题或 slug" /></label>
+                <label>节点链接建议<input data-entry-note-links placeholder="可选：给新节点复用的链接关键词" /></label>
+              </div>
+              <label>知识节点 JSON
+                <textarea data-entry-notes-json rows="10" placeholder='[{"name":"Chunk","description":"说明","example":"","links":["EduRAG"]}]'></textarea>
+              </label>
+              <div class="relation-suggestions" data-relation-suggestions></div>
+            </section>
+
+            <section class="auto-relation-panel">
+              <div class="panel-title compact">
+                <div>
+                  <h3>自动关联推荐</h3>
+                  <p>根据当前标题、摘要和正文，推荐可关联的文章、知识节点和项目。</p>
+                </div>
+                <div class="actions left">
+                  <button type="button" data-relation-refresh>推荐关联</button>
+                  <button type="button" data-relation-apply-all>应用全部</button>
+                </div>
+              </div>
+              <div class="auto-relation-results" data-auto-relation-results>
+                <p class="empty">保存或填写内容后，可以点击推荐关联。</p>
+              </div>
+            </section>
+
+            <div class="markdown-toolbar">
+              <div class="editor-save-state">
+                <strong>Markdown 正文</strong>
+                <span data-autosave-status data-state="idle">等待编辑</span>
+              </div>
+              <div class="actions left">
+                <input type="file" data-asset-file accept="image/*,.pdf,.txt,.md" />
+                <button type="button" data-asset-upload>上传并插入</button>
+              </div>
+            </div>
+
+            <div class="markdown-split">
+              <label>编辑<textarea data-entry-content rows="18"></textarea></label>
+              <div class="preview-pane">
+                <span>预览</span>
+                <article data-markdown-preview></article>
+              </div>
+            </div>
+
+            <details class="advanced-json">
+              <summary>高级元数据 JSON</summary>
+              <textarea data-entry-metadata rows="8"></textarea>
+            </details>
+
+            <div class="actions left">
+              <button type="button" data-entry-save>保存草稿/修改</button>
+              <button type="button" data-entry-publish>发布</button>
+              <button type="button" data-entry-archive>归档</button>
+              <button type="button" data-entry-delete class="danger">永久删除</button>
+              <button type="button" data-entry-sync-local>写入本地站点 JSON</button>
+            </div>
+
+            <section class="version-panel">
+              <div class="panel-title compact">
+                <h3>版本历史</h3>
+                <button type="button" data-entry-versions>刷新版本</button>
+              </div>
+              <div data-version-list class="version-list">
+                <p class="empty">保存后会自动生成版本。</p>
+              </div>
+              <pre data-version-diff class="version-diff" hidden></pre>
+            </section>
+          </section>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <div>
+            <h2>产品化页面</h2>
+            <p>维护 Now、Building 和 Changelog，用来展示网站持续构建状态。</p>
+          </div>
+        </div>
+        <label>Now JSON<textarea data-json-path="now" rows="12"></textarea></label>
+        <label>Building JSON<textarea data-json-path="building" rows="10"></textarea></label>
+        <label>Changelog JSON<textarea data-json-path="changelog" rows="12"></textarea></label>
+      </section>
+
       <section class="panel">
         <h2>首页身份</h2>
         <div class="grid two">
@@ -170,7 +779,9 @@
         </div>
         <div data-list="aiShowcase.roadmap"></div>
       </section>
-    </main>
+        </main>
+      </section>
+    </div>
 
     <div class="toast" data-toast></div>
     <script src="/admin/admin.js" defer></script>

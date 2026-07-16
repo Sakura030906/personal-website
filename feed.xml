@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+  <channel>
+    <title>晏宏翔的技术文章</title>
+    <link>https://sakura000702.me/</link>
+    <description>2025 年毕业于江西师范大学计算机专业，正在系统学习并实践大模型应用开发，重点关注企业知识库、向量检索、Agent 工作流与 RAG 系统。</description>
+    <language>zh-CN</language>
+    <item>
+      <title>终身学习</title>
+      <link>https://sakura000702.me/#post-lifelong-learning</link>
+      <guid>https://sakura000702.me/#post-lifelong-learning</guid>
+      <pubDate>Tue, 14 Jul 2026 16:00:00 GMT</pubDate>
+      <description>随笔</description>
+    </item>
+    <item>
+      <title>情绪稳定</title>
+      <link>https://sakura000702.me/#post-emotional-stability</link>
+      <guid>https://sakura000702.me/#post-emotional-stability</guid>
+      <pubDate>Tue, 14 Jul 2026 16:00:00 GMT</pubDate>
+      <description>随笔</description>
+    </item>
+    <item>
+      <title>矛盾与沟通</title>
+      <link>https://sakura000702.me/#post-conflict-and-communication</link>
+      <guid>https://sakura000702.me/#post-conflict-and-communication</guid>
+      <pubDate>Tue, 14 Jul 2026 16:00:00 GMT</pubDate>
+      <description>随笔</description>
+    </item>
+  </channel>
+</rss>

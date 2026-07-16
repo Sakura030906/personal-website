@@ -1,0 +1,25 @@
+{
+  "cases": [
+    {
+      "id": "compare-redis-milvus",
+      "category": "Tool routing",
+      "goal": "比较 Redis 和 Milvus 的用途与差异",
+      "expected_tools": ["search_content", "compare_content"],
+      "min_quality": 0.35
+    },
+    {
+      "id": "milvus-relations",
+      "category": "Knowledge graph",
+      "goal": "查找 Milvus 并查看它在知识图谱中的关联关系",
+      "expected_tools": ["search_content", "get_content", "explore_knowledge_graph"],
+      "min_quality": 0.3
+    },
+    {
+      "id": "recent-content",
+      "category": "Content operations",
+      "goal": "查看最近发布的内容",
+      "expected_tools": ["list_recent_content"],
+      "min_quality": 0
+    }
+  ]
+}

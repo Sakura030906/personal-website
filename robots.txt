@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://sakura000702.me/sitemap.xml
