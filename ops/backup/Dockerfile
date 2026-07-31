@@ -1,11 +1,17 @@
-FROM postgres:16-alpine
+FROM python:3.12-slim
 
-RUN apk add --no-cache python3 py3-pip \
-    && python3 -m venv /opt/backup-venv \
-    && /opt/backup-venv/bin/pip install --no-cache-dir alibabacloud-oss-v2==1.3.2
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends postgresql-client \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir alibabacloud-oss-v2==1.3.2 \
+    && groupadd --gid 10002 backupsvc \
+    && useradd --uid 10002 --gid backupsvc --no-create-home --shell /usr/sbin/nologin backupsvc \
+    && mkdir -p /backups \
+    && chown backupsvc:backupsvc /backups
 
 WORKDIR /backup-app
-COPY ops/backup/*.py ./
+COPY --chown=backupsvc:backupsvc ops/backup/*.py ./
 
-ENV PATH="/opt/backup-venv/bin:$PATH"
+USER backupsvc
+
 CMD ["python", "backup_loop.py"]

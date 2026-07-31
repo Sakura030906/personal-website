@@ -10,10 +10,20 @@ COPY . .
 RUN npm run build
 
 FROM ${NGINX_IMAGE}
-RUN rm -f /etc/nginx/conf.d/default.conf
-COPY --from=build /site/dist /usr/share/nginx/html
-COPY --from=build /site/admin /usr/share/nginx/html/admin
-COPY ops/nginx/runtime /etc/nginx/conf.d
-COPY ops/nginx/proxy_params /etc/nginx/proxy_params
+RUN rm -f /etc/nginx/conf.d/default.conf \
+    && mkdir -p /var/cache/nginx /run /var/www/certbot \
+    && chown -R nginx:nginx \
+        /var/cache/nginx \
+        /run \
+        /var/www/certbot \
+        /etc/nginx/conf.d \
+        /usr/share/nginx/html
+COPY --chown=nginx:nginx --from=build /site/dist /usr/share/nginx/html
+COPY --chown=nginx:nginx --from=build /site/admin /usr/share/nginx/html/admin
+COPY --chown=nginx:nginx ops/nginx/runtime /etc/nginx/conf.d
+COPY --chown=nginx:nginx ops/nginx/proxy_params /etc/nginx/proxy_params
 EXPOSE 80 443
+
+USER nginx
+
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD wget -q -O /dev/null http://127.0.0.1/healthz || exit 1
