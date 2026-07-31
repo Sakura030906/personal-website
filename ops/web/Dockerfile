@@ -10,7 +10,11 @@ COPY . .
 RUN npm run build
 
 FROM ${NGINX_IMAGE}
-RUN rm -f /etc/nginx/conf.d/default.conf \
+RUN sed -i \
+        's#https://dl-cdn.alpinelinux.org/alpine#https://mirrors.aliyun.com/alpine#g' \
+        /etc/apk/repositories \
+    && apk upgrade --no-cache \
+    && rm -f /etc/nginx/conf.d/default.conf \
     && mkdir -p /var/cache/nginx /run /var/www/certbot \
     && chown -R nginx:nginx \
         /var/cache/nginx \
