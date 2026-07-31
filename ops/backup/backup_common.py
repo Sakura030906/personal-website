@@ -1,5 +1,7 @@
 import hashlib
+import json
 import os
+import urllib.request
 from pathlib import Path
 
 
@@ -54,3 +56,17 @@ def upload_archive_to_oss(path: Path) -> str | None:
         str(path),
     )
     return key
+
+
+def send_alert(component: str, message: str, detail: dict | None = None) -> bool:
+    webhook = os.getenv("ALERT_WEBHOOK_URL", "").strip()
+    if not webhook:
+        return False
+    body = json.dumps({
+        "component": component,
+        "message": message,
+        "detail": detail or {},
+    }, ensure_ascii=False).encode("utf-8")
+    request = urllib.request.Request(webhook, data=body, headers={"Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(request, timeout=10) as response:
+        return 200 <= response.status < 300

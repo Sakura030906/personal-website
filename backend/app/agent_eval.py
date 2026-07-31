@@ -97,7 +97,7 @@ def evaluate_agent(
         session.add(run)
         session.commit()
         session.refresh(run)
-        run = execute_agent_run(session, run, use_model=False)
+        run = execute_agent_run(session, run, use_model=planner_mode != "local")
         result = json.loads(run.result_json or "{}") if run.result_json else {}
         steps = list(
             session.scalars(

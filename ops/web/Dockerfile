@@ -1,4 +1,7 @@
-FROM node:22-alpine AS build
+ARG NODE_IMAGE=node:22-alpine
+ARG NGINX_IMAGE=public.ecr.aws/nginx/nginx:1.27-alpine
+
+FROM ${NODE_IMAGE} AS build
 
 WORKDIR /site
 COPY package.json package-lock.json ./
@@ -6,7 +9,8 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM nginx:1.27-alpine
+FROM ${NGINX_IMAGE}
+RUN rm -f /etc/nginx/conf.d/default.conf
 COPY --from=build /site/dist /usr/share/nginx/html
 COPY --from=build /site/admin /usr/share/nginx/html/admin
 COPY ops/nginx/runtime /etc/nginx/conf.d

@@ -11,6 +11,7 @@ from ..config import settings
 from ..database import SessionLocal, get_session
 from ..models import AgentRun, AgentStep
 from ..schemas import AgentConfirmation, AgentStepOut, AgentTaskCreate, AgentTaskOut, AgentToolOut
+from ..security import public_session_id, resolved_public_session
 
 router = APIRouter()
 
@@ -95,11 +96,11 @@ def tools() -> list[AgentToolOut]:
 
 
 @router.post("/tasks", response_model=AgentTaskOut)
-def create_task(payload: AgentTaskCreate, session: Session = Depends(get_session)) -> AgentTaskOut:
+def create_task(payload: AgentTaskCreate, session: Session = Depends(get_session), server_session: str = Depends(public_session_id)) -> AgentTaskOut:
     max_steps = min(payload.max_steps, settings.agent_max_steps)
     plan = plan_agent_task(payload.goal)[:max_steps]
     run = AgentRun(
-        session_id=payload.session_id or "default",
+        session_id=resolved_public_session(server_session, payload.session_id or "default"),
         goal=payload.goal.strip(),
         scope="public",
         status="pending",
@@ -129,7 +130,8 @@ def execute_in_background(run_id: int, resume: bool = False) -> None:
 
 
 @router.post("/tasks/{run_id}/run", response_model=AgentTaskOut)
-def run_task(run_id: int, session_id: str, session: Session = Depends(get_session)) -> AgentTaskOut:
+def run_task(run_id: int, session_id: str = "default", session: Session = Depends(get_session), server_session: str = Depends(public_session_id)) -> AgentTaskOut:
+    session_id = resolved_public_session(server_session, session_id)
     run = public_run(session, run_id, session_id)
     execute_agent_run(session, run)
     return task_out(session, run)
@@ -138,10 +140,12 @@ def run_task(run_id: int, session_id: str, session: Session = Depends(get_sessio
 @router.post("/tasks/{run_id}/start", response_model=AgentTaskOut)
 def start_task(
     run_id: int,
-    session_id: str,
     background_tasks: BackgroundTasks,
+    session_id: str = "default",
     session: Session = Depends(get_session),
+    server_session: str = Depends(public_session_id),
 ) -> AgentTaskOut:
+    session_id = resolved_public_session(server_session, session_id)
     run = public_run(session, run_id, session_id)
     if run.status not in {"pending"}:
         raise HTTPException(status_code=409, detail=f"Task cannot start from status: {run.status}")
@@ -155,10 +159,12 @@ def start_task(
 @router.post("/tasks/{run_id}/retry", response_model=AgentTaskOut)
 def retry_task(
     run_id: int,
-    session_id: str,
     background_tasks: BackgroundTasks,
+    session_id: str = "default",
     session: Session = Depends(get_session),
+    server_session: str = Depends(public_session_id),
 ) -> AgentTaskOut:
+    session_id = resolved_public_session(server_session, session_id)
     run = public_run(session, run_id, session_id)
     if run.status not in {"failed", "cancelled"}:
         raise HTTPException(status_code=409, detail=f"Task cannot retry from status: {run.status}")
@@ -171,7 +177,8 @@ def retry_task(
 
 
 @router.post("/tasks/{run_id}/cancel", response_model=AgentTaskOut)
-def cancel_task(run_id: int, session_id: str, session: Session = Depends(get_session)) -> AgentTaskOut:
+def cancel_task(run_id: int, session_id: str = "default", session: Session = Depends(get_session), server_session: str = Depends(public_session_id)) -> AgentTaskOut:
+    session_id = resolved_public_session(server_session, session_id)
     run = public_run(session, run_id, session_id)
     if run.status not in {"pending", "queued", "running", "awaiting_confirmation"}:
         raise HTTPException(status_code=409, detail=f"Task cannot cancel from status: {run.status}")
@@ -184,11 +191,13 @@ def cancel_task(run_id: int, session_id: str, session: Session = Depends(get_ses
 @router.post("/tasks/{run_id}/confirm", response_model=AgentTaskOut)
 def confirm_task(
     run_id: int,
-    session_id: str,
     payload: AgentConfirmation,
     background_tasks: BackgroundTasks,
+    session_id: str = "default",
     session: Session = Depends(get_session),
+    server_session: str = Depends(public_session_id),
 ) -> AgentTaskOut:
+    session_id = resolved_public_session(server_session, session_id)
     run = public_run(session, run_id, session_id)
     if run.status != "awaiting_confirmation":
         raise HTTPException(status_code=409, detail=f"Task is not awaiting confirmation: {run.status}")
@@ -222,13 +231,15 @@ def confirm_task(
 
 
 @router.get("/tasks/{run_id}", response_model=AgentTaskOut)
-def get_task(run_id: int, session_id: str, session: Session = Depends(get_session)) -> AgentTaskOut:
+def get_task(run_id: int, session_id: str = "default", session: Session = Depends(get_session), server_session: str = Depends(public_session_id)) -> AgentTaskOut:
+    session_id = resolved_public_session(server_session, session_id)
     run = public_run(session, run_id, session_id)
     return task_out(session, run)
 
 
 @router.get("/tasks", response_model=list[AgentTaskOut])
-def list_tasks(session_id: str = "default", limit: int = 20, session: Session = Depends(get_session)) -> list[AgentTaskOut]:
+def list_tasks(session_id: str = "default", limit: int = 20, session: Session = Depends(get_session), server_session: str = Depends(public_session_id)) -> list[AgentTaskOut]:
+    session_id = resolved_public_session(server_session, session_id)
     limit = max(1, min(limit, 50))
     runs = list(
         session.scalars(

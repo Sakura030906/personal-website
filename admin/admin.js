@@ -1,5 +1,7 @@
+/* GENERATED ADMIN SCRIPT. Edit files under src/ and run npm run build. */
 let state;
-let cmsToken = localStorage.getItem("portfolio.cms.token") || "";
+let cmsToken = "";
+localStorage.removeItem("portfolio.cms.token");
 
 const cmsConfig = {
   api: localStorage.getItem("portfolio.cms.api")
@@ -18,6 +20,7 @@ let agentEvaluation = null;
 let ragIndex = null;
 let ragEvaluation = null;
 let aiFeedback = null;
+let proactiveDashboard = null;
 let contentOps = null;
 let searchAnalytics = null;
 let contentGaps = null;
@@ -37,11 +40,41 @@ let autosaveTimer = null;
 let autosaveDirty = false;
 let autosaveInFlight = false;
 let suppressEditorEvents = false;
+let nodeAutosaveTimer = null;
+let nodeAutosaveInFlight = false;
+let nodeAutosaveDirty = false;
+let nodeEditorHydrating = false;
+let documentAutosaveTimer = null;
+let documentAutosaveInFlight = false;
+let documentAutosaveDirty = false;
+let documentEditorHydrating = false;
 let activeAdminRoute = "dashboard";
 let cmsWorkspaceMode = "list";
+let inboxItems = [];
+let activeInboxItem = null;
+let activityEvents = [];
+let trashItems = [];
+let workspaceOverview = null;
+let organizationData = null;
+let activeOrganizationEntity = null;
+let activeOrganizationBacklinks = null;
+let reviewDashboard = null;
+let reviewSearchResults = [];
+let maintenanceDashboard = null;
+let activeInboxSuggestion = null;
+let aiWorkflowDashboard = null;
+let articleEnhancement = null;
+let nodeEnhancement = null;
+let evaluationDashboard = null;
+let activeEvalSuite = null;
+let currentCmsUser = null;
+let accountUsers = [];
 
 const adminRouteTitles = {
   dashboard: "控制台",
+  inbox: "收件箱",
+  review: "检索与回顾",
+  maintenance: "主动维护",
   articles: "文章管理",
   "article-columns": "文章专栏",
   projects: "项目管理",
@@ -59,6 +92,8 @@ const adminRouteTitles = {
   security: "账号安全",
   "site-settings": "网站设置",
   runtime: "运行状态",
+  activity: "最近活动",
+  trash: "回收站",
 };
 
 const entityLabels = {
@@ -533,14 +568,15 @@ function render() {
   renderHealthDashboard();
   renderAdminDashboard();
 }
-
 function configureAdminPages() {
   const pageMap = {
     "cms-panel": "security publishing",
+    "account-panel": "security",
     "health-panel": "runtime",
     "content-ops-panel": "runtime",
     "ai-runs-panel": "rag ai-feedback",
     "agent-runs-panel": "agent experiments",
+    "evaluation-workbench-panel": "experiments",
     "ai-feedback-panel": "ai-feedback",
     "rag-index-panel": "rag experiments",
     "document-library-panel": "documents files",
@@ -550,7 +586,13 @@ function configureAdminPages() {
     "publish-workflow-panel": "versions publishing",
     "knowledge-column-panel": "knowledge-columns article-columns",
     "knowledge-node-panel": "knowledge-nodes knowledge-relations",
+    "organization-panel": "knowledge-relations",
     "content-cms-panel": "articles projects versions",
+    "workspace-inbox-panel": "inbox",
+    "review-workspace-panel": "review",
+    "maintenance-workspace-panel": "maintenance",
+    "workspace-activity-panel": "activity",
+    "workspace-trash-panel": "trash",
   };
   document.querySelectorAll(".admin-workspace > .panel").forEach((panel) => {
     const matchedClass = Object.keys(pageMap).find((className) => panel.classList.contains(className));
@@ -613,6 +655,9 @@ function updateKnowledgeRouteLayout(route) {
 
 async function navigateAdminRoute(route, { updateHash = true } = {}) {
   const nextRoute = adminRouteTitles[route] ? route : "dashboard";
+  const previousRoute = activeAdminRoute;
+  if (previousRoute === "knowledge-nodes") await performKnowledgeNodeAutosave();
+  if (previousRoute === "documents") await performDocumentAutosave();
   activeAdminRoute = nextRoute;
   document.body.dataset.adminRoute = nextRoute;
   document.querySelector("[data-admin-page-title]").textContent = adminRouteTitles[nextRoute];
@@ -654,8 +699,806 @@ async function navigateAdminRoute(route, { updateHash = true } = {}) {
   if (updateHash && window.location.hash.slice(1) !== nextRoute) {
     history.pushState(null, "", `#${nextRoute}`);
   }
+  if (cmsToken && nextRoute === "inbox") await loadInbox();
+  if (cmsToken && nextRoute === "review") await loadReviewDashboard();
+  if (cmsToken && nextRoute === "maintenance") await loadMaintenanceDashboard();
+  if (cmsToken && nextRoute === "ai-feedback") await Promise.all([loadProactiveDashboard(false), loadAiFeedback()]);
+  if (cmsToken && nextRoute === "knowledge-relations") await loadOrganization();
+  if (cmsToken && nextRoute === "security") await loadCurrentAccount();
+  if (cmsToken && nextRoute === "activity") await loadActivity();
+  if (cmsToken && nextRoute === "trash") await loadTrash();
   document.querySelector(".admin-workspace")?.scrollTo?.({ top: 0, behavior: "instant" });
   renderAdminDashboard();
+}
+
+function formatWorkspaceTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).format(date);
+}
+
+function resetInboxForm() {
+  activeInboxItem = null;
+  document.querySelector("[data-inbox-form-title]").textContent = "快速记录";
+  document.querySelector("[data-inbox-title]").value = "";
+  document.querySelector("[data-inbox-body]").value = "";
+  document.querySelector("[data-inbox-type]").value = "note";
+  document.querySelector("[data-inbox-url]").value = "";
+  const organizer = document.querySelector("[data-inbox-organizer]");
+  if (organizer) organizer.hidden = true;
+  renderInbox();
+}
+
+function renderInbox() {
+  const target = document.querySelector("[data-inbox-list]");
+  if (!target) return;
+  const pending = inboxItems.filter((item) => item.status !== "processed" && item.status !== "archived");
+  target.innerHTML = pending.length ? pending.map((item) => `
+    <article class="workspace-list-item ${activeInboxItem?.id === item.id ? "is-active" : ""}" data-inbox-id="${item.id}">
+      <button type="button" class="workspace-item-main" data-inbox-open="${item.id}">
+        <i>${escapeHtml({ note: "N", idea: "I", link: "L", document: "D" }[item.item_type] || "N")}</i>
+        <span><strong>${escapeHtml(item.title || item.body.slice(0, 48) || item.source_url || "未命名记录")}</strong><small>${escapeHtml(item.body.slice(0, 90) || item.source_url || "暂无内容")}</small></span>
+        <time>${escapeHtml(formatWorkspaceTime(item.updated_at))}</time>
+      </button>
+      <div class="workspace-item-actions">
+        <button type="button" data-inbox-organize="${item.id}">整理内容</button>
+        <button type="button" class="danger-text" data-inbox-trash="${item.id}">移至回收站</button>
+      </div>
+    </article>
+  `).join("") : `<div class="workspace-empty-state"><i>✓</i><strong>收件箱已整理完</strong><span>新的想法可以随时先记录在这里。</span></div>`;
+  const badge = document.querySelector("[data-inbox-badge]");
+  if (badge) {
+    badge.textContent = pending.length;
+    badge.hidden = pending.length === 0;
+  }
+}
+
+async function loadWorkspaceOverview() {
+  workspaceOverview = await cmsRequest("/admin/workspace/overview");
+  const badge = document.querySelector("[data-inbox-badge]");
+  if (badge) {
+    badge.textContent = workspaceOverview.inbox || 0;
+    badge.hidden = !workspaceOverview.inbox;
+  }
+}
+
+async function loadInbox() {
+  inboxItems = await cmsRequest("/admin/inbox");
+  renderInbox();
+  await loadWorkspaceOverview();
+}
+
+function renderInboxOrganizerLinks() {
+  const selectedColumns = new Set([...document.querySelectorAll("[data-inbox-target-columns] input:checked")].map((input) => Number(input.value)));
+  const selectedNodes = new Set([...document.querySelectorAll("[data-inbox-target-nodes] input:checked")].map((input) => Number(input.value)));
+  document.querySelector("[data-inbox-target-columns]").innerHTML = knowledgeColumns.length
+    ? knowledgeColumns.map((column) => `<label><input type="checkbox" value="${column.id}" ${selectedColumns.has(column.id) ? "checked" : ""} /><span>${escapeHtml(column.name)}</span></label>`).join("")
+    : `<p class="empty">暂无知识专栏。</p>`;
+  document.querySelector("[data-inbox-target-nodes]").innerHTML = knowledgeNodes.length
+    ? knowledgeNodes.map((node) => `<label><input type="checkbox" value="${node.id}" ${selectedNodes.has(node.id) ? "checked" : ""} /><span>${escapeHtml(node.title)}</span></label>`).join("")
+    : `<p class="empty">暂无知识节点。</p>`;
+  const primary = document.querySelector("[data-inbox-target-primary-column]");
+  const current = primary.value;
+  primary.innerHTML = `<option value="">未指定</option>${knowledgeColumns.map((column) => `<option value="${column.id}">${escapeHtml(column.name)}</option>`).join("")}`;
+  if ([...primary.options].some((option) => option.value === current)) primary.value = current;
+}
+
+function updateInboxOrganizerMode() {
+  const type = document.querySelector("[data-inbox-target-type]").value;
+  document.querySelector("[data-inbox-node-type-wrap]").hidden = type !== "knowledge";
+}
+
+function openInboxOrganizer(itemId) {
+  activeInboxItem = inboxItems.find((item) => String(item.id) === String(itemId)) || null;
+  if (!activeInboxItem) return;
+  renderInbox();
+  const organizer = document.querySelector("[data-inbox-organizer]");
+  organizer.hidden = false;
+  document.querySelector("[data-inbox-target-type]").value = activeInboxItem.item_type === "document" ? "knowledge" : "knowledge";
+  document.querySelector("[data-inbox-target-title]").value = activeInboxItem.title || activeInboxItem.body.split("\n")[0].slice(0, 120) || "未命名内容";
+  document.querySelector("[data-inbox-target-slug]").value = slugify(document.querySelector("[data-inbox-target-title]").value);
+  document.querySelector("[data-inbox-target-summary]").value = activeInboxItem.body.slice(0, 240);
+  document.querySelector("[data-inbox-target-tags]").value = "";
+  document.querySelector("[data-inbox-target-visibility]").value = "private";
+  document.querySelector("[data-inbox-target-node-type]").value = "concept";
+  renderInboxOrganizerLinks();
+  updateInboxOrganizerMode();
+  document.querySelector("[data-inbox-organize-status]").textContent = "";
+  organizer.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function saveInboxItem() {
+  const payload = {
+    title: document.querySelector("[data-inbox-title]").value.trim(),
+    body: document.querySelector("[data-inbox-body]").value.trim(),
+    source_url: document.querySelector("[data-inbox-url]").value.trim(),
+    item_type: document.querySelector("[data-inbox-type]").value,
+    visibility: "private",
+  };
+  if (activeInboxItem?.id) {
+    await cmsRequest(`/admin/inbox/${activeInboxItem.id}`, { method: "PATCH", body: JSON.stringify({ ...payload, status: activeInboxItem.status || "inbox" }) });
+    showToast("收件内容已更新");
+  } else {
+    await cmsRequest("/admin/inbox", { method: "POST", body: JSON.stringify(payload) });
+    showToast("已保存到收件箱");
+  }
+  resetInboxForm();
+  await loadInbox();
+  await loadActivity();
+}
+
+async function promoteInboxItem() {
+  if (!activeInboxItem?.id) throw new Error("请先选择一条收件内容");
+  const entityType = document.querySelector("[data-inbox-target-type]").value;
+  const payload = {
+    entity_type: entityType,
+    title: document.querySelector("[data-inbox-target-title]").value.trim(),
+    slug: document.querySelector("[data-inbox-target-slug]").value.trim(),
+    summary: document.querySelector("[data-inbox-target-summary]").value.trim(),
+    visibility: document.querySelector("[data-inbox-target-visibility]").value,
+    tag_names: splitValues(document.querySelector("[data-inbox-target-tags]").value),
+    column_ids: [...document.querySelectorAll("[data-inbox-target-columns] input:checked")].map((input) => Number(input.value)),
+    primary_column_id: Number(document.querySelector("[data-inbox-target-primary-column]").value) || null,
+    node_ids: [...document.querySelectorAll("[data-inbox-target-nodes] input:checked")].map((input) => Number(input.value)),
+    node_type: document.querySelector("[data-inbox-target-node-type]").value,
+  };
+  if (!payload.title) throw new Error("请填写整理后的标题");
+  document.querySelector("[data-inbox-organize-status]").textContent = "正在创建草稿…";
+  const result = await cmsRequest(`/admin/inbox/${activeInboxItem.id}/promote`, {
+    method: "POST", body: JSON.stringify(payload),
+  });
+  showToast(`已整理为${entityType === "post" ? "文章" : entityType === "knowledge" ? "知识节点" : entityLabels[entityType]}：${result.title}`);
+  activeInboxItem = null;
+  await loadInbox();
+  if (entityType === "knowledge") {
+    await loadKnowledgeGraphData();
+    activeKnowledgeNode = knowledgeNodes.find((node) => node.id === result.id) || activeKnowledgeNode;
+    await navigateAdminRoute("knowledge-nodes");
+    setKnowledgeNodeForm(activeKnowledgeNode);
+    renderKnowledgeNodeList();
+  } else if (entityType === "post" || entityType === "project") {
+    activeEntityType = entityType;
+    await loadEntries();
+    activeEntry = cmsEntries.find((entry) => entry.id === result.id) || activeEntry;
+    await navigateAdminRoute(entityType === "post" ? "articles" : "projects");
+    setEntryForm(activeEntry);
+    setCmsWorkspaceMode("editor");
+  }
+}
+
+async function trashInboxItem(itemId) {
+  if (!confirm("将这条记录移至回收站？之后仍可恢复。")) return;
+  await cmsRequest(`/admin/inbox/${itemId}`, { method: "DELETE" });
+  showToast("已移至回收站");
+  await loadInbox();
+}
+
+function organizationTypeLabel(type) {
+  return { knowledge_column: "知识专栏", knowledge_node: "知识节点", article: "文章", document: "文档", project: "项目" }[type] || type;
+}
+
+function renderOrganization() {
+  const statsTarget = document.querySelector("[data-organization-stats]");
+  const listTarget = document.querySelector("[data-organization-list]");
+  if (!statsTarget || !listTarget) return;
+  const stats = organizationData?.stats || {};
+  statsTarget.innerHTML = [
+    ["内容实体", stats.entities || 0, `${stats.columns || 0} 个专栏`],
+    ["有效关系", stats.relations || 0, "包含、引用与节点关系"],
+    ["知识节点", stats.nodes || 0, `${stats.documents || 0} 份文档`],
+    ["孤立内容", stats.orphans || 0, "建议补充专栏或关联"],
+  ].map(([label, value, note]) => `<article><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`).join("");
+
+  const query = document.querySelector("[data-organization-search]")?.value.trim().toLowerCase() || "";
+  const type = document.querySelector("[data-organization-type]")?.value || "";
+  const onlyOrphans = document.querySelector("[data-organization-orphans]")?.checked;
+  const rows = (organizationData?.entities || []).filter((item) => {
+    if (type && item.entity_type !== type) return false;
+    if (onlyOrphans && item.connections !== 0) return false;
+    return !query || `${item.title} ${item.slug}`.toLowerCase().includes(query);
+  });
+  listTarget.innerHTML = rows.length ? rows.map((item) => `
+    <button type="button" class="${item.connections === 0 ? "is-orphan" : ""} ${activeOrganizationEntity?.entity_type === item.entity_type && activeOrganizationEntity?.id === item.id ? "is-active" : ""}" data-organization-entity="${item.entity_type}:${item.id}">
+      <i>${escapeHtml({ knowledge_column: "COL", knowledge_node: "NODE", article: "POST", document: "DOC", project: "PROJ" }[item.entity_type] || "ITEM")}</i>
+      <span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(organizationTypeLabel(item.entity_type))} · ${escapeHtml(item.slug)}</small></span>
+      <b>${item.connections === 0 ? "未关联" : `${item.connections} 条`}</b>
+    </button>
+  `).join("") : `<div class="workspace-empty-state"><i>✓</i><strong>没有匹配内容</strong><span>调整筛选条件后重试。</span></div>`;
+}
+
+function relationOtherTitle(link, entity) {
+  return link.source_type === entity.entity_type && link.source_id === entity.id ? link.target_title : link.source_title;
+}
+
+function renderOrganizationDetail() {
+  const target = document.querySelector("[data-organization-detail]");
+  if (!target) return;
+  if (!activeOrganizationEntity || !activeOrganizationBacklinks) {
+    target.innerHTML = `<div class="workspace-empty-state"><i>⌁</i><strong>选择一个内容</strong><span>这里会显示它的正向关系与反向链接。</span></div>`;
+    return;
+  }
+  const renderLinks = (title, rows) => `<section class="backlink-group"><h3>${title}（${rows.length}）</h3>${rows.length ? rows.map((link) => `<article><strong>${escapeHtml(relationOtherTitle(link, activeOrganizationEntity))}</strong><span>${escapeHtml(organizationTypeLabel(link.source_type))} → ${escapeHtml(link.relation_type)} → ${escapeHtml(organizationTypeLabel(link.target_type))}</span></article>`).join("") : `<p class="empty">暂无记录。</p>`}</section>`;
+  target.innerHTML = `
+    <header class="organization-detail-head"><span>${escapeHtml(organizationTypeLabel(activeOrganizationEntity.entity_type)).toUpperCase()}</span><h2>${escapeHtml(activeOrganizationEntity.title)}</h2><p>${escapeHtml(activeOrganizationEntity.slug)} · 共 ${activeOrganizationBacklinks.total} 条连接</p></header>
+    <button type="button" data-organization-open-editor>打开对应编辑器</button>
+    ${renderLinks("反向链接", activeOrganizationBacklinks.inbound || [])}
+    ${renderLinks("正向关系", activeOrganizationBacklinks.outbound || [])}
+  `;
+}
+
+async function loadOrganization() {
+  organizationData = await cmsRequest("/admin/workspace/organization");
+  if (activeOrganizationEntity) {
+    activeOrganizationEntity = organizationData.entities.find((item) => item.entity_type === activeOrganizationEntity.entity_type && item.id === activeOrganizationEntity.id) || null;
+  }
+  renderOrganization();
+  if (!activeOrganizationEntity) renderOrganizationDetail();
+}
+
+async function selectOrganizationEntity(value) {
+  const [entityType, rawId] = String(value).split(":");
+  activeOrganizationEntity = organizationData?.entities?.find((item) => item.entity_type === entityType && item.id === Number(rawId)) || null;
+  if (!activeOrganizationEntity) return;
+  activeOrganizationBacklinks = await cmsRequest(`/admin/workspace/backlinks/${entityType}/${rawId}`);
+  renderOrganization();
+  renderOrganizationDetail();
+}
+
+async function openOrganizationEditor() {
+  if (!activeOrganizationEntity) return;
+  const { entity_type: type, id } = activeOrganizationEntity;
+  if (type === "knowledge_node") {
+    activeKnowledgeNode = knowledgeNodes.find((node) => node.id === id) || activeKnowledgeNode;
+    await navigateAdminRoute("knowledge-nodes");
+    if (activeKnowledgeNode) setKnowledgeNodeForm(activeKnowledgeNode);
+  } else if (type === "document") {
+    await navigateAdminRoute("documents");
+    await selectDocument(id);
+  } else if (type === "article") {
+    activeEntityType = "post";
+    await navigateAdminRoute("articles");
+    await loadEntries();
+    activeEntry = cmsEntries.find((entry) => entry.id === id) || activeEntry;
+    if (activeEntry) setEntryForm(activeEntry);
+    setCmsWorkspaceMode("editor");
+  } else if (type === "knowledge_column") {
+    activeKnowledgeColumn = knowledgeColumns.find((column) => column.id === id) || activeKnowledgeColumn;
+    await navigateAdminRoute("knowledge-columns");
+    if (activeKnowledgeColumn) setColumnForm(activeKnowledgeColumn);
+  }
+}
+
+async function openWorkspaceEntity(entityType, entityId) {
+  const id = Number(entityId);
+  if (entityType === "project") {
+    activeEntityType = "project";
+    await navigateAdminRoute("projects");
+    await loadEntries();
+    activeEntry = cmsEntries.find((entry) => entry.id === id) || null;
+    if (activeEntry) {
+      setEntryForm(activeEntry);
+      setCmsWorkspaceMode("editor");
+    }
+    return;
+  }
+  if (!organizationData) await loadOrganization();
+  activeOrganizationEntity = organizationData?.entities?.find((item) => item.entity_type === entityType && item.id === id) || {
+    id, entity_type: entityType, title: "", slug: "",
+  };
+  await openOrganizationEditor();
+}
+function reviewStatusLabel(item) {
+  if (item.status === "suggested") return "建议回顾";
+  if (item.status === "pending") return "今日到期";
+  return item.next_review_at ? `下次 ${formatWorkspaceTime(item.next_review_at)}` : "已安排";
+}
+
+function renderReviewSearchResults() {
+  const target = document.querySelector("[data-review-search-results]");
+  if (!target) return;
+  if (!reviewSearchResults.length) {
+    target.innerHTML = `<div class="workspace-empty-state"><i>⌕</i><strong>没有匹配内容</strong><span>尝试更短的关键词或切换内容类型。</span></div>`;
+    return;
+  }
+  target.innerHTML = reviewSearchResults.map((item) => `<article>
+    <button type="button" class="review-search-main" data-review-open="${escapeHtml(item.entity_type)}:${item.id}">
+      <i>${escapeHtml({ article: "POST", knowledge_node: "NODE", knowledge_column: "COL", document: "DOC", project: "PROJ" }[item.entity_type] || "ITEM")}</i>
+      <span><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(organizationTypeLabel(item.entity_type))} · ${escapeHtml(item.visibility || "private")} ${item.status ? `· ${escapeHtml(item.status)}` : ""}</small><em>${escapeHtml(item.summary || item.slug || "暂无摘要")}</em></span>
+      <b>打开 ›</b>
+    </button>
+    <button type="button" class="review-search-queue" data-review-quick-queue="${escapeHtml(item.entity_type)}:${item.id}">＋ 加入今日</button>
+  </article>
+  `).join("");
+}
+
+async function searchReviewWorkspace() {
+  const query = document.querySelector("[data-review-search]")?.value.trim() || "";
+  const type = document.querySelector("[data-review-search-type]")?.value || "";
+  if (!query) {
+    reviewSearchResults = [];
+    const target = document.querySelector("[data-review-search-results]");
+    if (target) target.innerHTML = `<div class="workspace-empty-state"><i>⌕</i><strong>搜索整个第二大脑</strong><span>后台检索包含私有内容、草稿和未发布知识。</span></div>`;
+    return;
+  }
+  const response = await cmsRequest(`/admin/workspace/search?q=${encodeURIComponent(query)}&entity_type=${encodeURIComponent(type)}&limit=30`);
+  reviewSearchResults = response.items || [];
+  renderReviewSearchResults();
+}
+
+function renderReviewDashboard() {
+  const statsTarget = document.querySelector("[data-review-stats]");
+  const queueTarget = document.querySelector("[data-review-queue]");
+  const recentTarget = document.querySelector("[data-review-recent]");
+  const recommendationsTarget = document.querySelector("[data-review-recommendations]");
+  const upcomingTarget = document.querySelector("[data-review-upcoming]");
+  const summaryTarget = document.querySelector("[data-review-daily-summary]");
+  if (!statsTarget || !queueTarget || !recentTarget || !recommendationsTarget || !upcomingTarget || !summaryTarget) return;
+  const stats = reviewDashboard?.stats || {};
+  const summary = reviewDashboard?.daily_summary || {};
+  summaryTarget.innerHTML = `
+    <div><span>TODAY · ${escapeHtml(summary.date || "")}</span><strong>今天，让知识重新进入工作。</strong><small>记录 ${summary.captured_today || 0} 条 · 修改 ${summary.changed_today || 0} 项 · 回顾 ${summary.reviewed_today || 0} 项</small></div>
+    <div class="review-streak"><strong>${summary.review_streak || 0}</strong><span>连续回顾天数</span></div>
+  `;
+  statsTarget.innerHTML = [
+    ["今日到期", stats.due || 0, "需要重新阅读"],
+    ["已安排", stats.scheduled || 0, "进入回顾周期"],
+    ["累计回顾", stats.reviewed || 0, "主动复习次数"],
+    ["尚未回顾", stats.unreviewed || 0, "待建立记忆"],
+  ].map(([label, value, note]) => `<article><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`).join("");
+
+  const queue = reviewDashboard?.queue || [];
+  document.querySelector("[data-review-queue-count]").textContent = `${queue.length} 项`;
+  queueTarget.innerHTML = queue.length ? queue.map((item) => {
+    const entity = item.entity || {};
+    return `<article>
+      <label class="review-row-select"><input type="checkbox" data-review-select="${item.entity_type}:${item.entity_id}" aria-label="选择 ${escapeHtml(entity.title || "未命名")}" /></label>
+      <button type="button" class="review-item-main" data-review-open="${escapeHtml(item.entity_type)}:${item.entity_id}">
+        <i>${escapeHtml(organizationTypeLabel(item.entity_type).slice(0, 1))}</i>
+        <span><strong>${escapeHtml(entity.title || "未命名")}</strong><small>${escapeHtml(organizationTypeLabel(item.entity_type))} · ${escapeHtml(reviewStatusLabel(item))}</small><em>${escapeHtml(entity.summary || entity.slug || "暂无摘要")}</em></span>
+      </button>
+      <div class="review-item-actions">
+        <button type="button" data-review-action="reviewed:${item.entity_type}:${item.entity_id}:7">完成 · 7 天</button>
+        <button type="button" class="secondary" data-review-action="snooze:${item.entity_type}:${item.entity_id}:1">明天再看</button>
+        <button type="button" class="secondary" data-review-edit="${item.entity_type}:${item.entity_id}">设置</button>
+      </div>
+      <section class="review-item-editor" data-review-editor="${item.entity_type}:${item.entity_id}" hidden>
+        <label>下次间隔<input type="number" min="1" max="365" value="${Number(item.interval_days) || 7}" data-review-editor-days />天</label>
+        <label>回顾备注<input value="${escapeHtml(item.note || "")}" data-review-editor-note placeholder="记录理解、疑问或下次关注点" /></label>
+        <button type="button" data-review-custom-action="reviewed:${item.entity_type}:${item.entity_id}">保存并完成</button>
+        <button type="button" class="secondary" data-review-custom-action="snooze:${item.entity_type}:${item.entity_id}">仅安排时间</button>
+      </section>
+    </article>`;
+  }).join("") : `<div class="workspace-empty-state"><i>✓</i><strong>今日回顾已完成</strong><span>新的到期内容会自动出现在这里。</span></div>`;
+
+  const reasonLabels = { contains: "同一专栏", references: "引用关系", related_to: "相关知识", content_similarity: "内容相似", highly_connected: "知识枢纽", uses: "使用关系", depends_on: "依赖关系" };
+  const compactRows = (rows, mode = "recent") => rows.length ? rows.map((item) => `
+    <button type="button" data-review-open="${escapeHtml(item.entity_type)}:${item.id}">
+      <i>${escapeHtml(organizationTypeLabel(item.entity_type).slice(0, 1))}</i>
+      <span><strong>${escapeHtml(item.title)}</strong><small>${mode === "recommendation" ? `${escapeHtml(item.source_title || "知识网络")} · ${escapeHtml(reasonLabels[item.reason] || item.reason || "关联")}` : mode === "upcoming" ? `${escapeHtml(organizationTypeLabel(item.entity_type))} · ${escapeHtml(reviewStatusLabel(item))}` : `${escapeHtml(organizationTypeLabel(item.entity_type))} · ${escapeHtml(formatWorkspaceTime(item.updated_at))}`}</small></span>
+      <b>›</b>
+    </button>
+  `).join("") : `<p class="empty">暂无内容。</p>`;
+  recentTarget.innerHTML = compactRows(reviewDashboard?.recent || []);
+  recommendationsTarget.innerHTML = compactRows(reviewDashboard?.recommendations || [], "recommendation");
+  upcomingTarget.innerHTML = compactRows((reviewDashboard?.upcoming || []).map((item) => ({
+    ...(item.entity || {}), entity_type: item.entity_type, id: item.entity_id,
+    status: item.status, next_review_at: item.next_review_at,
+  })), "upcoming");
+  updateReviewSelectedCount();
+
+  const badge = document.querySelector("[data-review-badge]");
+  if (badge) {
+    badge.textContent = stats.due || 0;
+    badge.hidden = !stats.due;
+  }
+}
+
+async function loadReviewDashboard() {
+  reviewDashboard = await cmsRequest("/admin/workspace/review");
+  renderReviewDashboard();
+}
+
+async function updateReviewEntity(action, entityType, entityId, intervalDays, note = "") {
+  await cmsRequest(`/admin/workspace/review/${entityType}/${entityId}`, {
+    method: "POST",
+    body: JSON.stringify({ action, interval_days: Number(intervalDays) || 7, note }),
+  });
+  showToast(action === "reviewed" ? "已完成回顾并安排下次复习" : "已调整回顾时间");
+  await loadReviewDashboard();
+}
+
+function selectedReviewTargets() {
+  return [...document.querySelectorAll("[data-review-select]:checked")].map((input) => {
+    const [entity_type, entity_id] = input.dataset.reviewSelect.split(":");
+    return { entity_type, entity_id: Number(entity_id) };
+  });
+}
+
+function updateReviewSelectedCount() {
+  const selected = selectedReviewTargets();
+  const target = document.querySelector("[data-review-selected-count]");
+  if (target) target.textContent = `已选 ${selected.length} 项`;
+  const selectAll = document.querySelector("[data-review-select-all]");
+  const total = document.querySelectorAll("[data-review-select]").length;
+  if (selectAll) {
+    selectAll.checked = total > 0 && selected.length === total;
+    selectAll.indeterminate = selected.length > 0 && selected.length < total;
+  }
+}
+
+async function batchReviewEntities(action) {
+  const targets = selectedReviewTargets();
+  if (!targets.length) throw new Error("请先选择需要处理的内容");
+  const intervalDays = Number(document.querySelector("[data-review-batch-days]")?.value) || 7;
+  const response = await cmsRequest("/admin/workspace/review/batch", {
+    method: "POST",
+    body: JSON.stringify({ action, interval_days: intervalDays, note: "", targets }),
+  });
+  showToast(`已处理 ${response.updated || targets.length} 项内容`);
+  await loadReviewDashboard();
+}
+
+function maintenancePriorityLabel(priority) {
+  return { high: "高", medium: "中", low: "低" }[priority] || priority;
+}
+
+function maintenanceCategoryLabel(category) {
+  return {
+    organize: "待整理", content: "内容质量", relationship: "知识关系",
+    review: "回顾", system: "系统",
+  }[category] || category;
+}
+
+function maintenanceActionLabel(task) {
+  return {
+    organize: "开始整理", review: "立即回顾", relate: "建立关系",
+    edit: "完善内容", repair: "检查文档", open: "打开",
+  }[task.action] || "处理";
+}
+
+function renderMaintenanceTrend(report) {
+  const target = document.querySelector("[data-maintenance-trend]");
+  if (!target) return;
+  const rows = report?.trend || [];
+  const maximum = Math.max(1, ...rows.map((item) => item.total || 0));
+  target.innerHTML = rows.map((item) => {
+    const captured = Math.max(0, Number(item.captured) || 0);
+    const reviewed = Math.max(0, Number(item.reviewed) || 0);
+    const changed = Math.max(0, (Number(item.total) || 0) - captured - reviewed);
+    const scale = 100 / maximum;
+    return `<article title="${escapeHtml(item.date)} · 共 ${item.total || 0} 次活动">
+      <div class="maintenance-bar">
+        <i data-kind="changed" style="height:${Math.max(changed * scale, changed ? 4 : 0)}%"></i>
+        <i data-kind="captured" style="height:${Math.max(captured * scale, captured ? 4 : 0)}%"></i>
+        <i data-kind="reviewed" style="height:${Math.max(reviewed * scale, reviewed ? 4 : 0)}%"></i>
+      </div>
+      <span>${escapeHtml(item.date.slice(5))}</span>
+    </article>`;
+  }).join("");
+}
+
+function renderMaintenanceTasks() {
+  const target = document.querySelector("[data-maintenance-tasks]");
+  if (!target) return;
+  const priority = document.querySelector("[data-maintenance-priority]")?.value || "";
+  const category = document.querySelector("[data-maintenance-category]")?.value || "";
+  const allTasks = maintenanceDashboard?.maintenance?.tasks || [];
+  const tasks = allTasks.filter((task) => (!priority || task.priority === priority) && (!category || task.category === category));
+  document.querySelector("[data-maintenance-task-count]").textContent = `${tasks.length} 项`;
+  target.innerHTML = tasks.length ? tasks.map((task) => `
+    <article>
+      <i data-priority="${escapeHtml(task.priority)}">${escapeHtml(maintenancePriorityLabel(task.priority))}</i>
+      <div><strong>${escapeHtml(task.title)}</strong><span>${escapeHtml(maintenanceCategoryLabel(task.category))} · ${escapeHtml(task.reason)}</span></div>
+      <button type="button" data-maintenance-task="${escapeHtml(task.id)}">${escapeHtml(maintenanceActionLabel(task))}</button>
+    </article>
+  `).join("") : `<div class="workspace-empty-state"><i>✓</i><strong>当前筛选下没有维护任务</strong><span>知识系统处于清洁状态。</span></div>`;
+}
+
+function renderMaintenanceAiInbox() {
+  const select = document.querySelector("[data-maintenance-ai-inbox]");
+  if (!select) return;
+  const pending = inboxItems.filter((item) => item.status !== "processed" && item.status !== "archived");
+  const selected = select.value;
+  select.innerHTML = pending.length
+    ? `<option value="">选择一条记录</option>${pending.map((item) => `<option value="${item.id}">${escapeHtml(item.title || item.body.slice(0, 40) || "未命名记录")}</option>`).join("")}`
+    : `<option value="">收件箱已整理完</option>`;
+  if (pending.some((item) => String(item.id) === selected)) select.value = selected;
+}
+
+function renderMaintenanceAiSuggestion(payload) {
+  const target = document.querySelector("[data-maintenance-ai-result]");
+  if (!target) return;
+  if (!payload?.suggestion) {
+    target.innerHTML = `<div class="workspace-empty-state"><i>AI</i><strong>先选择一条记录</strong><span>建议不会自动写入或发布。</span></div>`;
+    return;
+  }
+  const suggestion = payload.suggestion;
+  const typeLabel = { knowledge: "知识节点", post: "文章", project: "项目", reading: "阅读记录" }[suggestion.entity_type] || suggestion.entity_type;
+  target.innerHTML = `
+    <div class="maintenance-ai-meta"><span>${escapeHtml(payload.model_applied ? "MODEL" : "LOCAL")}</span><em>${Math.round((suggestion.confidence || 0) * 100)}% 置信度</em></div>
+    <h3>${escapeHtml(suggestion.title)}</h3>
+    <p>${escapeHtml(suggestion.summary || "暂无摘要")}</p>
+    <dl><div><dt>建议类型</dt><dd>${escapeHtml(typeLabel)}</dd></div><div><dt>标签</dt><dd>${escapeHtml((suggestion.tag_names || []).join(" · ") || "未识别")}</dd></div><div><dt>知识连接</dt><dd>${(suggestion.column_ids || []).length} 个专栏 · ${(suggestion.node_ids || []).length} 个节点</dd></div></dl>
+    <ul>${(suggestion.reasons || []).map((reason) => `<li>${escapeHtml(reason)}</li>`).join("")}</ul>
+    <small>${escapeHtml(payload.safety || "")}</small>
+    <button type="button" data-maintenance-ai-apply>带入整理表单</button>
+  `;
+}
+
+function renderKnowledgeOpportunities() {
+  const target = document.querySelector("[data-maintenance-opportunities]");
+  if (!target) return;
+  const opportunities = maintenanceDashboard?.opportunities || {};
+  const duplicates = opportunities.duplicates || [];
+  const relations = opportunities.relations || [];
+  const group = (title, rows, kind) => rows.length ? `
+    <section>
+      <h3>${escapeHtml(title)} <span>${rows.length}</span></h3>
+      ${rows.slice(0, 6).map((item) => `
+        <article>
+          <div><strong>${escapeHtml(item.source_title)} <i>↔</i> ${escapeHtml(item.target_title)}</strong><span>${escapeHtml(item.reason)} · ${Math.round((item.score || 0) * 100)}%</span></div>
+          <button type="button" data-maintenance-opportunity="${kind}:${item.source_id}:${item.target_id}">${kind === "relation" ? "确认关联" : "检查重复"}</button>
+        </article>
+      `).join("")}
+    </section>
+  ` : "";
+  target.innerHTML = duplicates.length || relations.length
+    ? `${group("疑似重复", duplicates, "duplicate")}${group("推荐关系", relations, "relation")}<small>已扫描 ${opportunities.scanned_nodes || 0} 个知识节点${opportunities.truncated ? "，仅分析最近更新的 250 个" : ""}</small>`
+    : `<div class="workspace-empty-state"><i>✓</i><strong>没有发现明显问题</strong><span>当前节点之间没有高置信度的重复或缺失关系。</span></div>`;
+}
+
+function renderAiWorkflowDashboard() {
+  const statsTarget = document.querySelector("[data-ai-workflow-stats]");
+  const queueTarget = document.querySelector("[data-ai-workflow-queue]");
+  if (!statsTarget || !queueTarget) return;
+  const stats = aiWorkflowDashboard?.stats || {};
+  const rows = [
+    [stats.pending || 0, "待确认"],
+    [`${Math.round((stats.adoption_rate || 0) * 100)}%`, "历史采用率"],
+    [`${Math.round((stats.avg_confidence || 0) * 100)}%`, "平均置信度"],
+    [`${Math.round((stats.tag_coverage || 0) * 100)}%`, "标签覆盖"],
+    [`${Math.round((stats.relation_coverage || 0) * 100)}%`, "关系覆盖"],
+    [`${Math.round((stats.avg_readiness || 0) * 100)}%`, "整理就绪度"],
+  ];
+  statsTarget.innerHTML = rows.map(([value, label]) => `<article><strong>${escapeHtml(value)}</strong><span>${escapeHtml(label)}</span></article>`).join("");
+  const queue = aiWorkflowDashboard?.queue || [];
+  queueTarget.innerHTML = queue.length ? queue.map((row) => {
+    const item = row.item || {};
+    const suggestion = row.suggestion || {};
+    const typeLabel = { knowledge: "知识节点", post: "文章", project: "项目", reading: "阅读记录" }[suggestion.entity_type] || suggestion.entity_type;
+    const connectionCount = (suggestion.column_ids || []).length + (suggestion.node_ids || []).length;
+    return `<article>
+      <div class="maintenance-workflow-source"><span>INBOX</span><strong>${escapeHtml(item.title || item.body?.slice(0, 50) || "未命名记录")}</strong><small>${escapeHtml(item.body?.slice(0, 90) || item.source_url || "暂无内容")}</small></div>
+      <div class="maintenance-workflow-suggestion"><span>${escapeHtml(row.model_applied ? "MODEL" : "LOCAL")} · ${escapeHtml(typeLabel)} · ${Math.round((suggestion.confidence || 0) * 100)}%</span><strong>${escapeHtml(suggestion.title || "未命名建议")}</strong><small>${escapeHtml((suggestion.tag_names || []).join(" · ") || "暂无标签")} · ${connectionCount} 个知识连接</small></div>
+      <div class="maintenance-workflow-row-actions"><button type="button" data-ai-workflow-adopt="${item.id}">采用</button><button type="button" class="secondary" data-ai-workflow-reject="${item.id}">忽略</button></div>
+    </article>`;
+  }).join("") : `<div class="workspace-empty-state"><i>✓</i><strong>AI 整理队列已清空</strong><span>新的收件箱记录会自动进入下一轮分析。</span></div>`;
+}
+
+function renderMaintenanceDashboard() {
+  if (!maintenanceDashboard) return;
+  const report = maintenanceDashboard.report || {};
+  const summary = report.summary || {};
+  const maintenance = maintenanceDashboard.maintenance || {};
+  const period = report.period || {};
+  document.querySelector("[data-maintenance-period]").textContent = `${period.start || ""} 至 ${period.end || ""} · ${summary.active_days || 0} 个活跃日`;
+  const stats = [
+    [summary.captured || 0, "新记录", "进入收件箱"],
+    [summary.created || 0, "新建内容", `${summary.touched_entities || 0} 项被触达`],
+    [summary.reviewed || 0, "完成回顾", "重新进入工作记忆"],
+    [maintenance.stats?.total || 0, "待维护", `${maintenance.stats?.high || 0} 项高优先级`],
+  ];
+  document.querySelector("[data-maintenance-stats]").innerHTML = stats.map(([value, label, note]) => `<article><strong>${value}</strong><span>${escapeHtml(label)}</span><small>${escapeHtml(note)}</small></article>`).join("");
+  renderMaintenanceTrend(report);
+  renderMaintenanceTasks();
+  const focus = document.querySelector("[data-maintenance-focus]");
+  const top = report.top_entities || [];
+  focus.innerHTML = top.length ? top.map((item, index) => `<article><i>${index + 1}</i><span><strong>${escapeHtml(item.title)}</strong><small>${item.events} 次操作</small></span></article>`).join("") : `<div class="workspace-empty-state"><i>·</i><strong>本期暂无活动</strong><span>开始记录后会生成关注重点。</span></div>`;
+  const badge = document.querySelector("[data-maintenance-badge]");
+  if (badge) {
+    badge.textContent = maintenance.stats?.high || 0;
+    badge.hidden = !(maintenance.stats?.high || 0);
+  }
+  renderMaintenanceAiInbox();
+  renderKnowledgeOpportunities();
+  renderAiWorkflowDashboard();
+}
+
+async function loadMaintenanceDashboard() {
+  const days = Number(document.querySelector("[data-maintenance-days]")?.value) || 7;
+  if (!inboxItems.length) await loadInbox();
+  maintenanceDashboard = await cmsRequest(`/admin/workspace/maintenance?days=${days}`);
+  aiWorkflowDashboard = await cmsRequest("/admin/workspace/ai-workflow?limit=20");
+  renderMaintenanceDashboard();
+}
+
+async function loadAiWorkflowDashboard() {
+  aiWorkflowDashboard = await cmsRequest("/admin/workspace/ai-workflow?limit=20");
+  renderAiWorkflowDashboard();
+}
+
+async function runBatchInboxSuggestions(mode = "local") {
+  const current = aiWorkflowDashboard?.queue || [];
+  const itemIds = current.slice(0, mode === "auto" ? 5 : 25).map((row) => row.item.id);
+  if (!itemIds.length) throw new Error("当前没有待分析的收件箱记录");
+  const target = document.querySelector("[data-ai-workflow-queue]");
+  target.innerHTML = `<div class="workspace-empty-state"><i>AI</i><strong>正在批量分析 ${itemIds.length} 条记录</strong><span>${mode === "auto" ? "调用已配置模型并保留本地降级能力。" : "使用本地规则匹配类型、标签与知识连接。"}</span></div>`;
+  const response = await cmsRequest("/admin/inbox/suggestions/batch", {
+    method: "POST",
+    body: JSON.stringify({ item_ids: itemIds, limit: itemIds.length, mode }),
+  });
+  aiWorkflowDashboard.queue = response.items || [];
+  renderAiWorkflowDashboard();
+  showToast(`已完成 ${response.processed || 0} 条整理建议`);
+}
+
+async function recordAiWorkflowDecision(payload, decision, note = "") {
+  if (!payload?.item?.id || !payload?.suggestion) return;
+  const suggestion = payload.suggestion;
+  await cmsRequest("/admin/workspace/ai-workflow/decision", {
+    method: "POST",
+    body: JSON.stringify({
+      item_id: payload.item.id,
+      suggestion_id: `inbox:${payload.item.id}:${suggestion.slug || "suggestion"}`,
+      decision,
+      confidence: Number(suggestion.confidence) || 0,
+      suggested_type: suggestion.entity_type || "knowledge",
+      note,
+    }),
+  });
+}
+
+async function adoptAiWorkflowSuggestion(itemId) {
+  const payload = (aiWorkflowDashboard?.queue || []).find((row) => row.item?.id === Number(itemId));
+  if (!payload) return;
+  activeInboxSuggestion = { ...payload, generator: "workflow", model_applied: false, safety: "建议仅用于预填充，必须由管理员确认后才能创建草稿。" };
+  await applyInboxOrganizationSuggestion();
+}
+
+async function rejectAiWorkflowSuggestion(itemId) {
+  const payload = (aiWorkflowDashboard?.queue || []).find((row) => row.item?.id === Number(itemId));
+  if (!payload) return;
+  await recordAiWorkflowDecision(payload, "rejected", "管理员在整理队列中忽略该建议");
+  showToast("已记录忽略决定，后续质量统计会纳入本次反馈");
+  await loadAiWorkflowDashboard();
+}
+
+async function runInboxOrganizationSuggestion() {
+  const itemId = Number(document.querySelector("[data-maintenance-ai-inbox]")?.value);
+  if (!itemId) throw new Error("请先选择一条待整理记录");
+  const target = document.querySelector("[data-maintenance-ai-result]");
+  target.innerHTML = `<div class="workspace-empty-state"><i>AI</i><strong>正在分析内容</strong><span>匹配类型、标签、专栏与知识节点。</span></div>`;
+  activeInboxSuggestion = await cmsRequest(`/admin/inbox/${itemId}/suggest`, { method: "POST" });
+  renderMaintenanceAiSuggestion(activeInboxSuggestion);
+}
+
+async function applyInboxOrganizationSuggestion() {
+  const payload = activeInboxSuggestion;
+  if (!payload?.suggestion) return;
+  const suggestion = payload.suggestion;
+  await recordAiWorkflowDecision(payload, "adopted", "管理员采用建议并带入整理表单");
+  await navigateAdminRoute("inbox");
+  openInboxOrganizer(payload.item.id);
+  document.querySelector("[data-inbox-target-type]").value = suggestion.entity_type || "knowledge";
+  document.querySelector("[data-inbox-target-title]").value = suggestion.title || "";
+  document.querySelector("[data-inbox-target-slug]").value = suggestion.slug || slugify(suggestion.title || "");
+  document.querySelector("[data-inbox-target-summary]").value = suggestion.summary || "";
+  document.querySelector("[data-inbox-target-tags]").value = (suggestion.tag_names || []).join(", ");
+  document.querySelector("[data-inbox-target-visibility]").value = "private";
+  document.querySelector("[data-inbox-target-node-type]").value = suggestion.node_type || "concept";
+  document.querySelectorAll("[data-inbox-target-columns] input").forEach((input) => {
+    input.checked = (suggestion.column_ids || []).includes(Number(input.value));
+  });
+  document.querySelectorAll("[data-inbox-target-nodes] input").forEach((input) => {
+    input.checked = (suggestion.node_ids || []).includes(Number(input.value));
+  });
+  const primary = document.querySelector("[data-inbox-target-primary-column]");
+  primary.value = suggestion.primary_column_id || "";
+  updateInboxOrganizerMode();
+  document.querySelector("[data-inbox-organize-status]").textContent = "AI 建议已带入，请确认后再创建草稿。";
+  document.querySelector("[data-inbox-organizer]").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function handleMaintenanceTask(taskId) {
+  const task = maintenanceDashboard?.maintenance?.tasks?.find((item) => item.id === taskId);
+  if (!task) return;
+  if (task.action === "organize") {
+    await navigateAdminRoute("inbox");
+    openInboxOrganizer(task.entity_id);
+    return;
+  }
+  if (task.action === "review") {
+    if (task.entity_type && task.entity_id) {
+      await updateReviewEntity("queue", task.entity_type, task.entity_id, 1, "由维护清单加入今日回顾");
+    }
+    await navigateAdminRoute("review");
+    return;
+  }
+  if (task.entity_type && task.entity_id) await openWorkspaceEntity(task.entity_type, task.entity_id);
+  else if (task.route) await navigateAdminRoute(task.route);
+}
+
+async function handleKnowledgeOpportunity(value) {
+  const [kind, sourceIdValue, targetIdValue] = value.split(":");
+  const sourceId = Number(sourceIdValue);
+  const targetId = Number(targetIdValue);
+  const opportunities = maintenanceDashboard?.opportunities || {};
+  const rows = kind === "relation" ? opportunities.relations || [] : opportunities.duplicates || [];
+  const item = rows.find((candidate) => candidate.source_id === sourceId && candidate.target_id === targetId);
+  if (!item) return;
+  if (kind === "duplicate") {
+    showToast(`请对比“${item.source_title}”与“${item.target_title}”后决定是否合并`);
+    await openWorkspaceEntity("knowledge_node", sourceId);
+    return;
+  }
+  await cmsRequest("/admin/knowledge-relations", {
+    method: "POST",
+    body: JSON.stringify({
+      source_node_id: sourceId,
+      target_node_id: targetId,
+      relation_type: item.relation_type || "related_to",
+      relation_label: "AI 辅助发现",
+      description: item.reason || "由知识维护工作流推荐",
+      weight: Math.max(0.1, Math.min(10, Number(item.score) || 1)),
+      direction: "bidirectional",
+      is_active: true,
+      is_public: item.is_public === true,
+    }),
+  });
+  showToast(`已建立“${item.source_title}”与“${item.target_title}”的关系`);
+  await loadMaintenanceDashboard();
+  await loadKnowledgeGraphData();
+}
+
+function maintenanceReportText() {
+  const report = maintenanceDashboard?.report;
+  const maintenance = maintenanceDashboard?.maintenance;
+  if (!report || !maintenance) return "";
+  return [
+    `第二大脑周报（${report.period.start} 至 ${report.period.end}）`,
+    `活跃 ${report.summary.active_days} 天，记录 ${report.summary.captured} 条，新建 ${report.summary.created} 项，修改 ${report.summary.changed} 项，回顾 ${report.summary.reviewed} 项。`,
+    `当前维护任务 ${maintenance.stats.total} 项，其中高优先级 ${maintenance.stats.high} 项、孤立内容 ${maintenance.stats.orphans} 项、待整理收件 ${maintenance.stats.inbox} 项。`,
+    `本期重点：${(report.top_entities || []).map((item) => `${item.title}（${item.events}）`).join("、") || "暂无"}`,
+  ].join("\n");
+}
+
+function renderActivity() {
+  const target = document.querySelector("[data-activity-list]");
+  if (!target) return;
+  const labels = { captured: "记录", created: "创建", updated: "更新", published: "发布", archived: "归档", trashed: "移至回收站", restored: "恢复", promoted: "整理" };
+  target.innerHTML = activityEvents.length ? activityEvents.map((event) => `
+    <article><i></i><time>${escapeHtml(formatWorkspaceTime(event.created_at))}</time><div><strong>${escapeHtml(labels[event.action] || event.action)} · ${escapeHtml(event.entity_title || "未命名")}</strong><span>${escapeHtml(entityLabels[event.entity_type] || event.entity_type)} · ${escapeHtml(event.actor_email || "system")}</span></div></article>
+  `).join("") : `<div class="workspace-empty-state"><i>◷</i><strong>暂无活动记录</strong><span>新建、修改、发布和恢复操作会记录在这里。</span></div>`;
+}
+
+async function loadActivity() {
+  activityEvents = await cmsRequest("/admin/activity?limit=100");
+  renderActivity();
+}
+
+function renderTrash() {
+  const target = document.querySelector("[data-trash-list]");
+  if (!target) return;
+  target.innerHTML = trashItems.length ? trashItems.map((item) => `
+    <article class="trash-row"><i>⌫</i><div><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(entityLabels[item.entity_type] || item.entity_type)} · 删除于 ${escapeHtml(formatWorkspaceTime(item.deleted_at))}</span></div><button type="button" data-trash-restore="${item.entity_type}:${item.id}">恢复</button></article>
+  `).join("") : `<div class="workspace-empty-state"><i>✓</i><strong>回收站为空</strong><span>删除的内容会安全保留在这里。</span></div>`;
+}
+
+async function loadTrash() {
+  trashItems = await cmsRequest("/admin/trash");
+  renderTrash();
+  await loadWorkspaceOverview();
+}
+
+async function restoreTrashItem(value) {
+  const [entityType, entityId] = value.split(":");
+  await cmsRequest(`/admin/trash/${entityType}/${entityId}/restore`, { method: "POST" });
+  showToast("内容已恢复");
+  await loadTrash();
+  await loadEntries();
+  await loadKnowledgeGraphData();
+  await loadDocuments();
 }
 
 function renderAdminDashboard() {
@@ -937,12 +1780,39 @@ async function deleteKnowledgeColumn() {
   await loadKnowledgeColumns();
 }
 
+function renderEditorReadiness(listSelector, summarySelector, checks) {
+  const list = document.querySelector(listSelector);
+  const summary = document.querySelector(summarySelector);
+  if (!list || !summary) return;
+  const ready = checks.filter((item) => item.ready).length;
+  summary.textContent = `${ready} / ${checks.length}`;
+  list.innerHTML = checks.map((item) => `<li class="${item.ready ? "is-ready" : ""}">${escapeHtml(item.label)}</li>`).join("");
+}
+
+function setEditorStatus(selector, message, state = "idle") {
+  const target = document.querySelector(selector);
+  if (!target) return;
+  target.textContent = message;
+  target.dataset.state = state;
+}
+
+function filterRelationChoices(selector, query) {
+  const normalized = String(query || "").trim().toLowerCase();
+  document.querySelectorAll(`${selector} label`).forEach((label) => {
+    label.classList.toggle("is-filtered", Boolean(normalized) && !label.textContent.toLowerCase().includes(normalized));
+  });
+}
+
 function emptyKnowledgeNode() {
   return { id: null, title: "", slug: "", summary: "", content_markdown: "", node_type: "concept", importance: 3, visibility: "public", allow_ai_search: true, revision: 1, tag_names: [], column_ids: [], primary_column_id: null, article_ids: [] };
 }
 
 function setKnowledgeNodeForm(node = emptyKnowledgeNode()) {
+  nodeEditorHydrating = true;
+  window.clearTimeout(nodeAutosaveTimer);
+  nodeAutosaveDirty = false;
   activeKnowledgeNode = node;
+  nodeEnhancement = null;
   document.querySelector("[data-node-title]").value = node.title || "";
   document.querySelector("[data-node-slug]").value = node.slug || "";
   document.querySelector("[data-node-summary]").value = node.summary || "";
@@ -955,6 +1825,27 @@ function setKnowledgeNodeForm(node = emptyKnowledgeNode()) {
   renderKnowledgeNodeLinks(node);
   const note = document.querySelector("[data-node-version-note]");
   note.textContent = node.id ? `revision ${node.revision || 1}` : "新节点尚未保存";
+  document.querySelector("[data-node-shell-title]").textContent = node.title || "新知识节点";
+  document.querySelector("[data-node-shell-visibility]").textContent = (node.visibility || "public").toUpperCase();
+  document.querySelector("[data-node-link-search]").value = "";
+  document.querySelector("[data-node-version-diff]").hidden = true;
+  setEditorStatus("[data-node-save-status]", node.id ? `已保存 · r${node.revision || 1}` : "尚未保存", node.id ? "saved" : "idle");
+  renderKnowledgeNodeReadiness();
+  renderContentEnhancement("node");
+  nodeEditorHydrating = false;
+}
+
+function renderKnowledgeNodeReadiness() {
+  let payload;
+  try { payload = readKnowledgeNodeForm(); } catch { payload = emptyKnowledgeNode(); }
+  renderEditorReadiness("[data-node-readiness]", "[data-node-readiness-summary]", [
+    { label: "标题与 URL 标识", ready: Boolean(payload.title && payload.slug) },
+    { label: "摘要不少于 20 字", ready: payload.summary.length >= 20 },
+    { label: "正文不少于 80 字", ready: payload.content_markdown.trim().length >= 80 },
+    { label: "至少属于一个专栏", ready: payload.column_ids.length > 0 },
+    { label: "已有标签或关联文章", ready: payload.tag_names.length > 0 || payload.article_ids.length > 0 },
+    { label: "公开节点允许 AI 检索", ready: payload.visibility !== "public" || payload.allow_ai_search },
+  ]);
 }
 
 function renderKnowledgeNodeLinks(node = emptyKnowledgeNode()) {
@@ -1043,7 +1934,14 @@ async function loadKnowledgeNodeVersions() {
     return;
   }
   const versions = await cmsRequest(`/admin/knowledge-nodes/${activeKnowledgeNode.id}/versions`);
-  target.innerHTML = versions.length ? versions.map((version) => `<article><div><strong>${escapeHtml(version.reason)}</strong><span>${escapeHtml(formatDateTime(version.created_at))} · ${escapeHtml(version.created_by_email || "system")}</span></div><button type="button" data-node-version-restore="${version.id}">恢复</button></article>`).join("") : `<p class="empty">暂无版本。</p>`;
+  target.innerHTML = versions.length ? versions.map((version) => `<article><div><strong>${escapeHtml(version.reason)}</strong><span>${escapeHtml(formatDateTime(version.created_at))} · ${escapeHtml(version.created_by_email || "system")}</span></div><div class="version-actions"><button type="button" data-node-version-diff="${version.id}">查看差异</button><button type="button" data-node-version-restore="${version.id}">恢复</button></div></article>`).join("") : `<p class="empty">暂无版本。</p>`;
+}
+
+async function loadKnowledgeNodeVersionDiff(versionId) {
+  const diff = await cmsRequest(`/admin/knowledge-nodes/versions/${versionId}/diff`);
+  const target = document.querySelector("[data-node-version-diff]");
+  target.textContent = `变更字段：${(diff.changed_fields || []).join("、") || "无字段变化"}\n\n${diff.content_diff || "正文没有变化。"}`;
+  target.hidden = false;
 }
 
 async function restoreKnowledgeNodeVersion(versionId) {
@@ -1058,15 +1956,51 @@ async function saveKnowledgeNode() {
   if (!payload.title) throw new Error("请填写节点标题");
   const path = activeKnowledgeNode?.id ? `/admin/knowledge-nodes/${activeKnowledgeNode.id}` : "/admin/knowledge-nodes";
   activeKnowledgeNode = await cmsRequest(path, { method: activeKnowledgeNode?.id ? "PATCH" : "POST", body: JSON.stringify(payload) });
+  nodeAutosaveDirty = false;
+  setEditorStatus("[data-node-save-status]", `已保存 · r${activeKnowledgeNode.revision || 1}`, "saved");
   showToast("知识节点已保存并记录版本");
   await loadKnowledgeGraphData();
 }
 
+function scheduleKnowledgeNodeAutosave() {
+  if (nodeEditorHydrating || !cmsToken) return;
+  renderKnowledgeNodeReadiness();
+  document.querySelector("[data-node-shell-title]").textContent = document.querySelector("[data-node-title]").value.trim() || "新知识节点";
+  document.querySelector("[data-node-shell-visibility]").textContent = document.querySelector("[data-node-visibility]").value.toUpperCase();
+  if (!activeKnowledgeNode?.id) {
+    setEditorStatus("[data-node-save-status]", "先保存以创建节点", "dirty");
+    return;
+  }
+  setEditorStatus("[data-node-save-status]", "有未保存修改", "dirty");
+  nodeAutosaveDirty = true;
+  window.clearTimeout(nodeAutosaveTimer);
+  nodeAutosaveTimer = window.setTimeout(() => guarded(performKnowledgeNodeAutosave), 2400);
+}
+
+async function performKnowledgeNodeAutosave() {
+  if (!activeKnowledgeNode?.id || nodeAutosaveInFlight || !nodeAutosaveDirty) return;
+  const payload = readKnowledgeNodeForm();
+  if (!payload.title) return;
+  nodeAutosaveInFlight = true;
+  setEditorStatus("[data-node-save-status]", "正在自动保存…", "saving");
+  try {
+    activeKnowledgeNode = await cmsRequest(`/admin/knowledge-nodes/${activeKnowledgeNode.id}`, {
+      method: "PATCH", body: JSON.stringify(payload),
+    });
+    nodeAutosaveDirty = false;
+    setEditorStatus("[data-node-save-status]", `已自动保存 · r${activeKnowledgeNode.revision || 1}`, "saved");
+    const note = document.querySelector("[data-node-version-note]");
+    if (note) note.textContent = `revision ${activeKnowledgeNode.revision || 1}`;
+  } finally {
+    nodeAutosaveInFlight = false;
+  }
+}
+
 async function deleteKnowledgeNode() {
-  if (!activeKnowledgeNode?.id || !confirm(`确定删除「${activeKnowledgeNode.title}」及其关系吗？`)) return;
+  if (!activeKnowledgeNode?.id || !confirm(`将「${activeKnowledgeNode.title}」移至回收站？节点内容、关系和版本都会保留。`)) return;
   await cmsRequest(`/admin/knowledge-nodes/${activeKnowledgeNode.id}`, { method: "DELETE" });
   activeKnowledgeNode = null;
-  showToast("节点已删除，删除前版本已保留");
+  showToast("知识节点已移至回收站");
   await loadKnowledgeGraphData();
 }
 
@@ -1324,6 +2258,143 @@ function renderAgentRunDetail(run = activeAgentRun) {
   `;
 }
 
+function emptyEvalSuite() {
+  return {
+    id: null, name: "", slug: "", eval_type: "rag", description: "", is_active: true, version: 1,
+    cases: [{ id: "case-1", question: "", expected_terms: [], expected_slugs: [] }],
+  };
+}
+
+function setEvalSuiteForm(suite = emptyEvalSuite()) {
+  activeEvalSuite = suite;
+  document.querySelector("[data-eval-name]").value = suite.name || "";
+  document.querySelector("[data-eval-slug]").value = suite.slug || "";
+  document.querySelector("[data-eval-type]").value = suite.eval_type || "rag";
+  document.querySelector("[data-eval-description]").value = suite.description || "";
+  document.querySelector("[data-eval-active]").checked = suite.is_active !== false;
+  document.querySelector("[data-eval-cases]").value = JSON.stringify(suite.cases || [], null, 2);
+  document.querySelector("[data-eval-version]").textContent = suite.id ? `固定样本 v${suite.version} · ${suite.case_count || suite.cases?.length || 0} 条` : "新评测集";
+  document.querySelector("[data-eval-run-local]").disabled = !suite.id;
+  document.querySelector("[data-eval-run-auto]").disabled = !suite.id || suite.eval_type !== "agent";
+  renderEvaluationDashboard();
+}
+
+function readEvalSuiteForm() {
+  const casesInput = document.querySelector("[data-eval-cases]");
+  const cases = parseArrayJson(casesInput.value, null);
+  if (!cases?.length) {
+    casesInput.classList.add("is-invalid");
+    throw new Error("固定样本必须是至少包含一条记录的 JSON 数组");
+  }
+  casesInput.classList.remove("is-invalid");
+  const name = document.querySelector("[data-eval-name]").value.trim();
+  return {
+    name,
+    slug: document.querySelector("[data-eval-slug]").value.trim() || slugify(name),
+    eval_type: document.querySelector("[data-eval-type]").value,
+    description: document.querySelector("[data-eval-description]").value.trim(),
+    cases,
+    is_active: document.querySelector("[data-eval-active]").checked,
+  };
+}
+
+function evalPrimaryMetric(run) {
+  const metrics = run.metrics || {};
+  return run.eval_type === "rag" ? `MRR ${metrics.mrr ?? 0}` : `成功率 ${Math.round((Number(metrics.success_rate) || 0) * 100)}%`;
+}
+
+function renderEvaluationDashboard(payload = evaluationDashboard) {
+  const statsTarget = document.querySelector("[data-eval-stats]");
+  const suitesTarget = document.querySelector("[data-eval-suite-list]");
+  const historyTarget = document.querySelector("[data-eval-history]");
+  if (!statsTarget || !suitesTarget || !historyTarget) return;
+  if (!payload) {
+    statsTarget.innerHTML = "";
+    suitesTarget.innerHTML = `<p class="empty">登录后加载固定评测集。</p>`;
+    historyTarget.innerHTML = `<p class="empty">运行评测后显示历史与回归结论。</p>`;
+    return;
+  }
+  const stats = payload.stats || {};
+  statsTarget.innerHTML = [
+    ["评测集", stats.suites || 0, `${stats.active_suites || 0} 个启用`],
+    ["固定样本", stats.cases || 0, "版本化保存"],
+    ["历史运行", stats.runs || 0, "可重复对比"],
+    ["当前回退", stats.regressions || 0, stats.regressions ? "需要检查" : "未发现回退"],
+  ].map(([label, value, note]) => `<article><span>${label}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`).join("");
+  suitesTarget.innerHTML = (payload.suites || []).map((suite) => `
+    <button type="button" data-eval-suite-id="${suite.id}" class="${activeEvalSuite?.id === suite.id ? "is-active" : ""}">
+      <i>${suite.eval_type === "rag" ? "R" : "A"}</i>
+      <span><strong>${escapeHtml(suite.name)}</strong><small>${escapeHtml(suite.eval_type.toUpperCase())} · v${suite.version} · ${suite.case_count} 条</small></span>
+      <em>${suite.is_active ? "启用" : "停用"}</em>
+    </button>
+  `).join("") || `<p class="empty">暂无评测集。</p>`;
+  historyTarget.innerHTML = (payload.runs || []).length ? `
+    <header><strong>运行历史</strong><span>同一评测集、同一模式自动与上一次比较</span></header>
+    ${(payload.runs || []).map((run) => {
+      const regression = run.regression || {};
+      const statusLabel = { baseline: "基线", stable: "稳定", improved: "提升", regressed: "回退" }[regression.status] || regression.status;
+      return `<button type="button" data-eval-run-id="${run.id}" class="is-${escapeHtml(regression.status || "baseline")}">
+        <span>${escapeHtml(run.eval_type.toUpperCase())} · ${escapeHtml(run.mode)} · suite v${run.suite_version}</span>
+        <strong>${escapeHtml(evalPrimaryMetric(run))}</strong>
+        <em>${escapeHtml(statusLabel || "基线")} ${regression.delta ? `${regression.delta > 0 ? "+" : ""}${regression.delta}` : ""}</em>
+        <time>${escapeHtml(formatDateTime(run.created_at))} · ${escapeHtml(run.duration_ms)}ms</time>
+      </button>`;
+    }).join("")}
+  ` : `<p class="empty">运行评测后显示历史与回归结论。</p>`;
+}
+
+async function loadEvaluationDashboard() {
+  evaluationDashboard = await cmsRequest("/admin/evaluation/dashboard");
+  if (!activeEvalSuite?.id) activeEvalSuite = evaluationDashboard.suites?.[0] || emptyEvalSuite();
+  else activeEvalSuite = evaluationDashboard.suites.find((suite) => suite.id === activeEvalSuite.id) || evaluationDashboard.suites?.[0] || emptyEvalSuite();
+  setEvalSuiteForm(activeEvalSuite);
+}
+
+async function saveEvalSuite() {
+  const payload = readEvalSuiteForm();
+  const path = activeEvalSuite?.id ? `/admin/evaluation/suites/${activeEvalSuite.id}` : "/admin/evaluation/suites";
+  const saved = await cmsRequest(path, { method: activeEvalSuite?.id ? "PATCH" : "POST", body: JSON.stringify(payload) });
+  activeEvalSuite = saved;
+  await loadEvaluationDashboard();
+  showToast(`评测集已保存为 v${saved.version}`);
+}
+
+async function runEvaluationSuite(mode = "local") {
+  if (!activeEvalSuite?.id) throw new Error("请先保存评测集");
+  const button = document.querySelector(mode === "auto" ? "[data-eval-run-auto]" : "[data-eval-run-local]");
+  button.disabled = true;
+  const original = button.textContent;
+  button.textContent = "评测运行中…";
+  try {
+    const result = await cmsRequest(`/admin/evaluation/suites/${activeEvalSuite.id}/run`, {
+      method: "POST", body: JSON.stringify({ mode, limit: 5, published_only: true }),
+    });
+    await loadEvaluationDashboard();
+    renderEvaluationRunDetail(result);
+    showToast(`评测完成：${evalPrimaryMetric(result)}`);
+  } finally {
+    button.textContent = original;
+    button.disabled = mode === "auto" && activeEvalSuite?.eval_type !== "agent";
+  }
+}
+
+function renderEvaluationRunDetail(run) {
+  const target = document.querySelector("[data-eval-run-detail]");
+  if (!target) return;
+  const cases = run.result?.cases || [];
+  const comparisons = run.result?.comparisons || [];
+  target.hidden = false;
+  target.innerHTML = `
+    <header><div><span>RUN #${escapeHtml(run.id)} · ${escapeHtml(run.suite?.name || "")}</span><h3>${escapeHtml(evalPrimaryMetric(run))}</h3></div><button type="button" data-eval-detail-close>关闭</button></header>
+    ${comparisons.length ? `<div class="evaluation-comparisons">${comparisons.map((item, index) => `<article class="${index === 0 ? "is-best" : ""}"><span>${index === 0 ? "BEST" : "CONFIG"}</span><strong>${escapeHtml(item.name)}</strong><small>MRR ${escapeHtml(item.stats?.mrr ?? 0)} · Top1 ${Math.round((Number(item.stats?.top1_hit_rate) || 0) * 100)}%</small></article>`).join("")}</div>` : ""}
+    <div class="evaluation-case-results">${cases.map((item) => `<article class="${item.success === false || item.expected_hit === false ? "is-failed" : ""}"><span>${escapeHtml(item.id || "case")}</span><strong>${escapeHtml(item.question || item.goal)}</strong><small>${item.expected_hit === false ? "未命中期望来源" : item.success === false ? `失败：${escapeHtml((item.missing_tools || []).join("、") || "质量门槛")}` : "通过"}</small></article>`).join("")}</div>
+  `;
+}
+
+async function loadEvaluationRun(runId) {
+  renderEvaluationRunDetail(await cmsRequest(`/admin/evaluation/runs/${runId}`));
+}
+
 function renderRagIndex(payload = ragIndex) {
   const statsTarget = document.querySelector("[data-rag-index-stats]");
   const listTarget = document.querySelector("[data-rag-index-list]");
@@ -1535,6 +2606,39 @@ function renderAiFeedback(payload = aiFeedback) {
         )
         .join("")
     : `<p class="empty success">暂时没有 AI 反馈改进项。</p>`;
+}
+
+function renderProactiveDashboard(payload = proactiveDashboard) {
+  const statsTarget = document.querySelector("[data-proactive-stats]");
+  const taskTarget = document.querySelector("[data-proactive-tasks]");
+  const memoryTarget = document.querySelector("[data-memory-list]");
+  if (!statsTarget || !taskTarget || !memoryTarget) return;
+  if (!payload) {
+    statsTarget.innerHTML = "";
+    taskTarget.innerHTML = `<p class="empty">登录 CMS 后生成今日任务。</p>`;
+    memoryTarget.innerHTML = `<p class="empty">暂无长期记忆。</p>`;
+    return;
+  }
+  const stats = payload.stats || {};
+  statsTarget.innerHTML = [
+    ["待处理", stats.open_tasks || 0], ["高优先级", stats.high_priority || 0],
+    ["记忆候选", stats.memory_candidates || 0], ["已确认", stats.active_memories || 0],
+    ["公开上下文", stats.public_memories || 0],
+  ].map(([label, value]) => `<article><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></article>`).join("");
+  taskTarget.innerHTML = (payload.tasks || []).length ? payload.tasks.map((task) => `
+    <article class="proactive-task is-${escapeHtml(task.priority)}">
+      <div><span>${escapeHtml(task.priority)} · ${escapeHtml(task.task_type)}</span><strong>${escapeHtml(task.title)}</strong><p>${escapeHtml(task.description || "")}</p></div>
+      <div class="actions left"><button type="button" data-proactive-task="${task.id}:completed">完成</button><button type="button" class="secondary" data-proactive-task="${task.id}:dismissed">忽略</button></div>
+    </article>`).join("") : `<p class="empty success">今天没有待处理任务。</p>`;
+  memoryTarget.innerHTML = (payload.memories || []).length ? payload.memories.map((memory) => `
+    <article class="memory-item is-${escapeHtml(memory.status)}">
+      <div><span>${escapeHtml(memory.memory_type)} · ${escapeHtml(memory.visibility)} · ${escapeHtml(memory.status)}</span><strong>${escapeHtml(memory.title)}</strong><p>${escapeHtml(memory.content)}</p></div>
+      <div class="actions left">
+        ${memory.status === "candidate" ? `<button type="button" data-memory-action="${memory.id}:active:${memory.visibility}">确认</button>` : ""}
+        ${memory.status === "active" ? `<button type="button" class="secondary" data-memory-action="${memory.id}:archived:${memory.visibility}">归档</button>` : ""}
+        ${memory.status !== "archived" ? `<button type="button" class="secondary" data-memory-action="${memory.id}:${memory.status}:${memory.visibility === "public" ? "private" : "public"}">${memory.visibility === "public" ? "设为私有" : "允许公开"}</button>` : ""}
+      </div>
+    </article>`).join("") : `<p class="empty">暂无长期记忆。</p>`;
 }
 
 function renderContentOps(payload = contentOps) {
@@ -1897,6 +3001,19 @@ function slugify(value) {
     .slice(0, 120);
 }
 
+function safePreviewUrl(value, kind = "link") {
+  const raw = String(value || "").trim();
+  if (!raw) return kind === "image" ? "" : "#";
+  if (/^(#|\/|\.\/|\.\.\/)/.test(raw)) return raw;
+  try {
+    const parsed = new URL(raw, window.location.origin);
+    const allowed = kind === "image" ? ["http:", "https:"] : ["http:", "https:", "mailto:"];
+    return allowed.includes(parsed.protocol) ? raw : (kind === "image" ? "" : "#");
+  } catch {
+    return kind === "image" ? "" : "#";
+  }
+}
+
 function parseJson(value, fallback = {}) {
   try {
     return JSON.parse(value || "{}");
@@ -2028,8 +3145,11 @@ function markdownToHtml(markdown = "") {
 
   function inline(value) {
     return escapeHtml(value)
-      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img alt="$1" src="$2" />')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>')
+      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, url) => {
+        const safe = safePreviewUrl(url, "image");
+        return safe ? `<img alt="${alt}" src="${escapeHtml(safe)}" />` : alt;
+      })
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => `<a href="${escapeHtml(safePreviewUrl(url))}" target="_blank" rel="noreferrer">${label}</a>`)
       .replace(/`([^`]+)`/g, "<code>$1</code>")
       .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   }
@@ -2156,6 +3276,98 @@ function toggleKnowledgeRelationEditor(metadata = {}) {
 function togglePostSeoEditor() {
   const panel = document.querySelector("[data-post-seo-editor]");
   if (panel) panel.hidden = activeEntityType !== "post";
+  const enhancement = document.querySelector("[data-entry-enhancement-panel]");
+  if (enhancement) enhancement.hidden = activeEntityType !== "post";
+}
+
+const enhancementFieldLabels = {
+  summary: "摘要",
+  tags: "标签",
+  seo_title: "SEO 标题",
+  seo_description: "SEO 描述",
+  related_articles: "关联文章",
+  related_nodes: "关联知识节点",
+};
+
+function enhancementValue(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => (typeof item === "object" ? item.title || item.id : item)).filter(Boolean).join(" · ") || "无";
+  }
+  return String(value || "无");
+}
+
+function renderContentEnhancement(kind) {
+  const payload = kind === "node" ? nodeEnhancement : articleEnhancement;
+  const target = document.querySelector(`[data-${kind}-enhancement-result]`);
+  if (!target) return;
+  if (!payload) {
+    target.innerHTML = `<p class="empty">${kind === "node" ? "先保存节点，再生成增强建议。" : "保存文章后，可以生成字段级建议。"}</p>`;
+    return;
+  }
+  const changed = (payload.fields || []).filter((field) => field.changed);
+  target.innerHTML = `
+    <div class="ai-enhancement-meta"><span>${escapeHtml(payload.model_applied ? "MODEL" : "LOCAL")}</span><span>基于 revision ${escapeHtml(payload.revision)}</span><span>${changed.length} 个字段可优化</span></div>
+    <div class="ai-enhancement-fields">
+      ${(payload.fields || []).map((field) => `
+        <label class="ai-enhancement-field ${field.changed ? "is-changed" : ""}">
+          <input type="checkbox" data-enhancement-field="${escapeHtml(field.field)}" ${field.changed ? "checked" : ""} ${field.changed ? "" : "disabled"} />
+          <span class="ai-enhancement-field-name">${escapeHtml(enhancementFieldLabels[field.field] || field.field)}</span>
+          <div><small>当前</small><p>${escapeHtml(enhancementValue(field.current))}</p></div>
+          <i>→</i>
+          <div><small>建议</small><p>${escapeHtml(enhancementValue(field.proposed))}</p></div>
+        </label>
+      `).join("")}
+    </div>
+    <div class="ai-enhancement-footer"><small>${escapeHtml(payload.safety || "必须确认后才会写入。")}</small><button type="button" data-${kind}-enhancement-apply ${changed.length ? "" : "disabled"}>应用已选字段</button></div>
+  `;
+}
+
+async function suggestContentEnhancement(kind, mode = "local") {
+  const entity = kind === "node" ? activeKnowledgeNode : activeEntry;
+  if (!entity?.id || (kind === "entry" && activeEntityType !== "post")) {
+    throw new Error(kind === "node" ? "请先保存知识节点" : "请先保存文章");
+  }
+  const target = document.querySelector(`[data-${kind}-enhancement-result]`);
+  target.innerHTML = `<p class="empty">正在${mode === "auto" ? "调用模型" : "分析内容"}…</p>`;
+  const path = kind === "node"
+    ? `/admin/knowledge-nodes/${entity.id}/enhancement/suggest`
+    : `/admin/articles/${entity.id}/enhancement/suggest`;
+  const payload = await cmsRequest(path, { method: "POST", body: JSON.stringify({ mode }) });
+  if (kind === "node") nodeEnhancement = payload;
+  else articleEnhancement = payload;
+  renderContentEnhancement(kind);
+}
+
+async function applyContentEnhancement(kind) {
+  const payload = kind === "node" ? nodeEnhancement : articleEnhancement;
+  const entity = kind === "node" ? activeKnowledgeNode : activeEntry;
+  if (!payload || !entity?.id) return;
+  const panel = document.querySelector(`[data-${kind}-enhancement-panel]`);
+  const selectedFields = [...panel.querySelectorAll("[data-enhancement-field]:checked")].map((input) => input.dataset.enhancementField);
+  if (!selectedFields.length) throw new Error("请至少选择一个需要应用的字段");
+  const path = kind === "node"
+    ? `/admin/knowledge-nodes/${entity.id}/enhancement/apply`
+    : `/admin/articles/${entity.id}/enhancement/apply`;
+  const result = await cmsRequest(path, {
+    method: "POST",
+    body: JSON.stringify({ expected_revision: payload.revision, selected_fields: selectedFields, proposal: payload.proposal }),
+  });
+  if (kind === "node") {
+    activeKnowledgeNode = result.node;
+    const index = knowledgeNodes.findIndex((item) => item.id === result.node.id);
+    if (index >= 0) knowledgeNodes[index] = result.node;
+    setKnowledgeNodeForm(result.node);
+    renderKnowledgeNodeList();
+    await loadKnowledgeNodeVersions();
+  } else {
+    activeEntry = result.article;
+    const index = cmsEntries.findIndex((item) => item.id === result.article.id);
+    if (index >= 0) cmsEntries[index] = result.article;
+    setEntryForm(result.article);
+    renderEntryList();
+    await loadVersions();
+  }
+  showToast(`已应用 ${selectedFields.length} 个增强字段`);
 }
 
 function syncMetadataPreviewFromFields() {
@@ -2213,6 +3425,7 @@ function setEntryForm(entry, draftPayload = null, draftSavedAt = "") {
   window.clearTimeout(autosaveTimer);
   autosaveDirty = false;
   activeEntry = entry || defaultEntry();
+  articleEnhancement = null;
   relationSuggestionPayload = null;
   const displayedEntry = draftPayload ? { ...activeEntry, ...draftPayload } : activeEntry;
   const metadata = parseMetadata(displayedEntry);
@@ -2244,7 +3457,12 @@ function setEntryForm(entry, draftPayload = null, draftSavedAt = "") {
   document.querySelector("[data-keywords-label]").firstChild.textContent = keywordLabels[displayedEntry.entity_type] || "标签，逗号分隔";
   toggleKnowledgeRelationEditor(metadata);
   togglePostSeoEditor();
+  renderContentEnhancement("entry");
   renderMarkdownPreview();
+  document.querySelector("[data-entry-shell-kind]").textContent = (entityLabels[displayedEntry.entity_type] || "CONTENT").toUpperCase();
+  document.querySelector("[data-entry-shell-title]").textContent = displayedEntry.title || `新${entityLabels[displayedEntry.entity_type] || "内容"}`;
+  document.querySelector("[data-entry-shell-visibility]").textContent = (displayedEntry.visibility || "public").toUpperCase();
+  renderEntryReadiness();
   renderVersionList([]);
   renderAutoRelationSuggestions();
   document.querySelector("[data-version-diff]").hidden = true;
@@ -2308,6 +3526,37 @@ function readEntryForm() {
     visibility: document.querySelector("[data-entry-visibility]").value,
     category: document.querySelector("[data-entry-category]").value.trim(),
   };
+}
+
+function entryReadinessChecks(payload = readEntryForm()) {
+  const metadata = parseJson(payload.metadata_json, {});
+  const keywords = metadata[keywordKeys[activeEntityType] || "tags"] || [];
+  const checks = [
+    { label: "标题与 URL 标识", ready: Boolean(payload.title && payload.slug) },
+    { label: "摘要不少于 30 字", ready: payload.summary.length >= 30 },
+    { label: "正文不少于 120 字", ready: payload.content_md.trim().length >= 120 },
+    { label: "至少设置一个标签", ready: keywords.length > 0 },
+    { label: "可见性已确认", ready: ["public", "unlisted", "private"].includes(payload.visibility) },
+  ];
+  if (activeEntityType === "post") {
+    checks.push(
+      { label: "已设置文章封面", ready: Boolean(metadata.cover) },
+      { label: "已设置 SEO 描述", ready: Boolean(metadata.seoDescription || payload.summary.length >= 50) },
+      { label: "至少属于一个专栏", ready: (metadata.columnIds || []).length > 0 },
+    );
+  } else {
+    checks.push({ label: "已有内容关联", ready: (metadata.relatedProjects || []).length > 0 || keywords.length > 1 });
+  }
+  return checks;
+}
+function renderEntryReadiness() {
+  try {
+    renderEditorReadiness("[data-entry-readiness]", "[data-entry-readiness-summary]", entryReadinessChecks());
+  } catch {
+    renderEditorReadiness("[data-entry-readiness]", "[data-entry-readiness-summary]", [
+      { label: "修正编辑器中的格式错误", ready: false },
+    ]);
+  }
 }
 
 function renderMarkdownPreview() {
@@ -2454,6 +3703,42 @@ async function loadAiFeedback() {
   renderAiFeedback();
 }
 
+async function loadProactiveDashboard(refresh = false) {
+  proactiveDashboard = await cmsRequest(`/admin/proactive/dashboard?refresh=${refresh ? "true" : "false"}`);
+  renderProactiveDashboard();
+}
+
+async function updateProactiveTask(value) {
+  const [id, status] = String(value || "").split(":");
+  await cmsRequest(`/admin/proactive/tasks/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+  showToast(status === "completed" ? "任务已完成" : "任务已忽略");
+  await loadProactiveDashboard(false);
+}
+
+async function createLongTermMemory(event) {
+  event.preventDefault();
+  await cmsRequest("/admin/long-term-memories", {
+    method: "POST",
+    body: JSON.stringify({
+      title: document.querySelector("[data-memory-title]").value.trim(),
+      content: document.querySelector("[data-memory-content]").value.trim(),
+      memory_type: document.querySelector("[data-memory-type]").value,
+      visibility: document.querySelector("[data-memory-visibility]").value,
+      status: "candidate",
+    }),
+  });
+  event.currentTarget.reset();
+  showToast("已加入记忆候选，确认后才会生效");
+  await loadProactiveDashboard(false);
+}
+
+async function updateLongTermMemory(value) {
+  const [id, status, visibility] = String(value || "").split(":");
+  await cmsRequest(`/admin/long-term-memories/${id}`, { method: "PATCH", body: JSON.stringify({ status, visibility }) });
+  showToast(status === "active" ? "长期记忆已确认" : "长期记忆已更新");
+  await loadProactiveDashboard(false);
+}
+
 async function loadContentOps() {
   contentOps = await cmsRequest("/admin/content-ops");
   renderContentOps();
@@ -2466,6 +3751,9 @@ async function refreshOpsDependencies() {
   await loadContentGaps();
   await loadRelationHealth();
   await loadPublishWorkflow();
+  await loadWorkspaceOverview();
+  await loadInbox();
+  await loadActivity();
 }
 
 async function setContentOpsTaskState(index, status = "ignored") {
@@ -2713,6 +4001,8 @@ async function saveEntry(forceStatus) {
 }
 
 async function publishEntry() {
+  const missing = entryReadinessChecks().filter((item) => !item.ready);
+  if (missing.length && !confirm(`还有 ${missing.length} 项发布准备未完成：\n\n${missing.map((item) => `· ${item.label}`).join("\n")}\n\n仍然继续发布吗？`)) return;
   if (!activeEntry?.id) {
     await saveEntry("draft");
   } else {
@@ -2748,11 +4038,11 @@ async function deleteEntry() {
     setEntryForm(defaultEntry());
     return;
   }
-  if (!confirm(`确定删除「${activeEntry.title}」吗？`)) return;
+  if (!confirm(`确定将「${activeEntry.title}」移至回收站吗？之后可以恢复。`)) return;
   const path = activeEntityType === "post" ? `/admin/articles/${activeEntry.id}` : `/admin/entries/${activeEntry.id}`;
   await cmsRequest(path, { method: "DELETE" });
   activeEntry = null;
-  showToast("已删除");
+  showToast("已移至回收站");
   await loadEntries();
   await loadRagIndex();
   await loadPublishWorkflow();
@@ -2798,6 +4088,9 @@ async function restoreVersion(versionId) {
 
 function scheduleEntryAutosave() {
   if (suppressEditorEvents || !cmsToken) return;
+  document.querySelector("[data-entry-shell-title]").textContent = document.querySelector("[data-entry-title]").value.trim() || `新${entityLabels[activeEntityType] || "内容"}`;
+  document.querySelector("[data-entry-shell-visibility]").textContent = document.querySelector("[data-entry-visibility]").value.toUpperCase();
+  renderEntryReadiness();
   autosaveDirty = true;
   setAutosaveStatus("有未保存修改", "dirty");
   window.clearTimeout(autosaveTimer);
@@ -2879,76 +4172,13 @@ async function uploadAsset() {
   showToast("文件已上传并插入 Markdown");
 }
 
-function entryToPost(entry) {
-  const metadata = parseMetadata(entry);
-  return {
-    ...metadata,
-    title: entry.title,
-    slug: entry.slug,
-    status: entry.status,
-    category: entry.category,
-    summary: entry.summary,
-    content: entry.content_md,
-  };
-}
-
-function entryToProject(entry) {
-  const metadata = parseMetadata(entry);
-  return {
-    ...metadata,
-    name: entry.title,
-    slug: entry.slug,
-    status: metadata.status || entry.status,
-    summary: entry.summary,
-    content: entry.content_md,
-  };
-}
-
-function entryToKnowledge(entry) {
-  const metadata = parseMetadata(entry);
-  return {
-    ...metadata,
-    topic: entry.title,
-    slug: entry.slug,
-    summary: entry.summary,
-    content: entry.content_md,
-  };
-}
-
-function entryToReading(entry) {
-  const metadata = parseMetadata(entry);
-  return {
-    ...metadata,
-    title: entry.title,
-    slug: entry.slug,
-    note: entry.summary || entry.content_md,
-  };
-}
-
-async function writeCmsEntriesToLocalSite() {
-  const [articles, entries] = await Promise.all([
-    cmsRequest("/admin/articles"),
-    cmsRequest("/admin/entries"),
-  ]);
-  const nextState = structuredClone(state);
-  nextState.posts = articles.map(entryToPost);
-  nextState.projects = entries.filter((entry) => entry.entity_type === "project").map(entryToProject);
-  nextState.knowledgeBase = entries.filter((entry) => entry.entity_type === "knowledge").map(entryToKnowledge);
-  nextState.reading = entries.filter((entry) => entry.entity_type === "reading").map(entryToReading);
-  state = nextState;
-  render();
-  await save();
-  showToast("CMS 内容已写入本地站点 JSON");
-}
-
 async function save() {
-  const response = await fetch("/api/content", {
+  if (!cmsToken) throw new Error("请先登录服务器后台");
+  await cmsRequest("/admin/site", {
     method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(state, null, 2),
+    body: JSON.stringify({ data: state }),
   });
-
-  showToast(response.ok ? "已保存到 data/site.json" : "保存失败");
+  showToast("站点设置已保存到服务器");
 }
 
 function cmsApiBase() {
@@ -2969,10 +4199,9 @@ function setCmsStatus(message) {
 async function cmsRequest(path, options = {}) {
   const headers = {
     ...(options.body instanceof FormData ? {} : { "content-type": "application/json" }),
-    ...(cmsToken ? { authorization: `Bearer ${cmsToken}` } : {}),
     ...(options.headers || {}),
   };
-  const response = await fetch(`${cmsApiBase()}${path}`, { ...options, headers });
+  const response = await fetch(`${cmsApiBase()}${path}`, { ...options, headers, credentials: "include" });
   if (!response.ok) {
     const raw = await response.text();
     let message = raw;
@@ -2984,11 +4213,15 @@ async function cmsRequest(path, options = {}) {
     }
     const error = new Error(message || `CMS request failed: ${response.status}`);
     error.status = response.status;
+    if (response.status === 401) {
+      cmsToken = "";
+      currentCmsUser = null;
+      setCmsStatus("登录已失效");
+    }
     throw error;
   }
   return response.json();
 }
-
 function documentStatusLabel(status) {
   return { ready: "可检索", disabled: "已停用", processing: "解析中", error: "解析失败" }[status] || status;
 }
@@ -3070,8 +4303,15 @@ function renderDocumentEditor() {
     target.innerHTML = `<p class="empty">选择一份文档查看解析结果。</p>`;
     return;
   }
+  documentEditorHydrating = true;
+  window.clearTimeout(documentAutosaveTimer);
+  documentAutosaveDirty = false;
   const item = activeDocument;
   target.innerHTML = `
+    <div class="editor-command-bar">
+      <div><span>DOCUMENT</span><strong data-document-shell-title>${escapeHtml(item.title)}</strong></div>
+      <div class="editor-command-state"><i data-document-shell-visibility>${escapeHtml((item.visibility || "private").toUpperCase())}</i><b data-document-save-status data-state="saved">已保存 · r${item.revision || 1}</b></div>
+    </div>
     <div class="document-editor-header">
       <div>
         <span class="document-kicker">${escapeHtml(item.original_filename)} · ${(Number(item.size_bytes || 0) / 1024).toFixed(1)} KB</span>
@@ -3092,12 +4332,17 @@ function renderDocumentEditor() {
     <label>摘要<textarea data-document-summary rows="3">${escapeHtml(item.summary || "")}</textarea></label>
     <div class="document-node-links">
       <strong>关联知识节点</strong>
+      <label class="relation-search">搜索节点<input data-document-link-search placeholder="输入节点名称筛选" /></label>
       <div data-document-nodes>${documentNodeOptions(item)}</div>
     </div>
     <div class="grid two compact-grid">
       <label>元数据 JSON<textarea data-document-metadata rows="4">${escapeHtml(JSON.stringify(item.metadata || {}, null, 2))}</textarea></label>
       <label class="check-row"><input data-document-ai-search type="checkbox" ${item.allow_ai_search ? "checked" : ""} />允许 AI 检索此文档</label>
     </div>
+    <section class="editor-readiness">
+      <div><span>检索准备</span><strong data-document-readiness-summary>0 / 0</strong></div>
+      <ul data-document-readiness></ul>
+    </section>
     <div class="actions left document-actions">
       <button type="button" data-document-save>保存文档</button>
       <button type="button" data-document-toggle ${!["ready", "disabled"].includes(item.status) ? "disabled" : ""}>${item.status === "ready" ? "停用检索" : "启用检索"}</button>
@@ -3116,8 +4361,39 @@ function renderDocumentEditor() {
     <section class="version-panel">
       <div class="panel-title compact"><h3>文档版本</h3><button type="button" data-document-versions>刷新版本</button></div>
       <div class="version-list" data-document-version-list><p class="empty">点击刷新查看版本。</p></div>
+      <pre class="version-diff" data-document-version-diff hidden></pre>
     </section>
   `;
+  renderDocumentReadiness();
+  documentEditorHydrating = false;
+}
+
+function readDocumentPayload() {
+  return {
+    title: document.querySelector("[data-document-title]").value.trim(),
+    slug: document.querySelector("[data-document-slug]").value.trim(),
+    summary: document.querySelector("[data-document-summary]").value.trim(),
+    visibility: document.querySelector("[data-document-visibility]").value,
+    allow_ai_search: document.querySelector("[data-document-ai-search]").checked,
+    column_id: Number(document.querySelector("[data-document-column]").value) || null,
+    node_ids: [...document.querySelectorAll("[data-document-nodes] input:checked")].map((input) => Number(input.value)),
+    metadata: parseJsonField("[data-document-metadata]", "文档元数据"),
+    expected_revision: activeDocument?.revision,
+  };
+}
+
+function renderDocumentReadiness() {
+  if (!activeDocument || !document.querySelector("[data-document-readiness]")) return;
+  let payload;
+  try { payload = readDocumentPayload(); } catch { payload = { title: "", slug: "", summary: "", node_ids: [], column_id: null, allow_ai_search: false }; }
+  renderEditorReadiness("[data-document-readiness]", "[data-document-readiness-summary]", [
+    { label: "标题与 URL 标识", ready: Boolean(payload.title && payload.slug) },
+    { label: "摘要不少于 20 字", ready: payload.summary.length >= 20 },
+    { label: "文档解析成功", ready: ["ready", "disabled"].includes(activeDocument.status) },
+    { label: "至少一个切片已启用", ready: Number(activeDocument.enabled_chunk_count || 0) > 0 },
+    { label: "已指定所属专栏", ready: Boolean(payload.column_id) },
+    { label: "已关联知识节点", ready: payload.node_ids.length > 0 },
+  ]);
 }
 
 async function selectDocument(documentId) {
@@ -3168,21 +4444,43 @@ function parseJsonField(selector, label) {
 
 async function saveDocument() {
   if (!activeDocument?.id) return;
-  const payload = {
-    title: document.querySelector("[data-document-title]").value.trim(),
-    slug: document.querySelector("[data-document-slug]").value.trim(),
-    summary: document.querySelector("[data-document-summary]").value.trim(),
-    visibility: document.querySelector("[data-document-visibility]").value,
-    allow_ai_search: document.querySelector("[data-document-ai-search]").checked,
-    column_id: Number(document.querySelector("[data-document-column]").value) || null,
-    node_ids: [...document.querySelectorAll("[data-document-nodes] input:checked")].map((input) => Number(input.value)),
-    metadata: parseJsonField("[data-document-metadata]", "文档元数据"),
-    expected_revision: activeDocument.revision,
-  };
+  window.clearTimeout(documentAutosaveTimer);
+  const payload = readDocumentPayload();
   if (!payload.title || !payload.slug) throw new Error("标题和 URL 标识不能为空");
+  setEditorStatus("[data-document-save-status]", "正在保存…", "saving");
   activeDocument = await cmsRequest(`/admin/documents/${activeDocument.id}`, { method: "PATCH", body: JSON.stringify(payload) });
+  documentAutosaveDirty = false;
+  setEditorStatus("[data-document-save-status]", `已保存 · r${activeDocument.revision || 1}`, "saved");
   showToast("文档已保存并记录版本");
   await loadDocuments();
+}
+
+function scheduleDocumentAutosave() {
+  if (documentEditorHydrating || !cmsToken || !activeDocument?.id) return;
+  renderDocumentReadiness();
+  document.querySelector("[data-document-shell-title]").textContent = document.querySelector("[data-document-title]").value.trim() || "未命名文档";
+  document.querySelector("[data-document-shell-visibility]").textContent = document.querySelector("[data-document-visibility]").value.toUpperCase();
+  setEditorStatus("[data-document-save-status]", "有未保存修改", "dirty");
+  documentAutosaveDirty = true;
+  window.clearTimeout(documentAutosaveTimer);
+  documentAutosaveTimer = window.setTimeout(() => guarded(performDocumentAutosave), 2800);
+}
+
+async function performDocumentAutosave() {
+  if (!activeDocument?.id || documentAutosaveInFlight || !documentAutosaveDirty) return;
+  const payload = readDocumentPayload();
+  if (!payload.title || !payload.slug) return;
+  documentAutosaveInFlight = true;
+  setEditorStatus("[data-document-save-status]", "正在自动保存…", "saving");
+  try {
+    activeDocument = await cmsRequest(`/admin/documents/${activeDocument.id}`, {
+      method: "PATCH", body: JSON.stringify(payload),
+    });
+    documentAutosaveDirty = false;
+    setEditorStatus("[data-document-save-status]", `已自动保存 · r${activeDocument.revision || 1}`, "saved");
+  } finally {
+    documentAutosaveInFlight = false;
+  }
 }
 
 async function toggleDocument() {
@@ -3230,8 +4528,15 @@ async function loadDocumentVersions() {
   const versions = await cmsRequest(`/admin/documents/${activeDocument.id}/versions`);
   const target = document.querySelector("[data-document-version-list]");
   target.innerHTML = versions.length ? versions.map((version) => `
-    <div class="version-row"><div><strong>${escapeHtml(version.reason)}</strong><span>${escapeHtml(formatDateTime(version.created_at))} · ${escapeHtml(version.created_by_email || "system")}</span></div><button type="button" data-document-version-restore="${version.id}">恢复</button></div>
+    <div class="version-row"><div><strong>${escapeHtml(version.reason)}</strong><span>${escapeHtml(formatDateTime(version.created_at))} · ${escapeHtml(version.created_by_email || "system")}</span></div><div class="version-actions"><button type="button" data-document-version-diff="${version.id}">查看差异</button><button type="button" data-document-version-restore="${version.id}">恢复</button></div></div>
   `).join("") : `<p class="empty">暂无版本。</p>`;
+}
+
+async function loadDocumentVersionDiff(versionId) {
+  const diff = await cmsRequest(`/admin/documents/versions/${versionId}/diff`);
+  const target = document.querySelector("[data-document-version-diff]");
+  target.textContent = `变更字段：${(diff.changed_fields || []).join("、") || "无字段变化"}\n\n${diff.content_diff || "切片正文没有变化。"}`;
+  target.hidden = false;
 }
 
 async function restoreDocumentVersion(versionId) {
@@ -3243,13 +4548,126 @@ async function restoreDocumentVersion(versionId) {
 }
 
 async function deleteDocument() {
-  if (!activeDocument?.id || !confirm(`确定永久删除「${activeDocument.title}」及其切片吗？删除前会保留版本快照。`)) return;
+  if (!activeDocument?.id || !confirm(`将「${activeDocument.title}」移至回收站？文档、切片和版本都会保留。`)) return;
   await cmsRequest(`/admin/documents/${activeDocument.id}`, { method: "DELETE" });
   activeDocument = null;
-  showToast("文档及其切片已删除");
+  showToast("文档已移至回收站");
   await loadDocuments();
 }
 
+function formatAccountRole(role) {
+  return { admin: "管理员", editor: "编辑者", viewer: "只读用户" }[role] || role;
+}
+
+function renderCurrentAccount() {
+  const target = document.querySelector("[data-current-account]");
+  if (!target) return;
+  if (!currentCmsUser) {
+    target.innerHTML = `<p class="empty">请先在下方登录服务器后台。</p>`;
+    return;
+  }
+  target.innerHTML = `
+    <div><span>当前账号</span><strong>${escapeHtml(currentCmsUser.email)}</strong></div>
+    <div><span>权限</span><strong>${formatAccountRole(currentCmsUser.role)}</strong></div>
+    <div><span>状态</span><strong>${currentCmsUser.is_active ? "正常" : "已停用"}</strong></div>
+    <div><span>最近登录</span><strong>${formatDateTime(currentCmsUser.last_login_at) || "首次登录"}</strong></div>
+  `;
+  document.querySelectorAll(".admin-sidebar-user strong").forEach((node) => { node.textContent = currentCmsUser.email; });
+  document.querySelectorAll(".admin-sidebar-user span").forEach((node) => { node.textContent = formatAccountRole(currentCmsUser.role); });
+}
+
+function renderAccountUsers() {
+  const target = document.querySelector("[data-account-users]");
+  const manager = document.querySelector("[data-account-manager]");
+  if (!target || !manager) return;
+  const canManage = currentCmsUser?.role === "admin";
+  manager.hidden = !canManage;
+  if (!canManage) {
+    target.innerHTML = `<p class="empty">只有管理员可以查看和管理其他账号。</p>`;
+    return;
+  }
+  target.innerHTML = accountUsers.length ? accountUsers.map((user) => `
+    <article class="account-row" data-account-id="${user.id}">
+      <div><strong>${escapeHtml(user.email)}</strong><span>${formatDateTime(user.last_login_at) || "尚未登录"}</span></div>
+      <select data-account-role ${user.id === currentCmsUser?.id ? "disabled" : ""}>
+        ${["admin", "editor", "viewer"].map((role) => `<option value="${role}" ${user.role === role ? "selected" : ""}>${formatAccountRole(role)}</option>`).join("")}
+      </select>
+      <button type="button" data-account-toggle ${user.id === currentCmsUser?.id ? "disabled" : ""}>${user.is_active ? "停用" : "启用"}</button>
+      <button type="button" data-account-reset>重置密码</button>
+    </article>
+  `).join("") : `<p class="empty">还没有其他账号。</p>`;
+}
+
+async function loadCurrentAccount() {
+  currentCmsUser = await cmsRequest("/auth/me");
+  renderCurrentAccount();
+  if (currentCmsUser.role === "admin") await loadAccountUsers();
+  else renderAccountUsers();
+}
+
+async function loadAccountUsers() {
+  accountUsers = await cmsRequest("/admin/users");
+  renderAccountUsers();
+}
+
+async function createAccount() {
+  const email = document.querySelector("[data-account-email]").value.trim();
+  const password = document.querySelector("[data-account-password]").value;
+  const role = document.querySelector("[data-account-role-new]").value;
+  await cmsRequest("/admin/users", {
+    method: "POST",
+    body: JSON.stringify({ email, password, role }),
+  });
+  document.querySelector("[data-account-email]").value = "";
+  document.querySelector("[data-account-password]").value = "";
+  showToast("账号已创建并保存到服务器");
+  await loadAccountUsers();
+}
+
+async function updateAccount(button, action) {
+  const row = button.closest("[data-account-id]");
+  const user = accountUsers.find((item) => String(item.id) === row?.dataset.accountId);
+  if (!user) return;
+  if (action === "role") {
+    await cmsRequest(`/admin/users/${user.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ role: row.querySelector("[data-account-role]").value }),
+    });
+  }
+  if (action === "toggle") {
+    await cmsRequest(`/admin/users/${user.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ is_active: !user.is_active }),
+    });
+  }
+  if (action === "reset") {
+    const password = window.prompt(`为 ${user.email} 设置新密码（至少 10 位）`);
+    if (!password) return;
+    await cmsRequest(`/admin/users/${user.id}/password`, {
+      method: "POST",
+      body: JSON.stringify({ password }),
+    });
+  }
+  showToast("账号设置已更新");
+  await loadAccountUsers();
+}
+
+async function changeOwnPassword() {
+  const currentPassword = document.querySelector("[data-current-password]").value;
+  const newPassword = document.querySelector("[data-new-password]").value;
+  await cmsRequest("/auth/change-password", {
+    method: "POST",
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+  await cmsRequest("/auth/logout", { method: "POST" }).catch(() => null);
+  cmsToken = "";
+  currentCmsUser = null;
+  accountUsers = [];
+  renderCurrentAccount();
+  renderAccountUsers();
+  setCmsStatus("密码已修改，请重新登录");
+  showToast("密码已修改，旧登录令牌已经失效");
+}
 async function cmsLogin() {
   const email = document.querySelector("[data-cms-email]").value.trim();
   const password = document.querySelector("[data-cms-password]").value;
@@ -3258,14 +4676,14 @@ async function cmsLogin() {
   localStorage.setItem("portfolio.cms.api", cmsConfig.api);
   localStorage.setItem("portfolio.cms.email", email);
 
-  const token = await cmsRequest("/auth/login", {
+  await cmsRequest("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
-  cmsToken = token.access_token;
-  localStorage.setItem("portfolio.cms.token", cmsToken);
+  cmsToken = "cookie";
   setCmsStatus("已连接 CMS");
   showToast("CMS 登录成功");
+  await loadCurrentAccount();
   await loadKnowledgeColumns();
   await loadKnowledgeGraphData();
   await loadDocuments();
@@ -3279,6 +4697,9 @@ async function cmsLogin() {
   await loadContentGaps();
   await loadRelationHealth();
   await loadPublishWorkflow();
+  await loadWorkspaceOverview();
+  await loadInbox();
+  await loadActivity();
 }
 
 async function pushToCms() {
@@ -3286,8 +4707,8 @@ async function pushToCms() {
     method: "POST",
     body: JSON.stringify({ data: state }),
   });
-  setCmsStatus("已同步到 CMS");
-  showToast("已同步到 FastAPI CMS");
+  setCmsStatus("服务器数据已保存");
+  showToast("站点设置已保存到服务器数据库");
   await loadRagIndex();
 }
 
@@ -3295,8 +4716,8 @@ async function pullFromCms() {
   const nextState = await cmsRequest("/admin/site");
   state = nextState;
   render();
-  setCmsStatus("已从 CMS 读取");
-  showToast("已读取 CMS 内容");
+  setCmsStatus("已读取服务器数据");
+  showToast("已刷新服务器站点设置");
 }
 
 async function guarded(action) {
@@ -3312,7 +4733,18 @@ async function init() {
   if (apiInput) apiInput.value = cmsConfig.api;
   const apiDocs = document.querySelector("[data-api-docs]");
   if (apiDocs) apiDocs.href = `${cmsConfig.api.replace(/\/+$/, "")}/docs`;
-  state = await fetch("/api/content").then((response) => response.json());
+  state = await fetch("/data/site.json").then((response) => {
+    if (!response.ok) throw new Error("无法读取站点初始配置。");
+    return response.json();
+  });
+  if (cmsToken) {
+    try {
+      currentCmsUser = await cmsRequest("/auth/me");
+      state = await cmsRequest("/admin/site");
+    } catch (error) {
+      if (error.status !== 404) console.warn(error);
+    }
+  }
   document.querySelector("[data-cms-api]").value = cmsConfig.api;
   document.querySelector("[data-cms-email]").value = cmsConfig.email;
   setCmsStatus(cmsToken ? "已有登录令牌" : "未连接");
@@ -3329,6 +4761,11 @@ async function init() {
         await navigateAdminRoute("articles");
         document.querySelector("[data-entry-new]")?.click();
       }
+      if (action === "quick-capture") {
+        await navigateAdminRoute("inbox");
+        resetInboxForm();
+        document.querySelector("[data-inbox-title]")?.focus();
+      }
       if (action === "new-node") {
         await navigateAdminRoute("knowledge-nodes");
         document.querySelector("[data-node-new]")?.click();
@@ -3342,13 +4779,11 @@ async function init() {
   const adminSearch = document.querySelector("[data-admin-search]");
   adminSearch.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" || !adminSearch.value.trim()) return;
-    const query = adminSearch.value.trim().toLowerCase();
-    const route = (state.posts || []).some((item) => [item.title, item.summary, ...(item.tags || [])].join(" ").toLowerCase().includes(query))
-      ? "articles"
-      : (state.knowledgeNodes || []).some((item) => [item.title, item.summary, ...(item.tag_names || [])].join(" ").toLowerCase().includes(query))
-        ? "knowledge-nodes"
-        : "site-settings";
-    guarded(() => navigateAdminRoute(route));
+    guarded(async () => {
+      await navigateAdminRoute("review");
+      document.querySelector("[data-review-search]").value = adminSearch.value.trim();
+      await searchReviewWorkspace();
+    });
   });
   window.addEventListener("hashchange", () => guarded(() => navigateAdminRoute(window.location.hash.slice(1) || "dashboard", { updateHash: false })));
   document.addEventListener("keydown", (event) => {
@@ -3369,6 +4804,173 @@ async function init() {
 
   document.querySelector("[data-save]").addEventListener("click", save);
   document.querySelector("[data-cms-login]").addEventListener("click", () => guarded(cmsLogin));
+  document.querySelector("[data-account-refresh]").addEventListener("click", () => guarded(loadCurrentAccount));
+  document.querySelector("[data-account-create]").addEventListener("click", () => guarded(createAccount));
+  document.querySelector("[data-own-password-change]").addEventListener("click", () => guarded(changeOwnPassword));
+  document.querySelector("[data-account-users]").addEventListener("change", (event) => {
+    if (event.target.matches("[data-account-role]")) guarded(() => updateAccount(event.target, "role"));
+  });
+  document.querySelector("[data-account-users]").addEventListener("click", (event) => {
+    const toggle = event.target.closest("[data-account-toggle]");
+    if (toggle) guarded(() => updateAccount(toggle, "toggle"));
+    const reset = event.target.closest("[data-account-reset]");
+    if (reset) guarded(() => updateAccount(reset, "reset"));
+  });
+  document.querySelector("[data-inbox-compose]").addEventListener("click", () => {
+    resetInboxForm();
+    document.querySelector("[data-inbox-title]")?.focus();
+  });
+  document.querySelector("[data-inbox-reset]").addEventListener("click", resetInboxForm);
+  document.querySelector("[data-inbox-save]").addEventListener("click", () => guarded(saveInboxItem));
+  document.querySelector("[data-inbox-refresh]").addEventListener("click", () => guarded(loadInbox));
+  document.querySelector("[data-inbox-organizer-close]").addEventListener("click", () => {
+    document.querySelector("[data-inbox-organizer]").hidden = true;
+  });
+  document.querySelector("[data-inbox-target-type]").addEventListener("change", updateInboxOrganizerMode);
+  document.querySelector("[data-inbox-target-title]").addEventListener("input", (event) => {
+    const slug = document.querySelector("[data-inbox-target-slug]");
+    if (!slug.dataset.touched) slug.value = slugify(event.target.value);
+  });
+  document.querySelector("[data-inbox-target-slug]").addEventListener("input", (event) => {
+    event.target.dataset.touched = event.target.value ? "true" : "";
+  });
+  document.querySelector("[data-inbox-target-search]").addEventListener("input", (event) => {
+    filterRelationChoices("[data-inbox-target-columns]", event.target.value);
+    filterRelationChoices("[data-inbox-target-nodes]", event.target.value);
+  });
+  document.querySelector("[data-inbox-target-columns]").addEventListener("change", () => {
+    const selected = new Set([...document.querySelectorAll("[data-inbox-target-columns] input:checked")].map((input) => input.value));
+    const primary = document.querySelector("[data-inbox-target-primary-column]");
+    [...primary.options].forEach((option) => { option.hidden = option.value && !selected.has(option.value); });
+    if (primary.value && !selected.has(primary.value)) primary.value = "";
+  });
+  document.querySelector("[data-inbox-organize-submit]").addEventListener("click", () => guarded(promoteInboxItem));
+  document.querySelector("[data-inbox-list]").addEventListener("click", (event) => {
+    const open = event.target.closest("[data-inbox-open]");
+    if (open) {
+      activeInboxItem = inboxItems.find((item) => String(item.id) === open.dataset.inboxOpen) || null;
+      if (!activeInboxItem) return;
+      document.querySelector("[data-inbox-form-title]").textContent = "编辑记录";
+      document.querySelector("[data-inbox-title]").value = activeInboxItem.title || "";
+      document.querySelector("[data-inbox-body]").value = activeInboxItem.body || "";
+      document.querySelector("[data-inbox-type]").value = activeInboxItem.item_type || "note";
+      document.querySelector("[data-inbox-url]").value = activeInboxItem.source_url || "";
+      renderInbox();
+      return;
+    }
+    const organize = event.target.closest("[data-inbox-organize]");
+    if (organize) openInboxOrganizer(organize.dataset.inboxOrganize);
+    const trash = event.target.closest("[data-inbox-trash]");
+    if (trash) guarded(() => trashInboxItem(trash.dataset.inboxTrash));
+  });
+  document.querySelector("[data-review-refresh]").addEventListener("click", () => guarded(loadReviewDashboard));
+  document.querySelector("[data-review-search-submit]").addEventListener("click", () => guarded(searchReviewWorkspace));
+  document.querySelector("[data-review-search]").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") guarded(searchReviewWorkspace);
+  });
+  document.querySelector("[data-review-search-type]").addEventListener("change", () => {
+    if (document.querySelector("[data-review-search]").value.trim()) guarded(searchReviewWorkspace);
+  });
+  document.querySelector("[data-review-select-all]").addEventListener("change", (event) => {
+    document.querySelectorAll("[data-review-select]").forEach((input) => { input.checked = event.target.checked; });
+    updateReviewSelectedCount();
+  });
+  document.querySelector(".review-workspace-panel").addEventListener("change", (event) => {
+    if (event.target.matches("[data-review-select]")) updateReviewSelectedCount();
+  });
+  document.querySelector(".review-workspace-panel").addEventListener("click", (event) => {
+    const batchAction = event.target.closest("[data-review-batch-action]");
+    if (batchAction) {
+      guarded(() => batchReviewEntities(batchAction.dataset.reviewBatchAction));
+      return;
+    }
+    const quickQueue = event.target.closest("[data-review-quick-queue]");
+    if (quickQueue) {
+      const [entityType, entityId] = quickQueue.dataset.reviewQuickQueue.split(":");
+      guarded(() => updateReviewEntity("queue", entityType, entityId, 7));
+      return;
+    }
+    const edit = event.target.closest("[data-review-edit]");
+    if (edit) {
+      const editor = document.querySelector(`[data-review-editor="${edit.dataset.reviewEdit}"]`);
+      if (editor) editor.hidden = !editor.hidden;
+      return;
+    }
+    const customAction = event.target.closest("[data-review-custom-action]");
+    if (customAction) {
+      const [action, entityType, entityId] = customAction.dataset.reviewCustomAction.split(":");
+      const editor = customAction.closest("[data-review-editor]");
+      const days = editor?.querySelector("[data-review-editor-days]")?.value || 7;
+      const note = editor?.querySelector("[data-review-editor-note]")?.value.trim() || "";
+      guarded(() => updateReviewEntity(action, entityType, entityId, days, note));
+      return;
+    }
+    const open = event.target.closest("[data-review-open]");
+    if (open) {
+      const [entityType, entityId] = open.dataset.reviewOpen.split(":");
+      guarded(() => openWorkspaceEntity(entityType, entityId));
+      return;
+    }
+    const actionButton = event.target.closest("[data-review-action]");
+    if (actionButton) {
+      const [action, entityType, entityId, intervalDays] = actionButton.dataset.reviewAction.split(":");
+      guarded(() => updateReviewEntity(action, entityType, entityId, intervalDays));
+    }
+  });
+  document.querySelector("[data-maintenance-refresh]").addEventListener("click", () => guarded(loadMaintenanceDashboard));
+  document.querySelector("[data-maintenance-days]").addEventListener("change", () => guarded(loadMaintenanceDashboard));
+  document.querySelector("[data-maintenance-priority]").addEventListener("change", renderMaintenanceTasks);
+  document.querySelector("[data-maintenance-category]").addEventListener("change", renderMaintenanceTasks);
+  document.querySelector("[data-maintenance-ai-run]").addEventListener("click", () => guarded(runInboxOrganizationSuggestion));
+  document.querySelector("[data-ai-workflow-refresh]").addEventListener("click", () => guarded(loadAiWorkflowDashboard));
+  document.querySelector("[data-ai-workflow-local]").addEventListener("click", () => guarded(() => runBatchInboxSuggestions("local")));
+  document.querySelector("[data-ai-workflow-auto]").addEventListener("click", () => guarded(() => runBatchInboxSuggestions("auto")));
+  document.querySelector("[data-maintenance-copy]").addEventListener("click", () => guarded(async () => {
+    const text = maintenanceReportText();
+    if (!text) throw new Error("周报尚未加载");
+    await navigator.clipboard.writeText(text);
+    showToast("周报已复制");
+  }));
+  document.querySelector(".maintenance-workspace-panel").addEventListener("click", (event) => {
+    const task = event.target.closest("[data-maintenance-task]");
+    if (task) {
+      guarded(() => handleMaintenanceTask(task.dataset.maintenanceTask));
+      return;
+    }
+    const opportunity = event.target.closest("[data-maintenance-opportunity]");
+    if (opportunity) {
+      guarded(() => handleKnowledgeOpportunity(opportunity.dataset.maintenanceOpportunity));
+      return;
+    }
+    const adopt = event.target.closest("[data-ai-workflow-adopt]");
+    if (adopt) {
+      guarded(() => adoptAiWorkflowSuggestion(adopt.dataset.aiWorkflowAdopt));
+      return;
+    }
+    const reject = event.target.closest("[data-ai-workflow-reject]");
+    if (reject) {
+      guarded(() => rejectAiWorkflowSuggestion(reject.dataset.aiWorkflowReject));
+      return;
+    }
+    if (event.target.closest("[data-maintenance-ai-apply]")) guarded(applyInboxOrganizationSuggestion);
+  });
+  document.querySelector("[data-organization-refresh]").addEventListener("click", () => guarded(loadOrganization));
+  document.querySelector("[data-organization-search]").addEventListener("input", renderOrganization);
+  document.querySelector("[data-organization-type]").addEventListener("change", renderOrganization);
+  document.querySelector("[data-organization-orphans]").addEventListener("change", renderOrganization);
+  document.querySelector("[data-organization-list]").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-organization-entity]");
+    if (button) guarded(() => selectOrganizationEntity(button.dataset.organizationEntity));
+  });
+  document.querySelector("[data-organization-detail]").addEventListener("click", (event) => {
+    if (event.target.closest("[data-organization-open-editor]")) guarded(openOrganizationEditor);
+  });
+  document.querySelector("[data-activity-refresh]").addEventListener("click", () => guarded(loadActivity));
+  document.querySelector("[data-trash-refresh]").addEventListener("click", () => guarded(loadTrash));
+  document.querySelector("[data-trash-list]").addEventListener("click", (event) => {
+    const restore = event.target.closest("[data-trash-restore]");
+    if (restore) guarded(() => restoreTrashItem(restore.dataset.trashRestore));
+  });
   document.querySelector("[data-cms-push]").addEventListener("click", () => guarded(async () => {
     await pushToCms();
     await loadEntries();
@@ -3381,6 +4983,26 @@ async function init() {
   document.querySelector("[data-ai-runs-refresh]").addEventListener("click", () => guarded(loadAiRuns));
   document.querySelector("[data-agent-runs-refresh]").addEventListener("click", () => guarded(loadAgentRuns));
   document.querySelector("[data-agent-evaluate]").addEventListener("click", () => guarded(evaluateAgentSuite));
+  document.querySelector("[data-eval-refresh]").addEventListener("click", () => guarded(loadEvaluationDashboard));
+  document.querySelector("[data-eval-new]").addEventListener("click", () => setEvalSuiteForm(emptyEvalSuite()));
+  document.querySelector("[data-eval-save]").addEventListener("click", () => guarded(saveEvalSuite));
+  document.querySelector("[data-eval-run-local]").addEventListener("click", () => guarded(() => runEvaluationSuite("local")));
+  document.querySelector("[data-eval-run-auto]").addEventListener("click", () => guarded(() => runEvaluationSuite("auto")));
+  document.querySelector("[data-eval-name]").addEventListener("input", (event) => {
+    if (!activeEvalSuite?.id && !document.querySelector("[data-eval-slug]").value.trim()) document.querySelector("[data-eval-slug]").value = slugify(event.target.value);
+  });
+  document.querySelector("[data-eval-suite-list]").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-eval-suite-id]");
+    if (!button) return;
+    setEvalSuiteForm(evaluationDashboard?.suites?.find((suite) => String(suite.id) === button.dataset.evalSuiteId) || emptyEvalSuite());
+  });
+  document.querySelector("[data-eval-history]").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-eval-run-id]");
+    if (button) guarded(() => loadEvaluationRun(button.dataset.evalRunId));
+  });
+  document.querySelector("[data-eval-run-detail]").addEventListener("click", (event) => {
+    if (event.target.closest("[data-eval-detail-close]")) event.currentTarget.hidden = true;
+  });
   document.querySelector("[data-rag-index-refresh]").addEventListener("click", () => guarded(loadRagIndex));
   document.querySelector("[data-rag-index-rebuild]").addEventListener("click", () => guarded(rebuildRagIndex));
   document.querySelector("[data-rag-evaluate]").addEventListener("click", () => guarded(evaluateRagIndex));
@@ -3404,13 +5026,38 @@ async function init() {
       guarded(() => restoreDocumentVersion(restoreButton.dataset.documentVersionRestore));
       return;
     }
+    const diffButton = event.target.closest("[data-document-version-diff]");
+    if (diffButton) {
+      guarded(() => loadDocumentVersionDiff(diffButton.dataset.documentVersionDiff));
+      return;
+    }
     if (event.target.closest("[data-document-save]")) guarded(saveDocument);
     else if (event.target.closest("[data-document-toggle]")) guarded(toggleDocument);
     else if (event.target.closest("[data-document-rechunk]")) guarded(rechunkDocument);
     else if (event.target.closest("[data-document-versions]")) guarded(loadDocumentVersions);
     else if (event.target.closest("[data-document-delete]")) guarded(deleteDocument);
   });
+  document.querySelector("[data-document-editor]").addEventListener("input", (event) => {
+    if (event.target.matches("[data-document-link-search]")) {
+      filterRelationChoices("[data-document-nodes]", event.target.value);
+      return;
+    }
+    if (!event.target.closest("[data-document-chunk]")) scheduleDocumentAutosave();
+  });
+  document.querySelector("[data-document-editor]").addEventListener("change", (event) => {
+    if (!event.target.closest("[data-document-chunk]") && !event.target.matches("[data-document-link-search]")) scheduleDocumentAutosave();
+  });
   document.querySelector("[data-ai-feedback-refresh]").addEventListener("click", () => guarded(loadAiFeedback));
+  document.querySelector("[data-proactive-refresh]").addEventListener("click", () => guarded(() => loadProactiveDashboard(true)));
+  document.querySelector("[data-memory-form]").addEventListener("submit", (event) => guarded(() => createLongTermMemory(event)));
+  document.querySelector("[data-proactive-tasks]").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-proactive-task]");
+    if (button) guarded(() => updateProactiveTask(button.dataset.proactiveTask));
+  });
+  document.querySelector("[data-memory-list]").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-memory-action]");
+    if (button) guarded(() => updateLongTermMemory(button.dataset.memoryAction));
+  });
   document.querySelector("[data-content-ops-refresh]").addEventListener("click", () => guarded(loadContentOps));
   document.querySelector("[data-search-analytics-refresh]").addEventListener("click", () => guarded(loadSearchAnalytics));
   document.querySelector("[data-content-gaps-refresh]").addEventListener("click", () => guarded(loadContentGaps));
@@ -3439,10 +5086,19 @@ async function init() {
   });
   document.querySelector("[data-node-refresh]").addEventListener("click", () => guarded(loadKnowledgeGraphData));
   document.querySelector("[data-node-save]").addEventListener("click", () => guarded(saveKnowledgeNode));
+  document.querySelector("[data-node-enhancement-local]").addEventListener("click", () => guarded(() => suggestContentEnhancement("node", "local")));
+  document.querySelector("[data-node-enhancement-auto]").addEventListener("click", () => guarded(() => suggestContentEnhancement("node", "auto")));
+  document.querySelector("[data-node-enhancement-result]").addEventListener("click", (event) => {
+    if (event.target.closest("[data-node-enhancement-apply]")) guarded(() => applyContentEnhancement("node"));
+  });
   document.querySelector("[data-node-delete]").addEventListener("click", () => guarded(deleteKnowledgeNode));
   document.querySelector("[data-node-title]").addEventListener("input", (event) => {
     const slugInput = document.querySelector("[data-node-slug]");
     if (!activeKnowledgeNode?.id && !slugInput.value.trim()) slugInput.value = slugify(event.target.value);
+  });
+  document.querySelector("[data-node-link-search]").addEventListener("input", (event) => {
+    filterRelationChoices("[data-node-columns]", event.target.value);
+    filterRelationChoices("[data-node-articles]", event.target.value);
   });
   document.querySelector("[data-node-columns]").addEventListener("change", () => {
     const draft = { ...readKnowledgeNodeForm(), id: activeKnowledgeNode?.id, revision: activeKnowledgeNode?.revision };
@@ -3456,9 +5112,19 @@ async function init() {
     guarded(loadKnowledgeNodeVersions);
   });
   document.querySelector("[data-node-version-list]").addEventListener("click", (event) => {
+    const diffButton = event.target.closest("[data-node-version-diff]");
+    if (diffButton) {
+      guarded(() => loadKnowledgeNodeVersionDiff(diffButton.dataset.nodeVersionDiff));
+      return;
+    }
     const button = event.target.closest("[data-node-version-restore]");
     if (button) guarded(() => restoreKnowledgeNodeVersion(button.dataset.nodeVersionRestore));
   });
+  const nodeForm = document.querySelector(".node-form");
+  nodeForm.addEventListener("input", (event) => {
+    if (!event.target.matches("[data-node-link-search]")) scheduleKnowledgeNodeAutosave();
+  });
+  nodeForm.addEventListener("change", scheduleKnowledgeNodeAutosave);
   document.querySelector("[data-node-relation-new]").addEventListener("click", () => {
     setKnowledgeRelationForm(emptyKnowledgeRelation());
     renderKnowledgeRelationList();
@@ -3489,11 +5155,15 @@ async function init() {
   }));
   document.querySelector("[data-entry-refresh]").addEventListener("click", () => guarded(loadEntries));
   document.querySelector("[data-entry-save]").addEventListener("click", () => guarded(() => saveEntry()));
+  document.querySelector("[data-entry-enhancement-local]").addEventListener("click", () => guarded(() => suggestContentEnhancement("entry", "local")));
+  document.querySelector("[data-entry-enhancement-auto]").addEventListener("click", () => guarded(() => suggestContentEnhancement("entry", "auto")));
+  document.querySelector("[data-entry-enhancement-result]").addEventListener("click", (event) => {
+    if (event.target.closest("[data-entry-enhancement-apply]")) guarded(() => applyContentEnhancement("entry"));
+  });
   document.querySelector("[data-entry-publish]").addEventListener("click", () => guarded(publishEntry));
   document.querySelector("[data-entry-archive]").addEventListener("click", () => guarded(archiveEntry));
   document.querySelector("[data-entry-delete]").addEventListener("click", () => guarded(deleteEntry));
   document.querySelector("[data-entry-versions]").addEventListener("click", () => guarded(loadVersions));
-  document.querySelector("[data-entry-sync-local]").addEventListener("click", () => guarded(writeCmsEntriesToLocalSite));
   document.querySelector("[data-asset-upload]").addEventListener("click", () => guarded(uploadAsset));
   document.querySelector("[data-relation-refresh]").addEventListener("click", () => guarded(loadRelationSuggestions));
   document.querySelector("[data-relation-apply-all]").addEventListener("click", applyAllRelationSuggestions);
@@ -3623,11 +5293,13 @@ async function init() {
   document.addEventListener("keydown", (event) => {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
       event.preventDefault();
-      guarded(() => saveEntry());
+      if (activeAdminRoute === "knowledge-nodes") guarded(saveKnowledgeNode);
+      else if (activeAdminRoute === "documents") guarded(saveDocument);
+      else guarded(() => saveEntry());
     }
   });
   window.addEventListener("beforeunload", (event) => {
-    if (!autosaveDirty && !autosaveInFlight) return;
+    if (!autosaveDirty && !autosaveInFlight && !nodeAutosaveDirty && !nodeAutosaveInFlight && !documentAutosaveDirty && !documentAutosaveInFlight) return;
     event.preventDefault();
     event.returnValue = "";
   });
@@ -3636,17 +5308,29 @@ async function init() {
   setColumnForm(emptyKnowledgeColumn());
   setKnowledgeNodeForm(emptyKnowledgeNode());
   setKnowledgeRelationForm(emptyKnowledgeRelation());
+  try {
+    await loadCurrentAccount();
+    cmsToken = "cookie";
+  } catch (error) {
+    if (error?.status !== 401) console.warn("Unable to restore CMS session", error);
+  }
   if (cmsToken) {
     guarded(async () => {
       await loadKnowledgeColumns();
       await loadKnowledgeGraphData();
       await loadDocuments();
       await loadEntries();
+      await loadWorkspaceOverview();
+      await loadInbox();
+      await loadActivity();
+      await loadMaintenanceDashboard();
     });
     guarded(loadAiRuns);
     guarded(loadAgentRuns);
+    guarded(loadEvaluationDashboard);
     guarded(loadRagIndex);
     guarded(loadAiFeedback);
+    guarded(() => loadProactiveDashboard(false));
     guarded(loadContentOps);
     guarded(loadSearchAnalytics);
     guarded(loadContentGaps);

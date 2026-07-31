@@ -293,7 +293,10 @@ def rebuild_vector_index(session: Session) -> dict[str, int]:
     entries = list(
         session.scalars(
             select(ContentEntry)
-            .where(ContentEntry.entity_type.in_(INDEXED_ENTITY_TYPES))
+            .where(
+                ContentEntry.entity_type.in_(INDEXED_ENTITY_TYPES),
+                ContentEntry.deleted_at.is_(None),
+            )
             .order_by(ContentEntry.updated_at.desc())
         )
     )
@@ -328,7 +331,10 @@ def rank_chunks(
     entry_ids = {chunk.entry_id for chunk in chunks}
     entries = {
         entry.id: entry
-        for entry in session.scalars(select(ContentEntry).where(ContentEntry.id.in_(entry_ids)))
+        for entry in session.scalars(select(ContentEntry).where(
+            ContentEntry.id.in_(entry_ids),
+            ContentEntry.deleted_at.is_(None),
+        ))
         if (not published_only or entry.status == "published")
         and (scope_filter is None or scope_filter.allows_entry(entry))
     }
@@ -402,7 +408,7 @@ def search_entries_once(
     if chunk_ranked:
         return chunk_ranked
 
-    statement = select(ContentEntry)
+    statement = select(ContentEntry).where(ContentEntry.deleted_at.is_(None))
     if published_only:
         statement = statement.where(ContentEntry.status == "published")
 

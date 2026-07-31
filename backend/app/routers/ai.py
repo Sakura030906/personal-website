@@ -13,11 +13,12 @@ from ..embeddings import embedding_status
 from ..grounding import evaluate_evidence, grounding_payload, verify_answer
 from ..knowledge_rag import search_knowledge_nodes
 from ..llm import build_grounded_prompt, call_openai_compatible, local_grounded_answer
-from ..models import AiFeedback, AiMemory, Article, Document, KnowledgeColumn, KnowledgeNode
+from ..models import AiFeedback, AiMemory, Article, Document, KnowledgeColumn, KnowledgeNode, LongTermMemory
 from ..query_expansion import build_query_plan, query_plan_payload
 from ..schemas import AiFeedbackIn, AiFeedbackOut, AskRequest, AskResponse, AskSource, MemoryOut
 from ..retrieval_scope import RetrievalScopeFilter
 from ..search import search_entries
+from ..security import public_session_id, resolved_public_session
 
 router = APIRouter()
 
@@ -88,6 +89,17 @@ def citation_quality(sources: list[AskSource]) -> float:
     return round(min((score_total / len(sources)) * 0.7 + type_bonus + source_bonus, 1), 2)
 
 
+def confirmed_public_memories(session: Session, limit: int = 8) -> list[LongTermMemory]:
+    return list(
+        session.scalars(
+            select(LongTermMemory)
+            .where(LongTermMemory.status == "active", LongTermMemory.visibility == "public")
+            .order_by(LongTermMemory.updated_at.desc(), LongTermMemory.id.desc())
+            .limit(limit)
+        )
+    )
+
+
 def memory_out(memory: AiMemory) -> MemoryOut:
     source_slugs = parse_json_list(memory.source_slugs)
     raw_sources = parse_json_list(getattr(memory, "sources_json", "[]"))
@@ -117,7 +129,8 @@ def memory_out(memory: AiMemory) -> MemoryOut:
 
 
 @router.get("/memories", response_model=list[MemoryOut])
-def list_memories(session_id: str = "default", limit: int = 12, session: Session = Depends(get_session)) -> list[MemoryOut]:
+def list_memories(session_id: str = "default", limit: int = 12, session: Session = Depends(get_session), server_session: str = Depends(public_session_id)) -> list[MemoryOut]:
+    session_id = resolved_public_session(server_session, session_id)
     limit = max(1, min(limit, 50))
     memories = session.scalars(
         select(AiMemory)
@@ -129,7 +142,8 @@ def list_memories(session_id: str = "default", limit: int = 12, session: Session
 
 
 @router.delete("/memories")
-def clear_memories(session_id: str = "default", session: Session = Depends(get_session)) -> dict[str, int]:
+def clear_memories(session_id: str = "default", session: Session = Depends(get_session), server_session: str = Depends(public_session_id)) -> dict[str, int]:
+    session_id = resolved_public_session(server_session, session_id)
     memories = list(session.scalars(select(AiMemory).where(AiMemory.session_id == session_id)))
     count = len(memories)
     for memory in memories:
@@ -143,20 +157,24 @@ def public_retrieval_scopes(session: Session = Depends(get_session)) -> dict[str
     columns = session.scalars(select(KnowledgeColumn).where(
         KnowledgeColumn.visibility == "public",
         KnowledgeColumn.allow_ai_search.is_(True),
+        KnowledgeColumn.deleted_at.is_(None),
     ).order_by(KnowledgeColumn.sort_order, KnowledgeColumn.name))
     nodes = session.scalars(select(KnowledgeNode).where(
         KnowledgeNode.visibility == "public",
         KnowledgeNode.allow_ai_search.is_(True),
+        KnowledgeNode.deleted_at.is_(None),
     ).order_by(KnowledgeNode.importance.desc(), KnowledgeNode.title))
     articles = session.scalars(select(Article).where(
         Article.status == "published",
         Article.visibility == "public",
         Article.allow_ai_search.is_(True),
+        Article.deleted_at.is_(None),
     ).order_by(Article.published_at.desc(), Article.title))
     documents = session.scalars(select(Document).where(
         Document.status == "ready",
         Document.visibility == "public",
         Document.allow_ai_search.is_(True),
+        Document.deleted_at.is_(None),
     ).order_by(Document.updated_at.desc(), Document.title))
     return {
         "columns": [{"id": item.id, "title": item.name, "slug": item.slug} for item in columns],
@@ -167,7 +185,7 @@ def public_retrieval_scopes(session: Session = Depends(get_session)) -> dict[str
 
 
 @router.post("/feedback", response_model=AiFeedbackOut)
-def create_feedback(payload: AiFeedbackIn, session: Session = Depends(get_session)) -> AiFeedbackOut:
+def create_feedback(payload: AiFeedbackIn, session: Session = Depends(get_session), server_session: str = Depends(public_session_id)) -> AiFeedbackOut:
     rating = payload.rating.strip().lower()
     if rating not in {"useful", "not_useful"}:
         raise HTTPException(status_code=400, detail="rating must be useful or not_useful")
@@ -175,7 +193,7 @@ def create_feedback(payload: AiFeedbackIn, session: Session = Depends(get_sessio
     memory = session.get(AiMemory, payload.memory_id) if payload.memory_id else None
     feedback = AiFeedback(
         memory_id=memory.id if memory else None,
-        session_id=payload.session_id or (memory.session_id if memory else "default"),
+        session_id=resolved_public_session(server_session, payload.session_id or (memory.session_id if memory else "default")),
         rating=rating,
         reason=payload.reason.strip()[:120],
         note=payload.note.strip(),
@@ -199,7 +217,8 @@ def create_feedback(payload: AiFeedbackIn, session: Session = Depends(get_sessio
 
 
 @router.post("/ask", response_model=AskResponse)
-def ask(payload: AskRequest, session: Session = Depends(get_session)) -> AskResponse:
+def ask(payload: AskRequest, session: Session = Depends(get_session), server_session: str = Depends(public_session_id)) -> AskResponse:
+    payload.session_id = resolved_public_session(server_session, payload.session_id)
     started_at = time.perf_counter()
     scope_filter = RetrievalScopeFilter(session, payload.scope)
     scope_payload = scope_filter.payload()
@@ -220,10 +239,15 @@ def ask(payload: AskRequest, session: Session = Depends(get_session)) -> AskResp
             .limit(5)
         )
     ]
+    confirmed_memories = confirmed_public_memories(session)
+    memories.extend(
+        f"Confirmed public memory ({memory.memory_type}) - {memory.title}: {memory.content}"
+        for memory in confirmed_memories
+    )
     embedding_meta = embedding_status()
     trace = [
         "Receive question",
-        "Load recent long-term memory",
+        f"Load recent session context and {len(confirmed_memories)} confirmed public memories",
         f"Expand query into {len(query_plan.queries)} retrieval variants",
         f"Create query embedding via {embedding_meta['active_provider']} / {embedding_meta['model']}",
         "Hybrid retrieval over persisted content chunks and standardized knowledge nodes",
@@ -351,7 +375,14 @@ def ask(payload: AskRequest, session: Session = Depends(get_session)) -> AskResp
     trace.append(f"Use {sum(source.entity_type == 'document' for source in sources)} document chunk citations")
     trace.append(f"Grounding guard: {evidence.status} ({evidence.confidence})")
     prompt_context = "\n".join(
-        [f"Question: {payload.question}", f"Retrieval queries: {' | '.join(query_plan.queries)}", f"Scope: {json.dumps(scope_payload, ensure_ascii=False)}", "", "Sources:"]
+        [
+            f"Question: {payload.question}",
+            f"Retrieval queries: {' | '.join(query_plan.queries)}",
+            f"Scope: {json.dumps(scope_payload, ensure_ascii=False)}",
+            "Confirmed public memories:",
+            *[f"- [{memory.memory_type}] {memory.title}: {memory.content}" for memory in confirmed_memories],
+            "", "Sources:",
+        ]
         + [
             "\n".join(
                 [

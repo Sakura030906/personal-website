@@ -187,7 +187,11 @@ def rebuild_knowledge_node_index(session: Session) -> dict[str, int]:
     for chunk in session.scalars(select(KnowledgeNodeChunk)):
         session.delete(chunk)
     session.flush()
-    nodes = list(session.scalars(select(KnowledgeNode).order_by(KnowledgeNode.id)))
+    nodes = list(session.scalars(
+        select(KnowledgeNode)
+        .where(KnowledgeNode.deleted_at.is_(None))
+        .order_by(KnowledgeNode.id)
+    ))
     indexed_nodes = 0
     chunk_count = 0
     for node in nodes:
@@ -220,6 +224,7 @@ def search_knowledge_nodes(
         select(KnowledgeNode).where(
             KnowledgeNode.visibility == "public",
             KnowledgeNode.allow_ai_search.is_(True),
+            KnowledgeNode.deleted_at.is_(None),
         )
     ) if scope_filter is None or scope_filter.allows_node(node)]
     if not nodes or not query.strip():
@@ -313,5 +318,6 @@ def get_public_knowledge_node(session: Session, slug: str) -> dict | None:
         KnowledgeNode.slug == slug,
         KnowledgeNode.visibility == "public",
         KnowledgeNode.allow_ai_search.is_(True),
+        KnowledgeNode.deleted_at.is_(None),
     ))
     return public_knowledge_node_payload(session, node) if node else None

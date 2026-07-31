@@ -133,7 +133,10 @@ def search_content(context: AgentToolContext, arguments: dict) -> dict:
 def list_recent_content(context: AgentToolContext, arguments: dict) -> dict:
     limit = max(1, min(int(arguments.get("limit") or 5), 10))
     entity_type = str(arguments.get("entity_type") or "").strip()
-    statement = select(ContentEntry).where(ContentEntry.status == "published")
+    statement = select(ContentEntry).where(
+        ContentEntry.status == "published",
+        ContentEntry.deleted_at.is_(None),
+    )
     statement = statement.where(ContentEntry.entity_type != "knowledge")
     if entity_type:
         statement = statement.where(ContentEntry.entity_type == entity_type)
@@ -160,7 +163,11 @@ def get_content(context: AgentToolContext, arguments: dict) -> dict:
     if entity_type == "knowledge_node":
         node = get_public_knowledge_node(context.session, slug)
         return {"found": bool(node), "content": node}
-    statement = select(ContentEntry).where(ContentEntry.slug == slug, ContentEntry.status == "published")
+    statement = select(ContentEntry).where(
+        ContentEntry.slug == slug,
+        ContentEntry.status == "published",
+        ContentEntry.deleted_at.is_(None),
+    )
     statement = statement.where(ContentEntry.entity_type != "knowledge")
     if entity_type:
         statement = statement.where(ContentEntry.entity_type == entity_type)
@@ -185,6 +192,7 @@ def compare_content(context: AgentToolContext, arguments: dict) -> dict:
         ContentEntry.slug.in_(slugs),
         ContentEntry.status == "published",
         ContentEntry.entity_type != "knowledge",
+        ContentEntry.deleted_at.is_(None),
     )
     if entity_type:
         statement = statement.where(ContentEntry.entity_type == entity_type)

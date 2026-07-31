@@ -136,7 +136,7 @@ def test_version_diff_reports_changed_fields(session):
     assert "+新增一行" in diff["content_diff"]
 
 
-def test_permanent_delete_cleans_drafts_versions_and_index(session):
+def test_delete_moves_entry_to_trash_and_keeps_history(session):
     entry = admin.create_entry(entry_input(), user="admin@example.com", session=session)
     payload = entry_input(title="待删除草稿").model_dump()
     admin.autosave_entry(
@@ -146,8 +146,10 @@ def test_permanent_delete_cleans_drafts_versions_and_index(session):
         session=session,
     )
 
-    admin.delete_entry(entry.id, _="admin@example.com", session=session)
+    admin.delete_entry(entry.id, user="admin@example.com", session=session)
 
-    assert session.get(ContentEntry, entry.id) is None
-    assert session.scalar(select(ContentDraft).where(ContentDraft.entry_id == entry.id)) is None
-    assert session.scalar(select(ContentVersion).where(ContentVersion.entity_id == entry.id)) is None
+    deleted = session.get(ContentEntry, entry.id)
+    assert deleted is not None
+    assert deleted.deleted_at is not None
+    assert session.scalar(select(ContentDraft).where(ContentDraft.entry_id == entry.id)) is not None
+    assert session.scalar(select(ContentVersion).where(ContentVersion.entity_id == entry.id)) is not None

@@ -70,6 +70,8 @@ services:
       UPLOAD_DIR: /app/uploads
       MILVUS_URI: http://milvus:19530
       CORS_ORIGINS: https://${DOMAIN:-sakura000702.me},https://www.${DOMAIN:-sakura000702.me}
+      MAINTENANCE_STATE_FILE: /app/maintenance-state/status.json
+      BACKUP_STATE_FILE: /app/backup-state/.last-success
     depends_on:
       postgres:
         condition: service_healthy
@@ -78,6 +80,8 @@ services:
     volumes:
       - uploads:/app/uploads
       - ./data:/data:ro
+      - maintenance-state:/app/maintenance-state:ro
+      - backups:/app/backup-state:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
       interval: 15s
@@ -130,6 +134,29 @@ services:
       start_period: 5m
     networks: [backend]
 
+  maintenance:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    init: true
+    env_file: ${ENV_FILE:-.env.production}
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-portfolio}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-portfolio}
+      MAINTENANCE_STATE_FILE: /app/maintenance-state/status.json
+    command: ["python", "-m", "scripts.maintenance_loop"]
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - maintenance-state:/app/maintenance-state
+    healthcheck:
+      test: ["CMD", "python", "-m", "scripts.maintenance_healthcheck"]
+      interval: 1h
+      timeout: 10s
+      retries: 2
+      start_period: 5m
+    networks: [backend]
+
   certbot:
     image: certbot/certbot:v3.2.0
     profiles: ["tools"]
@@ -146,6 +173,7 @@ volumes:
   postgres-data:
   uploads:
   backups:
+  maintenance-state:
   milvus-etcd:
   milvus-minio:
   milvus-data:

@@ -8,7 +8,8 @@ from app import models  # noqa: F401
 
 
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.database_url)
+database_url = str(settings.database_url).replace("%", "%%")
+config.set_main_option("sqlalchemy.url", database_url)
 if config.config_file_name:
     fileConfig(config.config_file_name)
 

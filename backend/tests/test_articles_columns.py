@@ -7,9 +7,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
 from app.database import Base
-from app.models import Article, ArticleDraft, ArticleTag, Category, KnowledgeColumn, Tag
+from app.models import ActivityEvent, Article, ArticleDraft, ArticleNode, ArticleTag, Category, ContentVersion, KnowledgeColumn, KnowledgeNode, Tag
 from app.routers import articles, public
-from app.schemas import ArticleAutosave, ArticleWrite, KnowledgeColumnWrite
+from app.schemas import ArticleAutosave, ArticleWrite, ContentEnhancementApply, ContentEnhancementRequest, KnowledgeColumnWrite
 from app.site_sync import sync_site_document
 
 
@@ -163,3 +163,42 @@ def test_site_json_posts_sync_into_normalized_articles(session):
     assert article is not None
     assert article.status == "published"
     assert public.public_article("synced-article", session=session)["tags"] == ["CMS"]
+
+
+def test_article_ai_enhancement_is_field_scoped_versioned_and_keeps_draft(session):
+    created = articles.create_article(
+        ArticleWrite(**article_payload(summary="短摘要", content_md="# RAG\n\nMilvus 与 Redis 支撑混合检索和 Reranker。")),
+        user="admin@example.com", session=session,
+    )
+    node = KnowledgeNode(title="Milvus", slug="milvus", summary="向量数据库", content_markdown="RAG 向量检索")
+    session.add(node)
+    session.commit()
+    suggestion = articles.suggest_article_enhancement(
+        created["id"], ContentEnhancementRequest(mode="local"), _="admin@example.com", session=session,
+    )
+    assert suggestion["revision"] == 1
+    assert "Milvus" in suggestion["proposal"]["tags"]
+    suggestion["proposal"]["related_nodes"] = [{"id": node.id, "title": node.title, "score": 1}]
+    applied = articles.apply_article_enhancement(
+        created["id"],
+        ContentEnhancementApply(
+            expected_revision=1,
+            selected_fields=["summary", "tags", "related_nodes"],
+            proposal=suggestion["proposal"],
+        ),
+        user="admin@example.com", session=session,
+    )
+    assert applied["article"]["revision"] == 2
+    assert applied["article"]["status"] == "draft"
+    assert applied["article"]["seoTitle"] == "RAG 工程实践"
+    assert node.id in set(session.scalars(select(ArticleNode.node_id)))
+    assert session.scalar(select(ContentVersion).where(ContentVersion.reason == "before_ai_enhancement")) is not None
+    assert session.scalar(select(ActivityEvent).where(ActivityEvent.action == "ai_enhancement_applied")) is not None
+
+    with pytest.raises(HTTPException) as conflict:
+        articles.apply_article_enhancement(
+            created["id"],
+            ContentEnhancementApply(expected_revision=1, selected_fields=["summary"], proposal=suggestion["proposal"]),
+            user="admin@example.com", session=session,
+        )
+    assert conflict.value.status_code == 409

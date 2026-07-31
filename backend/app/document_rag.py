@@ -91,7 +91,7 @@ def public_document_payload(session: Session, document: Document, chunk: Documen
 
 
 def sync_document_index(session: Session, document: Document) -> dict[str, object]:
-    if document.status != "ready" or document.visibility != "public" or not document.allow_ai_search:
+    if document.deleted_at or document.status != "ready" or document.visibility != "public" or not document.allow_ai_search:
         return delete_document_vectors(document.id)
     chunks = list(session.scalars(select(DocumentChunk).where(
         DocumentChunk.document_id == document.id,
@@ -110,6 +110,7 @@ def rebuild_document_index(session: Session) -> dict[str, int]:
         Document.status == "ready",
         Document.visibility == "public",
         Document.allow_ai_search.is_(True),
+        Document.deleted_at.is_(None),
     )))
     indexed_documents = 0
     indexed_chunks = 0
@@ -141,6 +142,7 @@ def search_document_chunks(
         Document.status == "ready",
         Document.visibility == "public",
         Document.allow_ai_search.is_(True),
+        Document.deleted_at.is_(None),
     )) if scope_filter is None or scope_filter.allows_document(document)]
     if not documents or not query.strip():
         return []

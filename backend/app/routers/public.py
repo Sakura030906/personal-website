@@ -53,7 +53,7 @@ def public_entry(entry: ContentEntry) -> dict:
 def public_content(session: Session = Depends(get_session)) -> dict[str, list]:
     entries = session.scalars(
         select(ContentEntry)
-        .where(ContentEntry.status == "published", ContentEntry.visibility == "public")
+        .where(ContentEntry.status == "published", ContentEntry.visibility == "public", ContentEntry.deleted_at.is_(None))
         .order_by(ContentEntry.published_at.desc(), ContentEntry.updated_at.desc())
     )
     grouped: dict[str, object] = {"posts": [], "projects": [], "knowledgeBase": [], "knowledgeColumns": [], "knowledgeNodes": [], "knowledgeGraph": {}}
@@ -65,13 +65,13 @@ def public_content(session: Session = Depends(get_session)) -> dict[str, list]:
             grouped["knowledgeBase"].append(item)
     articles = session.scalars(
         select(Article)
-        .where(Article.status == "published", Article.visibility == "public")
+        .where(Article.status == "published", Article.visibility == "public", Article.deleted_at.is_(None))
         .order_by(Article.is_top.desc(), Article.published_at.desc(), Article.updated_at.desc())
     )
     grouped["posts"] = [public_article_payload(session, article) for article in articles]
     grouped["knowledgeColumns"] = public_columns(session=session)
     nodes = session.scalars(
-        select(KnowledgeNode).where(KnowledgeNode.visibility == "public")
+        select(KnowledgeNode).where(KnowledgeNode.visibility == "public", KnowledgeNode.deleted_at.is_(None))
         .order_by(KnowledgeNode.importance.desc(), KnowledgeNode.updated_at.desc(), KnowledgeNode.title)
     )
     grouped["knowledgeNodes"] = [public_node_payload(session, node) for node in nodes]
@@ -91,6 +91,7 @@ def public_articles(
     query = select(Article).where(
         Article.status == "published",
         Article.visibility == "public",
+        Article.deleted_at.is_(None),
     )
     if category:
         from ..models import Category
@@ -113,6 +114,7 @@ def public_article(slug: str, session: Session = Depends(get_session)) -> dict:
             Article.slug == slug,
             Article.status == "published",
             Article.visibility.in_(["public", "unlisted"]),
+            Article.deleted_at.is_(None),
         )
     )
     if not article:
@@ -129,12 +131,13 @@ def column_public_dict(session: Session, column: KnowledgeColumn) -> dict:
             ArticleColumn.column_id == column.id,
             Article.status == "published",
             Article.visibility == "public",
+            Article.deleted_at.is_(None),
         )
     ) or 0
     node_count = session.scalar(
         select(func.count()).select_from(KnowledgeColumnNode)
         .join(KnowledgeNode, KnowledgeNode.id == KnowledgeColumnNode.node_id)
-        .where(KnowledgeColumnNode.column_id == column.id, KnowledgeNode.visibility == "public")
+        .where(KnowledgeColumnNode.column_id == column.id, KnowledgeNode.visibility == "public", KnowledgeNode.deleted_at.is_(None))
     ) or 0
     return {
         "id": column.id,
@@ -153,7 +156,7 @@ def column_public_dict(session: Session, column: KnowledgeColumn) -> dict:
 def public_columns(session: Session = Depends(get_session)) -> list[dict]:
     columns = session.scalars(
         select(KnowledgeColumn)
-        .where(KnowledgeColumn.visibility == "public")
+        .where(KnowledgeColumn.visibility == "public", KnowledgeColumn.deleted_at.is_(None))
         .order_by(KnowledgeColumn.sort_order, KnowledgeColumn.name)
     )
     return [column_public_dict(session, column) for column in columns]
@@ -165,6 +168,7 @@ def public_column(slug: str, session: Session = Depends(get_session)) -> dict:
         select(KnowledgeColumn).where(
             KnowledgeColumn.slug == slug,
             KnowledgeColumn.visibility.in_(["public", "unlisted"]),
+            KnowledgeColumn.deleted_at.is_(None),
         )
     )
     if not column:
@@ -176,13 +180,14 @@ def public_column(slug: str, session: Session = Depends(get_session)) -> dict:
             ArticleColumn.column_id == column.id,
             Article.status == "published",
             Article.visibility == "public",
+            Article.deleted_at.is_(None),
         )
         .order_by(ArticleColumn.is_primary.desc(), ArticleColumn.sort_order, Article.published_at.desc())
     )
     nodes = session.scalars(
         select(KnowledgeNode)
         .join(KnowledgeColumnNode, KnowledgeColumnNode.node_id == KnowledgeNode.id)
-        .where(KnowledgeColumnNode.column_id == column.id, KnowledgeNode.visibility == "public")
+        .where(KnowledgeColumnNode.column_id == column.id, KnowledgeNode.visibility == "public", KnowledgeNode.deleted_at.is_(None))
         .order_by(KnowledgeColumnNode.is_primary.desc(), KnowledgeColumnNode.sort_order, KnowledgeNode.title)
     )
     return {
@@ -211,7 +216,7 @@ def public_nodes(
     column: str | None = None,
     session: Session = Depends(get_session),
 ) -> dict[str, object]:
-    query = select(KnowledgeNode).where(KnowledgeNode.visibility == "public")
+    query = select(KnowledgeNode).where(KnowledgeNode.visibility == "public", KnowledgeNode.deleted_at.is_(None))
     if column:
         query = query.join(KnowledgeColumnNode, KnowledgeColumnNode.node_id == KnowledgeNode.id).join(
             KnowledgeColumn, KnowledgeColumn.id == KnowledgeColumnNode.column_id
@@ -228,7 +233,7 @@ def public_knowledge_graph(
     q: str | None = None,
     session: Session = Depends(get_session),
 ) -> dict[str, object]:
-    query = select(KnowledgeNode).where(KnowledgeNode.visibility == "public")
+    query = select(KnowledgeNode).where(KnowledgeNode.visibility == "public", KnowledgeNode.deleted_at.is_(None))
     if column:
         query = query.join(KnowledgeColumnNode, KnowledgeColumnNode.node_id == KnowledgeNode.id).join(
             KnowledgeColumn, KnowledgeColumn.id == KnowledgeColumnNode.column_id
@@ -279,6 +284,7 @@ def public_knowledge_graph(
 def public_node(slug: str, session: Session = Depends(get_session)) -> dict:
     node = session.scalar(select(KnowledgeNode).where(
         KnowledgeNode.slug == slug, KnowledgeNode.visibility.in_(["public", "unlisted"]),
+        KnowledgeNode.deleted_at.is_(None),
     ))
     if not node:
         raise HTTPException(status_code=404, detail="Knowledge node not found")

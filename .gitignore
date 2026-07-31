@@ -1,7 +1,18 @@
 dist/
 app.bundle.js
+chunks/
 node_modules/
+graphify-out/
+.pytest_cache/
+.idea/
 .DS_Store
+__pycache__/
+*.py[cod]
+*.swp
+*.swo
+*.sqlite
+*.sqlite3
+*.db.*
 backend/.venv/
 backend/.env
 backend/portfolio.db
@@ -9,4 +20,5 @@ backend/uploads/
 .env.production
 ops/nginx/runtime/tls.conf
 backups/
-.env.production
+.safe-export/
+.deploy-state/

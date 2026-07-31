@@ -1,0 +1,119 @@
+@media (max-width: 1050px) {
+  .profile-hero,
+  .view[data-view="posts"].is-active,
+  .view[data-view="knowledge"].is-active,
+  .lab-layout,
+  .about-hero,
+  .about-bottom,
+  .now-layout,
+  .compact-list,
+  .knowledge-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .node-index,
+  .relation-panel {
+    position: static;
+  }
+
+  .project-grid,
+  [data-featured-projects].project-grid,
+  .growth-dashboard,
+  .building-grid,
+  .reading-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    width: min(100% - 20px, var(--max));
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  .site-topbar {
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .tabs {
+    gap: 14px;
+  }
+
+  .tab {
+    min-height: 30px;
+  }
+
+  .topbar-tools {
+    display: none;
+  }
+
+  .view {
+    padding: 24px 18px 30px;
+  }
+
+  .hero-panel {
+    height: 240px;
+  }
+
+  .hero-content h1 {
+    font-size: 34px;
+  }
+
+  .project-grid,
+  [data-featured-projects].project-grid,
+  .building-grid,
+  .reading-grid,
+  .reading-stats,
+  .citation-quality,
+  .growth-dashboard,
+  .growth-dashboard.compact,
+  .knowledge-grid,
+  .knowledge-relations,
+  .lab-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .citation-quality dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ai-scope-selector {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-scope-selector p {
+    grid-column: auto;
+  }
+
+  .knowledge-map {
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+
+  .knowledge-map-canvas {
+    min-width: 900px;
+  }
+
+  .changelog-item {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .post-card,
+  .view[data-view="posts"] .post-card,
+  .compact-list .post-card,
+  .about-facts div {
+    grid-template-columns: 1fr;
+  }
+
+  .site-footer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 18px;
+  }
+
+  .footer-links {
+    justify-self: start;
+  }
+}

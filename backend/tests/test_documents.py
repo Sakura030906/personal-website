@@ -76,6 +76,11 @@ def test_markdown_parse_chunk_edit_and_version_restore(session, tmp_path: Path):
     assert updated["heading"] == "Hybrid Retrieval"
     assert updated["is_enabled"] is False
 
+    diff = documents.document_version_diff(initial_version.id, _="admin@example.com", session=session)
+    assert "chunks" in diff["changed_fields"]
+    assert "-Milvus vector search combines with BM25 lexical search." in diff["content_diff"]
+    assert "+Dense retrieval and BM25 are fused before reranking." in diff["content_diff"]
+
     restored = documents.restore_document_version(
         initial_version.id,
         user="admin@example.com",

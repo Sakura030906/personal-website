@@ -1,8 +1,6 @@
-# syntax=docker/dockerfile:1.7
-
 FROM python:3.12-slim
 
-ARG PIP_INDEX_URL=https://pypi.org/simple
+ARG PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -16,6 +14,7 @@ COPY requirements.txt .
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install \
         --index-url "${PIP_INDEX_URL}" \
+	--trusted-host pypi.tuna.tsinghua.edu.cn \
         --retries 10 \
         -r requirements.txt
 

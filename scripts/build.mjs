@@ -1,34 +1,66 @@
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
+import { assembleSources } from "./assemble-sources.mjs";
 
 const outputDir = new URL("../dist/", import.meta.url);
 const rootDir = new URL("../", import.meta.url);
 
-await build({
-  entryPoints: [fileURLToPath(new URL("script.js", rootDir))],
-  outfile: fileURLToPath(new URL("app.bundle.js", rootDir)),
+const { siteScript } = await assembleSources();
+
+await rm(new URL("chunks/", rootDir), { force: true, recursive: true });
+const buildResult = await build({
+  stdin: {
+    contents: siteScript,
+    loader: "js",
+    resolveDir: fileURLToPath(rootDir),
+    sourcefile: "src/site/index.js",
+  },
+  outdir: fileURLToPath(rootDir),
   bundle: true,
-  format: "iife",
+  format: "esm",
+  splitting: true,
+  entryNames: "app.bundle",
+  chunkNames: "chunks/[name]-[hash]",
   minify: true,
   target: ["es2020"],
   legalComments: "none",
+  metafile: true,
 });
 
+const javascriptOutputs = Object.keys(buildResult.metafile.outputs)
+  .filter((path) => path.endsWith(".js"))
+  .map((path) => path.replace(/^\.\//, ""));
+
+function contentHash(value) {
+  return createHash("sha256").update(value).digest("hex").slice(0, 12);
+}
+
+const sourceIndex = await readFile(new URL("index.html", rootDir), "utf8");
+const stylesheetSource = await readFile(new URL("styles.css", rootDir));
+const bundleSource = await readFile(new URL("app.bundle.js", rootDir));
+const stylesheetName = `styles.${contentHash(stylesheetSource)}.css`;
+const bundleName = `app.${contentHash(bundleSource)}.js`;
+const builtIndex = sourceIndex
+  .replace(/styles\.css(?:\?v=[^"']*)?/g, stylesheetName)
+  .replace(/app\.bundle\.js(?:\?v=[^"']*)?/g, bundleName);
+
 const entries = [
-  "index.html",
-  "styles.css",
-  "app.bundle.js",
   "assets",
   "data",
   "feed.xml",
   "sitemap.xml",
   "robots.txt",
   ".openai",
+  "chunks",
 ];
 
 await rm(outputDir, { force: true, recursive: true });
 await mkdir(outputDir, { recursive: true });
+await writeFile(new URL("index.html", outputDir), builtIndex);
+await writeFile(new URL(stylesheetName, outputDir), stylesheetSource);
+await writeFile(new URL(bundleName, outputDir), bundleSource);
 
 const siteData = JSON.parse(await readFile(new URL("data/site.json", rootDir), "utf8"));
 const siteOrigin = "https://sakura000702.me";
@@ -108,19 +140,19 @@ await mkdir(new URL("server/", outputDir), { recursive: true });
 
 const textAssets = {
   "/": {
-    body: await readFile(new URL("index.html", rootDir), "utf8"),
+    body: builtIndex,
     type: "text/html; charset=utf-8",
   },
   "/index.html": {
-    body: await readFile(new URL("index.html", rootDir), "utf8"),
+    body: builtIndex,
     type: "text/html; charset=utf-8",
   },
-  "/styles.css": {
-    body: await readFile(new URL("styles.css", rootDir), "utf8"),
+  [`/${stylesheetName}`]: {
+    body: stylesheetSource.toString("utf8"),
     type: "text/css; charset=utf-8",
   },
-  "/app.bundle.js": {
-    body: await readFile(new URL("app.bundle.js", rootDir), "utf8"),
+  [`/${bundleName}`]: {
+    body: bundleSource.toString("utf8"),
     type: "text/javascript; charset=utf-8",
   },
   "/data/site.json": {
@@ -140,6 +172,13 @@ const textAssets = {
     type: "text/plain; charset=utf-8",
   },
 };
+
+for (const outputPath of javascriptOutputs.filter((path) => path.startsWith("chunks/"))) {
+  textAssets[`/${outputPath}`] = {
+    body: await readFile(new URL(outputPath, rootDir), "utf8"),
+    type: "text/javascript; charset=utf-8",
+  };
+}
 
 const imageAsset = {
   body: (await readFile(new URL("assets/hero-workspace.png", rootDir))).toString("base64"),

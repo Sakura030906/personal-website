@@ -17,6 +17,9 @@
           <button class="is-active" type="button" data-admin-route="dashboard"><i>⌂</i><span>控制台</span></button>
 
           <p>内容管理</p>
+          <button type="button" data-admin-route="inbox"><i>＋</i><span>收件箱</span><b data-inbox-badge hidden></b></button>
+          <button type="button" data-admin-route="review"><i>◫</i><span>检索与回顾</span><b data-review-badge hidden></b></button>
+          <button type="button" data-admin-route="maintenance"><i>✓</i><span>主动维护</span><b data-maintenance-badge hidden></b></button>
           <button type="button" data-admin-route="articles"><i>□</i><span>文章</span></button>
           <button type="button" data-admin-route="article-columns"><i>▣</i><span>文章专栏</span></button>
           <button type="button" data-admin-route="projects"><i>⌘</i><span>项目</span></button>
@@ -39,6 +42,8 @@
           <button type="button" data-admin-route="publishing"><i>◉</i><span>网站发布</span></button>
 
           <p>系统</p>
+          <button type="button" data-admin-route="activity"><i>◷</i><span>最近活动</span></button>
+          <button type="button" data-admin-route="trash"><i>⌫</i><span>回收站</span></button>
           <button type="button" data-admin-route="security"><i>♢</i><span>账号安全</span></button>
           <button type="button" data-admin-route="site-settings"><i>⚙</i><span>网站设置</span></button>
           <button type="button" data-admin-route="runtime"><i>⌁</i><span>运行状态</span></button>
@@ -77,6 +82,7 @@
                 <div class="dashboard-card-head"><h2>快速新建</h2></div>
                 <div class="dashboard-quick-actions">
                   <button type="button" data-dashboard-action="new-article"><i>□</i><span><strong>新建文章</strong><small>撰写 Markdown 文章</small></span><b>›</b></button>
+                  <button type="button" data-dashboard-action="quick-capture"><i>＋</i><span><strong>快速记录</strong><small>先放入 Inbox，稍后整理</small></span><b>›</b></button>
                   <button type="button" data-dashboard-action="new-node"><i>⌘</i><span><strong>新建知识节点</strong><small>创建独立知识点</small></span><b>›</b></button>
                   <button type="button" data-admin-route="documents"><i>⇧</i><span><strong>上传文档</strong><small>解析并拆分文档到知识库</small></span><b>›</b></button>
                   <button type="button" data-dashboard-action="new-relation"><i>⌁</i><span><strong>创建知识关系</strong><small>建立节点之间的关联</small></span><b>›</b></button>
@@ -99,11 +105,222 @@
             </div>
           </section>
 
+          <section class="panel workspace-inbox-panel">
+            <div class="workspace-page-head">
+              <div><span>CAPTURE</span><h1>收件箱</h1><p>先记录，再整理。所有新内容默认私有。</p></div>
+              <button type="button" data-inbox-compose>＋ 新建记录</button>
+            </div>
+            <div class="workspace-split">
+              <section class="capture-card" data-inbox-editor>
+                <div class="capture-card-head"><h2 data-inbox-form-title>快速记录</h2><span>PRIVATE</span></div>
+                <label>标题<input data-inbox-title placeholder="一句话说明这是什么" /></label>
+                <label>内容<textarea data-inbox-body rows="8" placeholder="想法、摘录、待整理知识……"></textarea></label>
+                <div class="grid two">
+                  <label>类型<select data-inbox-type><option value="note">笔记</option><option value="idea">想法</option><option value="link">链接</option><option value="document">文档线索</option></select></label>
+                  <label>来源链接<input data-inbox-url type="url" placeholder="https://" /></label>
+                </div>
+                <div class="actions left">
+                  <button type="button" data-inbox-save>保存到收件箱</button>
+                  <button type="button" class="secondary" data-inbox-reset>清空</button>
+                </div>
+              </section>
+              <section class="workspace-list-card">
+                <header><div><h2>待整理</h2><p>选择一条内容继续整理</p></div><button type="button" data-inbox-refresh>刷新</button></header>
+                <div class="workspace-item-list" data-inbox-list><p class="empty">登录 CMS 后加载收件箱。</p></div>
+              </section>
+            </div>
+            <section class="inbox-organizer" data-inbox-organizer hidden>
+              <div class="panel-title compact">
+                <div><span>ORGANIZE</span><h2>整理为正式内容</h2><p>一次确定内容类型、专栏、节点、标签和可见性。</p></div>
+                <button type="button" class="secondary" data-inbox-organizer-close>关闭</button>
+              </div>
+              <div class="grid four">
+                <label>目标类型<select data-inbox-target-type><option value="knowledge">知识节点</option><option value="post">文章</option><option value="project">项目</option><option value="reading">阅读</option></select></label>
+                <label>标题<input data-inbox-target-title /></label>
+                <label>URL 标识<input data-inbox-target-slug /></label>
+                <label>可见性<select data-inbox-target-visibility><option value="private">private</option><option value="unlisted">unlisted</option><option value="public">public</option></select></label>
+              </div>
+              <label>摘要<textarea data-inbox-target-summary rows="3"></textarea></label>
+              <div class="grid two">
+                <label>标签（逗号分隔）<input data-inbox-target-tags placeholder="RAG, Retrieval" /></label>
+                <label data-inbox-node-type-wrap>节点类型<select data-inbox-target-node-type><option value="concept">concept</option><option value="article">article</option><option value="question">question</option><option value="tool">tool</option><option value="project">project</option><option value="reference">reference</option></select></label>
+              </div>
+              <label class="relation-search">搜索专栏或节点<input data-inbox-target-search placeholder="输入名称筛选" /></label>
+              <div class="inbox-organizer-links">
+                <section><strong>所属专栏</strong><div class="article-column-options" data-inbox-target-columns></div><label>主专栏<select data-inbox-target-primary-column><option value="">未指定</option></select></label></section>
+                <section><strong>关联知识节点</strong><div class="article-column-options" data-inbox-target-nodes></div></section>
+              </div>
+              <div class="actions left"><button type="button" data-inbox-organize-submit>完成整理并创建草稿</button><span data-inbox-organize-status></span></div>
+            </section>
+          </section>
+
+          <section class="panel review-workspace-panel">
+            <div class="workspace-page-head">
+              <div><span>RETRIEVE & REVIEW</span><h1>检索与回顾</h1><p>找回已有知识，并把重要内容按计划重新阅读。</p></div>
+              <button type="button" data-review-refresh>刷新工作区</button>
+            </div>
+            <section class="review-search-shell">
+              <div class="review-search-bar">
+                <span>⌕</span>
+                <input type="search" data-review-search placeholder="搜索文章、知识节点、专栏、文档或项目" />
+                <select data-review-search-type>
+                  <option value="">全部内容</option>
+                  <option value="article">文章</option>
+                  <option value="knowledge_node">知识节点</option>
+                  <option value="knowledge_column">知识专栏</option>
+                  <option value="document">文档</option>
+                  <option value="project">项目</option>
+                </select>
+                <button type="button" data-review-search-submit>搜索</button>
+              </div>
+              <div class="review-search-results" data-review-search-results>
+                <div class="workspace-empty-state"><i>⌕</i><strong>搜索整个第二大脑</strong><span>后台检索包含私有内容、草稿和未发布知识。</span></div>
+              </div>
+            </section>
+            <section class="review-daily-summary" data-review-daily-summary></section>
+            <div class="review-stats" data-review-stats></div>
+            <div class="review-layout">
+              <section class="review-queue-panel">
+                <header><div><h2>今日回顾</h2><p>到期内容和长期未回顾的知识</p></div><label class="review-select-all"><input type="checkbox" data-review-select-all />全选</label><span data-review-queue-count>0 项</span></header>
+                <div class="review-batch-toolbar">
+                  <span data-review-selected-count>已选 0 项</span>
+                  <label>间隔 <input type="number" min="1" max="365" value="7" data-review-batch-days /> 天</label>
+                  <button type="button" data-review-batch-action="queue">加入今日</button>
+                  <button type="button" data-review-batch-action="reviewed">批量完成</button>
+                </div>
+                <div class="review-list" data-review-queue><p class="empty">登录 CMS 后加载回顾队列。</p></div>
+              </section>
+              <aside class="review-side-column">
+                <section>
+                  <header><div><h2>最近修改</h2><p>继续刚刚进行的工作</p></div></header>
+                  <div class="review-compact-list" data-review-recent></div>
+                </section>
+                <section>
+                  <header><div><h2>关联推荐</h2><p>由知识关系与连接度生成</p></div></header>
+                  <div class="review-compact-list" data-review-recommendations></div>
+                </section>
+                <section>
+                  <header><div><h2>接下来</h2><p>已经安排的未来回顾</p></div></header>
+                  <div class="review-compact-list" data-review-upcoming></div>
+                </section>
+              </aside>
+            </div>
+          </section>
+
+          <section class="panel maintenance-workspace-panel">
+            <div class="workspace-page-head">
+              <div><span>MAINTAIN & GROW</span><h1>主动维护</h1><p>让第二大脑主动暴露积压、知识债务与本周增长，而不是等到想起时才整理。</p></div>
+              <div class="maintenance-head-actions">
+                <label>统计周期<select data-maintenance-days><option value="7">最近 7 天</option><option value="14">最近 14 天</option><option value="30">最近 30 天</option></select></label>
+                <button type="button" data-maintenance-refresh>刷新</button>
+              </div>
+            </div>
+
+            <section class="maintenance-report-hero">
+              <div><span>WEEKLY REVIEW</span><h2>本期知识成长报告</h2><p data-maintenance-period>等待加载真实活动数据</p></div>
+              <button type="button" class="secondary" data-maintenance-copy>复制周报</button>
+            </section>
+            <div class="maintenance-stats" data-maintenance-stats></div>
+
+            <section class="maintenance-trend-card">
+              <header><div><h2>成长趋势</h2><p>记录、创建、修改与回顾均来自真实活动日志</p></div><div class="maintenance-legend"><span data-kind="captured">记录</span><span data-kind="changed">修改</span><span data-kind="reviewed">回顾</span></div></header>
+              <div class="maintenance-trend" data-maintenance-trend></div>
+            </section>
+
+            <section class="maintenance-workflow-card">
+              <header>
+                <div><span>AI KNOWLEDGE WORKFLOW</span><h2>AI 整理确认队列</h2><p>批量分析收件箱，人工确认每一条建议，并用真实选择评估建议质量</p></div>
+                <div class="maintenance-workflow-actions">
+                  <button type="button" class="secondary" data-ai-workflow-refresh>刷新</button>
+                  <button type="button" class="secondary" data-ai-workflow-local>本地批量分析</button>
+                  <button type="button" data-ai-workflow-auto>模型分析前 5 条</button>
+                </div>
+              </header>
+              <div class="maintenance-workflow-stats" data-ai-workflow-stats></div>
+              <div class="maintenance-workflow-queue" data-ai-workflow-queue>
+                <p class="empty">登录 CMS 后加载 AI 整理队列。</p>
+              </div>
+            </section>
+
+            <div class="maintenance-layout">
+              <section class="maintenance-task-card">
+                <header><div><h2>知识维护清单</h2><p>按风险排序的下一步，不需要手动巡检每个页面</p></div><span data-maintenance-task-count>0 项</span></header>
+                <div class="maintenance-filters">
+                  <select data-maintenance-priority><option value="">全部优先级</option><option value="high">高优先级</option><option value="medium">中优先级</option><option value="low">低优先级</option></select>
+                  <select data-maintenance-category><option value="">全部类型</option><option value="organize">待整理</option><option value="content">内容质量</option><option value="relationship">知识关系</option><option value="review">回顾</option><option value="system">系统问题</option></select>
+                </div>
+                <div class="maintenance-task-list" data-maintenance-tasks><p class="empty">登录 CMS 后生成维护清单。</p></div>
+              </section>
+
+              <aside class="maintenance-side">
+                <section class="maintenance-ai-card">
+                  <header><div><span>AI ASSIST</span><h2>AI 辅助整理</h2><p>分析收件箱内容，生成可确认的整理草案</p></div></header>
+                  <label>选择待整理记录<select data-maintenance-ai-inbox><option value="">暂无待整理内容</option></select></label>
+                  <button type="button" data-maintenance-ai-run>生成整理建议</button>
+                  <div class="maintenance-ai-result" data-maintenance-ai-result>
+                    <div class="workspace-empty-state"><i>AI</i><strong>先选择一条记录</strong><span>建议不会自动写入或发布。</span></div>
+                  </div>
+                </section>
+                <section class="maintenance-opportunity-card">
+                  <header><div><span>KNOWLEDGE LINKS</span><h2>知识连接建议</h2><p>主动发现疑似重复节点与尚未建立的知识关系</p></div></header>
+                  <div class="maintenance-opportunities" data-maintenance-opportunities>
+                    <div class="workspace-empty-state"><i>↗</i><strong>等待分析知识网络</strong><span>任何关系都必须由你确认后才会写入。</span></div>
+                  </div>
+                </section>
+                <section class="maintenance-focus-card">
+                  <header><div><h2>本期重点</h2><p>根据真实操作频率生成</p></div></header>
+                  <div data-maintenance-focus></div>
+                </section>
+              </aside>
+            </div>
+          </section>
+
+          <section class="panel workspace-activity-panel">
+            <div class="workspace-page-head">
+              <div><span>HISTORY</span><h1>最近活动</h1><p>查看内容从记录、编辑到发布与恢复的变化。</p></div>
+              <button type="button" data-activity-refresh>刷新</button>
+            </div>
+            <div class="activity-timeline" data-activity-list><p class="empty">登录 CMS 后加载活动记录。</p></div>
+          </section>
+
+          <section class="panel workspace-trash-panel">
+            <div class="workspace-page-head">
+              <div><span>RECOVERY</span><h1>回收站</h1><p>删除内容会保留在这里，可以安全恢复。</p></div>
+              <button type="button" data-trash-refresh>刷新</button>
+            </div>
+            <div class="trash-notice"><strong>软删除已启用</strong><span>回收站不会出现在公开网站、搜索或 AI 检索中。</span></div>
+            <div class="workspace-item-list trash-list" data-trash-list><p class="empty">回收站为空。</p></div>
+          </section>
+
+      <section class="panel account-panel">
+        <div class="panel-title">
+          <div><h2>账号与权限</h2><p>账号、角色和登录状态全部保存在服务器数据库。</p></div>
+          <button type="button" data-account-refresh>刷新账号</button>
+        </div>
+        <div class="current-account-grid" data-current-account><p class="empty">请先登录服务器后台。</p></div>
+        <section class="account-manager" data-account-manager hidden>
+          <div class="panel-title compact"><h3>创建账号</h3><span>管理员可创建编辑者或只读账号</span></div>
+          <div class="grid three">
+            <label>邮箱<input data-account-email type="email" placeholder="editor@example.com" /></label>
+            <label>初始密码<input data-account-password type="password" placeholder="至少 10 位" /></label>
+            <label>权限<select data-account-role-new><option value="editor">编辑者</option><option value="viewer">只读用户</option><option value="admin">管理员</option></select></label>
+          </div>
+          <div class="actions left"><button type="button" data-account-create>创建服务器账号</button></div>
+        </section>
+        <div class="account-user-list" data-account-users><p class="empty">登录后加载账号。</p></div>
+        <section class="password-change-card">
+          <div><h3>修改我的密码</h3><p>修改后所有旧登录令牌立即失效。</p></div>
+          <label>当前密码<input data-current-password type="password" /></label>
+          <label>新密码<input data-new-password type="password" placeholder="至少 10 位" /></label>
+          <button type="button" data-own-password-change>修改密码</button>
+        </section>
+      </section>
+
       <section class="panel cms-panel">
         <div class="panel-title">
           <div>
             <h2>FastAPI CMS</h2>
-            <p>把当前内容同步到数据库，用于搜索、AI Lab 和后续真正后台。</p>
+            <p>连接服务器 API。正式内容、版本和操作记录都写入 PostgreSQL。</p>
           </div>
           <span data-cms-status>未连接</span>
         </div>
@@ -114,8 +331,8 @@
         </div>
         <div class="actions left">
           <button type="button" data-cms-login>登录 CMS</button>
-          <button type="button" data-cms-push>同步到 CMS</button>
-          <button type="button" data-cms-pull>从 CMS 读取</button>
+          <button type="button" data-cms-push>保存站点设置到服务器</button>
+          <button type="button" data-cms-pull>刷新服务器数据</button>
           <a data-api-docs target="_blank" rel="noreferrer">打开 API 文档</a>
         </div>
       </section>
@@ -168,6 +385,37 @@
         </div>
       </section>
 
+      <section class="panel evaluation-workbench-panel">
+        <div class="workspace-page-head">
+          <div><span>AI QUALITY</span><h1>评测工作台</h1><p>维护固定样本集，保存每次运行，并及时发现 RAG 或 Agent 回退。</p></div>
+          <div class="actions left"><button type="button" data-eval-new>新建评测集</button><button type="button" data-eval-refresh>刷新</button></div>
+        </div>
+        <div class="evaluation-stats" data-eval-stats></div>
+        <div class="evaluation-workspace">
+          <aside class="evaluation-suite-list" data-eval-suite-list><p class="empty">登录后加载固定评测集。</p></aside>
+          <article class="evaluation-editor">
+            <div class="grid two">
+              <label>名称<input data-eval-name /></label>
+              <label>URL 标识<input data-eval-slug /></label>
+              <label>类型<select data-eval-type><option value="rag">RAG</option><option value="agent">Agent</option></select></label>
+              <label class="check-field"><input type="checkbox" data-eval-active checked />启用评测集</label>
+            </div>
+            <label>说明<textarea data-eval-description rows="2"></textarea></label>
+            <label>固定样本 JSON<textarea data-eval-cases rows="15" spellcheck="false"></textarea></label>
+            <div class="evaluation-editor-actions">
+              <span data-eval-version>新评测集</span>
+              <div class="actions left">
+                <button type="button" data-eval-save>保存样本集</button>
+                <button type="button" data-eval-run-local>运行本地评测</button>
+                <button type="button" data-eval-run-auto>运行模型评测</button>
+              </div>
+            </div>
+          </article>
+        </div>
+        <div class="evaluation-history" data-eval-history><p class="empty">运行评测后显示历史与回归结论。</p></div>
+        <article class="evaluation-run-detail" data-eval-run-detail hidden></article>
+      </section>
+
       <section class="panel agent-runs-panel">
         <div class="panel-title">
           <div>
@@ -197,11 +445,28 @@
       <section class="panel ai-feedback-panel">
         <div class="panel-title">
           <div>
-            <h2>AI Feedback</h2>
-            <p>把 AI Lab 的有用/无用反馈转成内容改进线索，补文章、知识节点或阅读记录。</p>
+            <h2>主动工作流与长期记忆</h2>
+            <p>每天汇总真实维护信号；长期记忆必须人工确认后才会生效。</p>
           </div>
-          <button type="button" data-ai-feedback-refresh>刷新反馈</button>
+          <div class="actions left"><button type="button" data-proactive-refresh>生成今日简报</button><button type="button" class="secondary" data-ai-feedback-refresh>刷新反馈</button></div>
         </div>
+        <div class="proactive-stats" data-proactive-stats></div>
+        <div class="proactive-layout">
+          <section class="proactive-task-card">
+            <header><div><h3>今日焦点</h3><p>系统从收件箱、回顾、搜索和问答质量中生成</p></div></header>
+            <div class="proactive-task-list" data-proactive-tasks><p class="empty">登录 CMS 后生成今日任务。</p></div>
+          </section>
+          <section class="memory-workbench">
+            <header><div><h3>长期记忆</h3><p>候选不会自动进入 AI；确认时可决定是否公开。</p></div></header>
+            <form data-memory-form>
+              <input data-memory-title placeholder="记忆标题" required />
+              <textarea data-memory-content rows="3" placeholder="需要长期保留的事实、偏好、目标或经验" required></textarea>
+              <div><select data-memory-type><option value="context">上下文</option><option value="preference">偏好</option><option value="fact">事实</option><option value="goal">目标</option><option value="lesson">经验</option></select><select data-memory-visibility><option value="private">私有</option><option value="public">可进入公开 AI</option></select><button type="submit">加入候选</button></div>
+            </form>
+            <div class="memory-list" data-memory-list><p class="empty">暂无长期记忆。</p></div>
+          </section>
+        </div>
+        <div class="panel-title compact"><div><h3>AI 回答改进线索</h3><p>把有用/无用反馈转成文章或知识节点。</p></div></div>
         <div class="ai-feedback-stats" data-ai-feedback-stats></div>
         <div class="ai-feedback-list" data-ai-feedback-list>
           <p class="empty">登录 CMS 后加载 AI 反馈。</p>
@@ -366,6 +631,23 @@
         </div>
       </section>
 
+      <section class="panel organization-panel">
+        <div class="workspace-page-head">
+          <div><span>KNOWLEDGE NETWORK</span><h1>关系工作台</h1><p>统一查看专栏、文章、知识节点和文档之间的连接。</p></div>
+          <button type="button" data-organization-refresh>刷新关系</button>
+        </div>
+        <div class="organization-stats" data-organization-stats></div>
+        <div class="organization-toolbar">
+          <label>搜索<input data-organization-search placeholder="搜索标题或 URL 标识" /></label>
+          <label>类型<select data-organization-type><option value="">全部类型</option><option value="knowledge_column">知识专栏</option><option value="article">文章</option><option value="knowledge_node">知识节点</option><option value="document">文档</option><option value="project">项目</option></select></label>
+          <label class="check-field"><input type="checkbox" data-organization-orphans />只看孤立内容</label>
+        </div>
+        <div class="organization-workspace">
+          <section class="organization-entity-list" data-organization-list><p class="empty">登录 CMS 后加载关系网络。</p></section>
+          <aside class="organization-detail" data-organization-detail><div class="workspace-empty-state"><i>⌁</i><strong>选择一个内容</strong><span>这里会显示它的正向关系与反向链接。</span></div></aside>
+        </div>
+      </section>
+
       <section class="panel knowledge-node-panel">
         <div class="panel-title">
           <div>
@@ -380,6 +662,10 @@
         <div class="node-manager">
           <div class="node-list" data-node-list><p class="empty">登录 CMS 后加载知识节点。</p></div>
           <div class="node-form">
+            <div class="editor-command-bar">
+              <div><span>KNOWLEDGE NODE</span><strong data-node-shell-title>新知识节点</strong></div>
+              <div class="editor-command-state"><i data-node-shell-visibility>PUBLIC</i><b data-node-save-status data-state="idle">尚未保存</b></div>
+            </div>
             <div class="grid two">
               <label>标题<input data-node-title placeholder="例如：Hybrid Search" /></label>
               <label>URL 标识<input data-node-slug placeholder="hybrid-search" /></label>
@@ -398,6 +684,17 @@
             </div>
             <label>摘要<textarea data-node-summary rows="3"></textarea></label>
             <label>标签（逗号分隔）<input data-node-tags placeholder="RAG, Retrieval" /></label>
+            <section class="ai-enhancement-panel" data-node-enhancement-panel>
+              <div class="panel-title compact">
+                <div><h3>AI 内容增强</h3><p>只生成摘要、标签与关联建议，逐字段确认后才写入。</p></div>
+                <div class="actions left">
+                  <button type="button" data-node-enhancement-local>本地分析</button>
+                  <button type="button" data-node-enhancement-auto>模型增强</button>
+                </div>
+              </div>
+              <div class="ai-enhancement-result" data-node-enhancement-result><p class="empty">先保存节点，再生成增强建议。</p></div>
+            </section>
+            <label class="relation-search">搜索关联内容<input data-node-link-search placeholder="输入专栏或文章名称筛选" /></label>
             <div class="node-link-editor">
               <strong>所属专栏</strong>
               <div class="article-column-options" data-node-columns></div>
@@ -408,12 +705,17 @@
               <div class="article-column-options" data-node-articles></div>
             </div>
             <label>Markdown 正文<textarea data-node-content rows="12" spellcheck="false"></textarea></label>
+            <section class="editor-readiness">
+              <div><span>发布准备</span><strong data-node-readiness-summary>0 / 0</strong></div>
+              <ul data-node-readiness></ul>
+            </section>
             <div class="actions left">
               <button type="button" data-node-save>保存节点</button>
               <button type="button" data-node-delete class="danger">删除节点</button>
               <span class="form-note" data-node-version-note></span>
             </div>
             <div class="node-version-list" data-node-version-list><p class="empty">保存后会记录节点版本。</p></div>
+            <pre class="version-diff" data-node-version-diff hidden></pre>
           </div>
         </div>
 
@@ -478,6 +780,10 @@
           </aside>
 
           <section class="cms-editor" data-entry-editor>
+            <div class="editor-command-bar">
+              <div><span data-entry-shell-kind>CONTENT</span><strong data-entry-shell-title>新内容</strong></div>
+              <div class="editor-command-state"><i data-entry-shell-visibility>PUBLIC</i><b data-autosave-status data-state="idle">等待编辑</b></div>
+            </div>
             <div class="grid four">
               <label>标题<input data-entry-title /></label>
               <label>URL 标识<input data-entry-slug /></label>
@@ -554,6 +860,17 @@
               <div class="relation-suggestions" data-relation-suggestions></div>
             </section>
 
+            <section class="ai-enhancement-panel" data-entry-enhancement-panel>
+              <div class="panel-title compact">
+                <div><h3>AI 内容增强</h3><p>对摘要、标签、SEO 和知识关联逐字段确认，不改写正文，不自动发布。</p></div>
+                <div class="actions left">
+                  <button type="button" data-entry-enhancement-local>本地分析</button>
+                  <button type="button" data-entry-enhancement-auto>模型增强</button>
+                </div>
+              </div>
+              <div class="ai-enhancement-result" data-entry-enhancement-result><p class="empty">保存文章后，可以生成字段级建议。</p></div>
+            </section>
+
             <section class="auto-relation-panel">
               <div class="panel-title compact">
                 <div>
@@ -573,7 +890,6 @@
             <div class="markdown-toolbar">
               <div class="editor-save-state">
                 <strong>Markdown 正文</strong>
-                <span data-autosave-status data-state="idle">等待编辑</span>
               </div>
               <div class="actions left">
                 <input type="file" data-asset-file accept="image/*,.pdf,.txt,.md" />
@@ -594,12 +910,16 @@
               <textarea data-entry-metadata rows="8"></textarea>
             </details>
 
+            <section class="editor-readiness">
+              <div><span>发布准备</span><strong data-entry-readiness-summary>0 / 0</strong></div>
+              <ul data-entry-readiness></ul>
+            </section>
+
             <div class="actions left">
               <button type="button" data-entry-save>保存草稿/修改</button>
               <button type="button" data-entry-publish>发布</button>
               <button type="button" data-entry-archive>归档</button>
-              <button type="button" data-entry-delete class="danger">永久删除</button>
-              <button type="button" data-entry-sync-local>写入本地站点 JSON</button>
+              <button type="button" data-entry-delete class="danger">移至回收站</button>
             </div>
 
             <section class="version-panel">

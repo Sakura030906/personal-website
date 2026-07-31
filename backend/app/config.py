@@ -5,8 +5,13 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str = "sqlite:///./portfolio.db"
+    environment: str = "development"
     jwt_secret: str = "change-me"
+    auth_cookie_secure: bool = False
+    metrics_token: str = ""
     upload_dir: str = "./uploads"
+    asset_max_bytes: int = 10485760
+    image_max_pixels: int = 40000000
     storage_backend: str = "local"
     oss_region: str = ""
     oss_endpoint: str = ""
@@ -67,5 +72,31 @@ class Settings(BaseSettings):
     agent_planner_timeout_seconds: int = 20
     agent_planner_observation_chars: int = 12000
     agent_eval_path: str = "./agent_eval.json"
+    maintenance_state_file: str = "./maintenance-state/status.json"
+    backup_state_file: str = "./backup-state/.last-success"
+
+    @property
+    def is_production(self) -> bool:
+        return self.environment.strip().lower() == "production"
+
+    def validate_runtime_security(self) -> None:
+        if not self.is_production:
+            return
+        errors: list[str] = []
+        if self.jwt_secret == "change-me" or len(self.jwt_secret) < 32:
+            errors.append("JWT_SECRET must be a unique value with at least 32 characters")
+        if not self.metrics_token or len(self.metrics_token) < 24:
+            errors.append("METRICS_TOKEN must contain at least 24 characters")
+        if not self.auth_cookie_secure:
+            errors.append("AUTH_COOKIE_SECURE must be true in production")
+        if "*" in {item.strip() for item in self.cors_origins.split(",")}:
+            errors.append("CORS_ORIGINS cannot contain * in production")
+        if self.admin_password and (
+            len(self.admin_password) < 12
+            or self.admin_password in {"change-me", "replace-with-a-strong-password"}
+        ):
+            errors.append("ADMIN_PASSWORD is too weak for production bootstrap")
+        if errors:
+            raise RuntimeError("Unsafe production configuration: " + "; ".join(errors))
 
 settings = Settings()

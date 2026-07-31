@@ -1,6 +1,7 @@
+import difflib
 import json
+from datetime import datetime, timezone
 from pathlib import Path
-import shutil
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -8,17 +9,19 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from ..article_service import slugify
+from ..activity import record_activity
 from ..config import settings
 from ..database import get_session
 from ..document_service import (
-    SUPPORTED_DOCUMENT_EXTENSIONS, chunk_dict, document_dict, parse_and_rechunk,
+    SUPPORTED_DOCUMENT_EXTENSIONS, chunk_dict, document_dict, document_snapshot, parse_and_rechunk,
     replace_document_nodes, restore_chunks, save_document_version, update_chunk_embedding,
     sync_document_vectors,
 )
 from ..models import ContentVersion, Document, DocumentChunk, DocumentNode, KnowledgeColumn
 from ..schemas import DocumentChunkUpdate, DocumentRechunk, DocumentUpdate
 from ..security import require_admin
-from ..storage import delete_published_file, publish_file
+from ..storage import publish_file
+from ..upload_security import read_limited, validate_document
 from ..vector_store import delete_document_vectors
 
 
@@ -44,12 +47,12 @@ def unique_slug(session: Session, value: str) -> str:
 
 @router.get("/documents")
 def list_documents(_: str = Depends(require_admin), session: Session = Depends(get_session)) -> list[dict]:
-    rows = session.scalars(select(Document).order_by(Document.updated_at.desc(), Document.id.desc()))
+    rows = session.scalars(select(Document).where(Document.deleted_at.is_(None)).order_by(Document.updated_at.desc(), Document.id.desc()))
     return [document_dict(session, document) for document in rows]
 
 
 @router.post("/documents")
-def upload_document(
+async def upload_document(
     file: UploadFile = File(...),
     title: str = Form(""),
     column_id: int | None = Form(None),
@@ -58,7 +61,8 @@ def upload_document(
     session: Session = Depends(get_session),
 ) -> dict:
     original_name = Path(file.filename or "document.txt").name
-    suffix = Path(original_name).suffix.lower()
+    data = await read_limited(file, settings.document_max_bytes)
+    suffix, content_type = validate_document(data, original_name, file.content_type)
     if suffix not in SUPPORTED_DOCUMENT_EXTENSIONS:
         raise HTTPException(status_code=415, detail="仅支持 PDF、DOCX、Markdown 和 TXT 文件")
     if visibility not in {"public", "private", "unlisted"}:
@@ -70,21 +74,14 @@ def upload_document(
     document_dir.mkdir(parents=True, exist_ok=True)
     stored_name = f"{uuid4().hex}{suffix}"
     target = document_dir / stored_name
-    with target.open("wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    size = target.stat().st_size
-    if size == 0:
-        target.unlink(missing_ok=True)
-        raise HTTPException(status_code=422, detail="文档内容为空")
-    if size > settings.document_max_bytes:
-        target.unlink(missing_ok=True)
-        raise HTTPException(status_code=413, detail="文档超过 25 MB 限制")
+    target.write_bytes(data)
+    size = len(data)
 
     resolved_title = title.strip() or Path(original_name).stem
     document = Document(
         title=resolved_title, slug=unique_slug(session, resolved_title), summary="",
         original_filename=original_name, stored_filename=stored_name,
-        content_type=file.content_type or "application/octet-stream", size_bytes=size,
+        content_type=content_type, size_bytes=size,
         file_url=f"/uploads/documents/{stored_name}", status="processing", visibility=visibility,
         column_id=column_id, metadata_json=json.dumps({"source": "cms_upload"}),
         chunk_size=settings.document_chunk_size, chunk_overlap=settings.document_chunk_overlap,
@@ -98,6 +95,8 @@ def upload_document(
         document.parse_error = str(error)[:2000]
     document.file_url = publish_file(target, f"documents/{stored_name}", document.content_type)
     save_document_version(session, document, user, "uploaded")
+    record_activity(session, action="created", entity_type="document", entity_id=document.id,
+                    entity_title=document.title, actor_email=user)
     session.commit()
     session.refresh(document)
     return document_dict(session, document, include_chunks=True)
@@ -134,6 +133,8 @@ def update_document(
     document.column_id = payload.column_id
     document.metadata_json = json.dumps(payload.metadata, ensure_ascii=False)
     document.revision += 1
+    record_activity(session, action="updated", entity_type="document", entity_id=document.id,
+                    entity_title=document.title, actor_email=user)
     replace_document_nodes(session, document.id, payload.node_ids)
     session.flush()
     sync_document_vectors(session, document)
@@ -219,6 +220,31 @@ def document_versions(document_id: int, _: str = Depends(require_admin), session
     return [{"id": row.id, "reason": row.reason, "created_by_email": row.created_by_email, "created_at": row.created_at} for row in rows]
 
 
+@router.get("/documents/versions/{version_id}/diff")
+def document_version_diff(
+    version_id: int, _: str = Depends(require_admin), session: Session = Depends(get_session),
+) -> dict:
+    version = session.get(ContentVersion, version_id)
+    if not version or version.entity_type != "document":
+        raise HTTPException(status_code=404, detail="Document version not found")
+    document = get_document_or_404(session, version.entity_id)
+    old = json.loads(version.snapshot_json)
+    current = document_snapshot(session, document)
+    fields = [
+        "title", "slug", "summary", "status", "visibility", "allow_ai_search",
+        "column_id", "node_ids", "metadata", "chunk_size", "chunk_overlap", "chunks",
+    ]
+    changed = [field for field in fields if old.get(field) != current.get(field)]
+    old_content = "\n\n".join(str(chunk.get("content") or "") for chunk in old.get("chunks") or [])
+    current_content = "\n\n".join(str(chunk.get("content") or "") for chunk in current.get("chunks") or [])
+    diff = difflib.unified_diff(
+        old_content.splitlines(), current_content.splitlines(),
+        fromfile=f"version-{version.id}", tofile="current", lineterm="",
+    )
+    return {"version_id": version.id, "reason": version.reason,
+            "changed_fields": changed, "content_diff": "\n".join(diff)}
+
+
 @router.post("/documents/versions/{version_id}/restore")
 def restore_document_version(
     version_id: int, user: str = Depends(require_admin), session: Session = Depends(get_session),
@@ -247,13 +273,10 @@ def delete_document(
     document_id: int, user: str = Depends(require_admin), session: Session = Depends(get_session),
 ) -> dict:
     document = get_document_or_404(session, document_id)
-    save_document_version(session, document, user, "deleted")
-    file_path = Path(settings.upload_dir) / "documents" / document.stored_filename
+    save_document_version(session, document, user, "trashed")
     delete_document_vectors(document.id)
-    delete_published_file(f"documents/{document.stored_filename}")
-    session.execute(delete(DocumentChunk).where(DocumentChunk.document_id == document.id))
-    session.execute(delete(DocumentNode).where(DocumentNode.document_id == document.id))
-    session.delete(document)
+    document.deleted_at = datetime.now(timezone.utc)
+    document.status = "disabled"
+    record_activity(session, action="trashed", entity_type="document", entity_id=document.id, entity_title=document.title, actor_email=user)
     session.commit()
-    file_path.unlink(missing_ok=True)
-    return {"status": "deleted"}
+    return {"status": "trashed"}

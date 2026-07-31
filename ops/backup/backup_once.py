@@ -48,6 +48,9 @@ def run() -> Path:
 
     remove_expired_backups(backup_dir)
     verify(archive)
+    if os.getenv("BACKUP_RESTORE_DRILL_ENABLED", "false").lower() in {"1", "true", "yes"}:
+        from restore_drill import drill
+        drill(archive)
     oss_key = upload_archive_to_oss(archive)
     (backup_dir / ".last-success").write_text(datetime.now(timezone.utc).isoformat(), encoding="utf-8")
     print(json.dumps({"archive": str(archive), "size_bytes": archive.stat().st_size, "oss_key": oss_key}))

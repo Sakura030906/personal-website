@@ -1,16 +1,11 @@
-import cytoscape from "./vendor/cytoscape.esm.min.mjs";
-
-window.cytoscape = cytoscape;
-
+/* GENERATED SITE SCRIPT. Edit files under src/ and run npm run build. */
 const contentUrl = "data/site.json";
 const isLocalPreview = ["127.0.0.1", "localhost", ""].includes(window.location.hostname);
 const portfolioApiUrl = window.PORTFOLIO_API || (isLocalPreview ? "http://127.0.0.1:8000" : `${window.location.origin}/api`);
 const aiApiUrl = window.PORTFOLIO_AI_API || `${portfolioApiUrl}/ai/ask`;
 const agentApiUrl = window.PORTFOLIO_AGENT_API || `${portfolioApiUrl}/agent`;
 const searchAnalyticsUrl = window.PORTFOLIO_SEARCH_ANALYTICS_API || `${portfolioApiUrl}/search/events`;
-const aiSessionId = localStorage.getItem("portfolio.ai.session") || crypto.randomUUID();
-localStorage.setItem("portfolio.ai.session", aiSessionId);
-const aiHistoryKey = "portfolio.ai.history";
+const aiSessionId = crypto.randomUUID();
 let aiRenderedHistory = [];
 let appContent = null;
 let knowledgeGraphInstance = null;
@@ -128,10 +123,26 @@ function setText(selector, value) {
   });
 }
 
+function safeContentUrl(value, kind = "link") {
+  const raw = String(value || "").trim();
+  if (!raw) return kind === "image" ? "" : "#";
+  if (/^(#|\/|\.\/|\.\.\/)/.test(raw)) return raw;
+  try {
+    const parsed = new URL(raw, window.location.origin);
+    const allowed = kind === "image" ? ["http:", "https:"] : ["http:", "https:", "mailto:"];
+    return allowed.includes(parsed.protocol) ? raw : (kind === "image" ? "" : "#");
+  } catch {
+    return kind === "image" ? "" : "#";
+  }
+}
+
 function inlineMarkdown(value) {
   return escapeHtml(value)
-    .replace(/\!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" loading="lazy" />')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>')
+    .replace(/\!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, url) => {
+      const safe = safeContentUrl(url, "image");
+      return safe ? `<img src="${escapeHtml(safe)}" alt="${alt}" loading="lazy" />` : alt;
+    })
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => `<a href="${escapeHtml(safeContentUrl(url))}" target="_blank" rel="noreferrer">${label}</a>`)
     .replace(/\[\^([^\]]+)\]/g, (_, id) => `<sup><a href="#footnote-${escapeHtml(slugify(id))}" class="footnote-ref">[${escapeHtml(id)}]</a></sup>`)
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/`(.+?)`/g, "<code>$1</code>")
@@ -393,7 +404,6 @@ function renderSiteModules(content) {
     )
     .join("");
 }
-
 function projectCard(project, index) {
   const slug = normalizeSlug(project, index, "project");
   return `
@@ -1582,7 +1592,18 @@ function runKnowledgeGraphLayout() {
   knowledgeGraphInstance.layout(options).run();
 }
 
-function renderDatabaseKnowledgeGraph(content) {
+let cytoscapeModulePromise = null;
+
+async function ensureCytoscape() {
+  if (typeof window.cytoscape === "function") return window.cytoscape;
+  cytoscapeModulePromise ||= import("./vendor/cytoscape.esm.min.mjs").then((module) => {
+    window.cytoscape = module.default;
+    return module.default;
+  });
+  return cytoscapeModulePromise;
+}
+
+async function renderDatabaseKnowledgeGraph(content) {
   const target = document.querySelector("[data-knowledge-map]");
   const columns = content.knowledgeColumns || [];
   if (!activeKnowledgeGraphColumn || !columns.some((column) => column.slug === activeKnowledgeGraphColumn)) activeKnowledgeGraphColumn = columns[0]?.slug || "";
@@ -1598,7 +1619,10 @@ function renderDatabaseKnowledgeGraph(content) {
     renderGraphDetail();
     return;
   }
-  if (typeof window.cytoscape !== "function") {
+  try {
+    await ensureCytoscape();
+  } catch (error) {
+    console.error("Unable to load knowledge graph engine", error);
     target.innerHTML = `<div class="graph-fallback">${graph.nodes.map((node) => `<a href="${escapeHtml(node.href)}">${escapeHtml(node.title)}</a>`).join("")}</div>`;
     renderGraphDetail();
     return;
@@ -1649,7 +1673,6 @@ function renderDatabaseKnowledgeGraph(content) {
   applyKnowledgeGraphFilters();
   renderGraphDetail();
 }
-
 function renderKnowledge(content) {
   const groups = content.knowledgeBase || [];
   const normalizedNodes = content.knowledgeNodes || [];
@@ -2137,7 +2160,7 @@ function renderAiScopeValues() {
 
 async function loadAiScopeCatalog() {
   try {
-    const response = await fetch(`${aiApiUrl.replace(/\/ask$/, "")}/scopes`, { cache: "no-store" });
+    const response = await fetch(`${aiApiUrl.replace(/\/ask$/, "")}/scopes`, { cache: "no-store", credentials: "include" });
     if (!response.ok) throw new Error(`Scope request failed: ${response.status}`);
     aiScopeCatalog = await response.json();
   } catch {
@@ -2225,7 +2248,7 @@ function renderAiLabOverview(content, ai) {
   const graphEdges = content.knowledgeGraph?.edges || [];
   const columns = content.knowledgeColumns || [];
   const posts = (content.posts || []).filter((post) => post.status !== "draft");
-  const history = readAiHistory();
+  const history = aiRenderedHistory;
   const capabilities = document.querySelector("[data-lab-capabilities]");
   if (capabilities) {
     capabilities.innerHTML = `
@@ -2254,7 +2277,7 @@ function renderAiLabOverview(content, ai) {
       ["◎", "知识节点", nodes.length.toLocaleString("zh-CN"), `${graphEdges.length} 条显式关系`],
       ["⌁", "检索模式", "Hybrid", "向量 + 关键词 + 图谱"],
       ["◇", "Agent Runtime", "Ready", "只读白名单工具"],
-      ["○", "问答记录", history.length.toLocaleString("zh-CN"), "当前浏览器 Memory"],
+      ["○", "问答记录", history.length.toLocaleString("zh-CN"), "服务器 Memory"],
       ["✓", "引用能力", "Enabled", "回答可跳转来源"],
     ];
     status.innerHTML = statusItems.map(([icon, label, value, note]) => `<article><i>${icon}</i><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`).join("");
@@ -2416,11 +2439,11 @@ function renderAi(content) {
 
   document.querySelector("[data-ai-clear-history]")?.addEventListener("click", async () => {
     try {
-      await fetch(`${aiApiUrl.replace(/\/ask$/, "")}/memories?session_id=${encodeURIComponent(aiSessionId)}`, { method: "DELETE" });
+      await fetch(`${aiApiUrl.replace(/\/ask$/, "")}/memories`, { method: "DELETE", credentials: "include" });
     } catch {
-      // Keep local fallback usable when FastAPI is offline.
+      // The server remains the source of truth; do not create a browser copy.
     }
-    writeAiHistory([]);
+    aiRenderedHistory = [];
     renderAiHistory();
   });
 
@@ -2467,19 +2490,6 @@ function renderTrace(steps, state = "done") {
     .join("");
 }
 
-function readAiHistory() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(aiHistoryKey) || "[]");
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeAiHistory(items) {
-  localStorage.setItem(aiHistoryKey, JSON.stringify(items.slice(0, 12)));
-}
-
 function normalizeBackendMemory(memory) {
   const sources = Array.isArray(memory.sources) ? memory.sources : [];
   return {
@@ -2500,7 +2510,7 @@ function normalizeBackendMemory(memory) {
 
 async function fetchBackendHistory() {
   const url = `${aiApiUrl.replace(/\/ask$/, "")}/memories?session_id=${encodeURIComponent(aiSessionId)}&limit=12`;
-  const response = await fetch(url, { cache: "no-store" });
+  const response = await fetch(url, { cache: "no-store", credentials: "include" });
   if (!response.ok) throw new Error(`Memory request failed: ${response.status}`);
   const memories = await response.json();
   return Array.isArray(memories) ? memories.map(normalizeBackendMemory) : [];
@@ -2533,24 +2543,10 @@ async function renderAiHistory() {
       return;
     }
   } catch {
-    // FastAPI may be offline; local history remains available.
+    aiRenderedHistory = [];
+    renderAiHistoryList([], "server offline");
   }
-  renderAiHistoryList(readAiHistory(), "local");
 }
-
-function saveAiHistory(record) {
-  const history = readAiHistory();
-  writeAiHistory([
-    {
-      id: crypto.randomUUID(),
-      createdAt: new Date().toLocaleString("zh-CN", { hour12: false }),
-      ...record,
-    },
-    ...history,
-  ]);
-  renderAiHistory();
-}
-
 function inclusiveDaysSince(dateString) {
   const start = new Date(`${dateString}T00:00:00+08:00`);
   const now = new Date();
@@ -3070,6 +3066,7 @@ async function sendAiFeedback(button) {
   });
   const response = await fetch(`${aiApiUrl.replace(/\/ask$/, "")}/feedback`, {
     method: "POST",
+    credentials: "include",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       memory_id: memoryId,
@@ -3257,7 +3254,6 @@ function setupGlobalSearch(content) {
     }
   });
 }
-
 function scoreEntry(entry, query) {
   const text = entry.text.toLowerCase();
   const normalizedQuery = query.toLowerCase();
@@ -3356,7 +3352,7 @@ function stopAgentPolling() {
 async function pollAgentTask(taskId) {
   stopAgentPolling();
   try {
-    const response = await fetch(agentTaskUrl(taskId));
+    const response = await fetch(agentTaskUrl(taskId), { credentials: "include" });
     if (!response.ok) throw new Error(`Agent status failed: ${response.status}`);
     const task = await response.json();
     renderAgentTask(task);
@@ -3373,6 +3369,7 @@ async function invokeAgentAction(action, body) {
   if (!activeAgentTaskId) return null;
   const response = await fetch(agentTaskUrl(activeAgentTaskId, action), {
     method: "POST",
+    credentials: "include",
     headers: body ? { "content-type": "application/json" } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -3399,6 +3396,7 @@ async function runAgentTask() {
   try {
     const createResponse = await fetch(`${agentApiUrl}/tasks`, {
       method: "POST",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ goal, session_id: aiSessionId, max_steps: 6 }),
     });
@@ -3466,6 +3464,7 @@ async function answerStaticQuestion(content) {
   try {
     const response = await fetch(aiApiUrl, {
       method: "POST",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ question: query, limit: 5, session_id: aiSessionId, scope }),
     });
@@ -3504,19 +3503,7 @@ async function answerStaticQuestion(content) {
         <span>Quality <strong>${escapeHtml(result.quality_score ?? citationQuality(sources).score)}</strong></span>
       </div>
     `;
-    saveAiHistory({
-      question: query,
-      answer: result.answer || "",
-      sources,
-      sourceCount: sources.length,
-      qualityScore: result.quality_score ?? citationQuality(sources).score,
-      generator: result.generator || "local",
-      latencyMs: result.latency_ms || elapsed,
-      trace: result.trace || [],
-      promptContext: result.prompt_context || "",
-      grounding,
-      scope: result.scope || scope,
-    });
+    await renderAiHistory();
     return;
   } catch {
     if (traceTarget) {
@@ -3564,17 +3551,6 @@ async function answerStaticQuestion(content) {
       <span>Cost <strong>¥0</strong></span>
     </div>
   `;
-  saveAiHistory({
-    question: query,
-    answer,
-    sources: ranked,
-    sourceCount: ranked.length,
-    qualityScore: citationQuality(ranked).score,
-    generator: "local",
-    latencyMs: elapsed,
-    trace: ["解析问题与关键词", "检索文章 / 项目 / 知识网络", `命中 ${ranked.length} 个站内上下文`, "生成带引用的静态回答"],
-    promptContext: promptPreview,
-  });
 }
 
 function buildPromptPreview(query, sources) {
@@ -3713,6 +3689,17 @@ async function loadContent() {
     const response = await fetch(contentUrl, { cache: "no-store" });
     if (!response.ok) throw new Error(`Content request failed: ${response.status}`);
     localContent = await response.json();
+  } catch (error) {
+    console.warn(error);
+  }
+
+  try {
+    const response = await fetch(`${portfolioApiUrl}/content/site`, { cache: "no-store", signal: AbortSignal.timeout(1800) });
+    if (!response.ok) throw new Error(`Site settings request failed: ${response.status}`);
+    const serverContent = await response.json();
+    if (serverContent && typeof serverContent === "object" && Object.keys(serverContent).length) {
+      localContent = { ...localContent, ...serverContent };
+    }
   } catch (error) {
     console.warn(error);
   }

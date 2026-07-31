@@ -5,9 +5,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
 from app.database import Base
-from app.models import Article, ArticleNode, ContentVersion, KnowledgeNode, KnowledgeRelation
+from app.models import ActivityEvent, Article, ArticleNode, ContentVersion, KnowledgeNode, KnowledgeRelation
 from app.routers import articles, knowledge, public
-from app.schemas import KnowledgeColumnWrite, KnowledgeNodeWrite, KnowledgeRelationWrite
+from app.schemas import ContentEnhancementApply, ContentEnhancementRequest, KnowledgeColumnWrite, KnowledgeNodeWrite, KnowledgeRelationWrite
 
 
 @pytest.fixture()
@@ -53,6 +53,9 @@ def test_node_taxonomy_version_and_public_detail(session):
     first_version = session.scalar(select(ContentVersion).where(
         ContentVersion.entity_type == "knowledge_node", ContentVersion.entity_id == created["id"], ContentVersion.reason == "created",
     ))
+    diff = knowledge.node_version_diff(first_version.id, _="admin@example.com", session=session)
+    assert "summary" in diff["changed_fields"]
+    assert "content_markdown" not in diff["changed_fields"]
     restored = knowledge.restore_node_version(first_version.id, user="admin@example.com", session=session)
     assert restored["summary"] == "Hybrid Search 摘要"
     assert restored["revision"] == 3
@@ -128,11 +131,49 @@ def test_private_node_does_not_leak_through_public_article(session):
     assert "私有资料" not in payload["metadata_json"]
 
 
-def test_delete_node_removes_relations_but_keeps_version(session):
+def test_delete_node_moves_to_trash_and_keeps_relations_and_version(session):
     first = knowledge.create_node(node_payload("A", "a"), user="admin@example.com", session=session)
     second = knowledge.create_node(node_payload("B", "b"), user="admin@example.com", session=session)
     knowledge.create_relation(KnowledgeRelationWrite(source_node_id=first["id"], target_node_id=second["id"]), user="admin@example.com", session=session)
     knowledge.delete_node(first["id"], user="admin@example.com", session=session)
-    assert session.get(KnowledgeNode, first["id"]) is None
-    assert session.scalar(select(KnowledgeRelation)) is None
+    deleted = session.get(KnowledgeNode, first["id"])
+    assert deleted is not None
+    assert deleted.deleted_at is not None
+    assert session.scalar(select(KnowledgeRelation)) is not None
     assert session.scalar(select(ContentVersion).where(ContentVersion.entity_type == "knowledge_node", ContentVersion.entity_id == first["id"])) is not None
+
+
+def test_node_ai_enhancement_adds_confirmed_links_without_changing_content(session):
+    source = knowledge.create_node(
+        node_payload("RAG Pipeline", "rag-pipeline").model_copy(update={
+            "summary": "短摘要", "content_markdown": "# RAG\n\nMilvus 完成向量检索，FastAPI 提供接口。",
+        }),
+        user="admin@example.com", session=session,
+    )
+    target = knowledge.create_node(node_payload("Milvus", "milvus"), user="admin@example.com", session=session)
+    article = Article(title="RAG 实践", slug="rag-practice", summary="Milvus 检索", content_markdown="RAG Pipeline")
+    session.add(article)
+    session.commit()
+    suggestion = knowledge.suggest_node_enhancement(
+        source["id"], ContentEnhancementRequest(mode="local"), _="admin@example.com", session=session,
+    )
+    suggestion["proposal"]["related_nodes"] = [{"id": target["id"], "title": "Milvus", "score": 1}]
+    suggestion["proposal"]["related_articles"] = [{"id": article.id, "title": article.title, "score": 1}]
+    applied = knowledge.apply_node_enhancement(
+        source["id"],
+        ContentEnhancementApply(
+            expected_revision=1,
+            selected_fields=["summary", "tags", "related_articles", "related_nodes"],
+            proposal=suggestion["proposal"],
+        ),
+        user="admin@example.com", session=session,
+    )
+    assert applied["node"]["revision"] == 2
+    assert applied["node"]["content_markdown"] == "# RAG\n\nMilvus 完成向量检索，FastAPI 提供接口。"
+    assert article.id in applied["node"]["article_ids"]
+    relation = session.scalar(select(KnowledgeRelation).where(
+        KnowledgeRelation.source_node_id == source["id"], KnowledgeRelation.target_node_id == target["id"],
+    ))
+    assert relation is not None
+    assert relation.relation_label == "AI 辅助发现"
+    assert session.scalar(select(ActivityEvent).where(ActivityEvent.action == "ai_enhancement_applied")) is not None

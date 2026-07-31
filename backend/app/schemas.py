@@ -14,6 +14,38 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class UserCreate(BaseModel):
+    email: str
+    password: str = Field(min_length=10, max_length=200)
+    role: Literal["admin", "editor", "viewer"] = "editor"
+
+
+class UserUpdate(BaseModel):
+    role: Literal["admin", "editor", "viewer"] | None = None
+    is_active: bool | None = None
+
+
+class UserPasswordUpdate(BaseModel):
+    password: str = Field(min_length=10, max_length=200)
+
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=10, max_length=200)
+
+
+class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: str
+    role: str
+    is_active: bool
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    last_login_at: datetime | None = None
+
+
 class ContentEntryIn(BaseModel):
     entity_type: str
     slug: str
@@ -135,6 +167,89 @@ class DocumentChunkUpdate(BaseModel):
     page_end: int | None = Field(default=None, ge=1)
     metadata: dict = Field(default_factory=dict)
     is_enabled: bool = True
+
+
+class InboxItemWrite(BaseModel):
+    title: str = ""
+    body: str = ""
+    source_url: str = ""
+    item_type: Literal["note", "idea", "link", "document"] = "note"
+    visibility: Literal["private", "unlisted", "public"] = "private"
+
+
+class InboxItemUpdate(InboxItemWrite):
+    status: Literal["inbox", "processing", "processed", "archived"] = "inbox"
+
+
+class InboxPromoteRequest(BaseModel):
+    entity_type: Literal["post", "knowledge", "project", "reading"] = "knowledge"
+    title: str = ""
+    slug: str = ""
+    summary: str = ""
+    visibility: Literal["private", "unlisted", "public"] = "private"
+    tag_names: list[str] = Field(default_factory=list)
+    column_ids: list[int] = Field(default_factory=list)
+    primary_column_id: int | None = None
+    node_ids: list[int] = Field(default_factory=list)
+    node_type: Literal["concept", "article", "question", "tool", "project", "reference"] = "concept"
+
+
+class InboxSuggestionBatch(BaseModel):
+    item_ids: list[int] = Field(default_factory=list, max_length=25)
+    limit: int = Field(default=12, ge=1, le=25)
+    mode: Literal["local", "auto"] = "local"
+
+
+class AiWorkflowDecision(BaseModel):
+    item_id: int = Field(ge=1)
+    suggestion_id: str = Field(default="", max_length=255)
+    decision: Literal["adopted", "rejected"]
+    confidence: float = Field(default=0, ge=0, le=1)
+    suggested_type: Literal["knowledge", "post", "project", "reading"] = "knowledge"
+    note: str = Field(default="", max_length=500)
+
+
+class ContentEnhancementRequest(BaseModel):
+    mode: Literal["local", "auto"] = "local"
+
+
+class ContentEnhancementApply(BaseModel):
+    expected_revision: int = Field(ge=1)
+    selected_fields: list[Literal[
+        "summary", "tags", "seo_title", "seo_description",
+        "related_articles", "related_nodes",
+    ]] = Field(default_factory=list, max_length=6)
+    proposal: dict = Field(default_factory=dict)
+
+
+class AiEvalSuiteWrite(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+    slug: str = Field(min_length=1, max_length=160)
+    eval_type: Literal["rag", "agent"]
+    description: str = Field(default="", max_length=1000)
+    cases: list[dict] = Field(min_length=1, max_length=50)
+    is_active: bool = True
+
+
+class AiEvalRunRequest(BaseModel):
+    mode: Literal["local", "auto"] = "local"
+    limit: int = Field(default=5, ge=1, le=10)
+    published_only: bool = True
+
+
+class ReviewAction(BaseModel):
+    action: Literal["queue", "reviewed", "snooze"] = "reviewed"
+    interval_days: int = Field(default=7, ge=1, le=365)
+    note: str = ""
+
+
+class ReviewTarget(BaseModel):
+    entity_type: Literal["article", "knowledge_node", "knowledge_column", "document", "project"]
+    entity_id: int = Field(ge=1)
+
+
+class ReviewBatchAction(ReviewAction):
+    targets: list[ReviewTarget] = Field(min_length=1, max_length=100)
 
 
 class RetrievalScope(BaseModel):
@@ -307,6 +422,27 @@ class AgentTaskOut(BaseModel):
     started_at: str = ""
     completed_at: str = ""
     created_at: str = ""
+
+
+class ProactiveTaskAction(BaseModel):
+    status: Literal["pending", "accepted", "completed", "dismissed"]
+    note: str = ""
+
+
+class LongTermMemoryWrite(BaseModel):
+    title: str
+    content: str
+    memory_type: Literal["preference", "fact", "goal", "lesson", "context"] = "context"
+    visibility: Literal["private", "public"] = "private"
+    status: Literal["candidate", "active", "archived"] = "candidate"
+    source_type: str = "manual"
+    source_id: int | None = None
+    confidence: float = Field(default=1.0, ge=0, le=1)
+
+
+class LongTermMemoryAction(BaseModel):
+    status: Literal["candidate", "active", "archived"]
+    visibility: Literal["private", "public"] | None = None
 
 
 class AgentToolOut(BaseModel):
