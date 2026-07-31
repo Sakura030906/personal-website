@@ -11,6 +11,25 @@
 
 ## GitHub 仓库配置
 
+### 一次性自动配置
+
+项目提供交互式配置工具：
+
+```bash
+npm run release:setup
+```
+
+它会通过隐藏输入读取 ACR 密码并直接写入 GitHub Secret，不会把密码保存到文件或命令历史。工具还会创建 `production` 环境、写入服务器变量，并使用
+`~/.ssh/github_actions_personal_website` 与本机已经验证的 `known_hosts` 配置部署 SSH。
+
+运行前需要先登录 GitHub CLI：
+
+```bash
+gh auth login --with-token
+```
+
+配置完成后，仍需在 GitHub 网页中为 `production` 手动启用 `Required reviewers`。只构建模式不需要 Tailscale；正式部署前再补齐 Tailscale OAuth 即可。
+
 ### Repository secrets
 
 在 `Settings -> Secrets and variables -> Actions -> Repository secrets` 中配置：

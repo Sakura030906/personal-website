@@ -11,6 +11,7 @@
     "check:frontend": "npm run build",
     "check:backend": "node scripts/run-backend-tests.mjs",
     "check:workflows": "node scripts/check-workflows.mjs",
+    "release:setup": "bash scripts/configure-github-release.sh",
     "check:deploy": "npm run check:workflows && bash ops/deploy/release.sh --plan ops/deploy/release-2026.07.31.env && bash ops/deploy/rollback.sh --plan ops/deploy/release-2026.07.31.env",
     "check": "npm run check:security && npm run check:frontend && npm run check:backend && npm run check:deploy",
     "export:source": "python3 scripts/safe_source_export.py",
