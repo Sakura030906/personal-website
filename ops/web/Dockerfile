@@ -1,5 +1,5 @@
 ARG NODE_IMAGE=node:22-alpine
-ARG NGINX_IMAGE=public.ecr.aws/nginx/nginx:1.27-alpine
+ARG NGINX_IMAGE=public.ecr.aws/nginx/nginx:1.29-alpine@sha256:72c9b856fee09b02f9e5ee29ab2b55ae9a3c3b59cf094baef1d05f5914d8cb17
 
 FROM ${NODE_IMAGE} AS build
 
