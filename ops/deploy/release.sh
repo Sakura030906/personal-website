@@ -48,9 +48,6 @@ compose config --quiet
 mkdir -p "$STATE_DIR"
 capture_running_release "$PREVIOUS_RELEASE"
 
-echo "Creating the pre-release backup"
-compose exec -T backup python backup_once.py | tee "$BACKUP_LOG"
-
 echo "Pulling release images"
 compose pull api web backup maintenance
 
@@ -61,6 +58,9 @@ compose run --rm --no-deps --user 0:0 maintenance \
   sh -c 'chown -R 10001:10001 /app/maintenance-state && test "$(stat -c %u:%g /app/maintenance-state)" = 10001:10001'
 compose run --rm --no-deps --user 0:0 backup \
   sh -c 'chown -R 10002:10002 /backups && test "$(stat -c %u:%g /backups)" = 10002:10002'
+
+echo "Creating the pre-release backup"
+compose exec -T backup python backup_once.py | tee "$BACKUP_LOG"
 
 ROLLBACK_ARMED=true
 echo "Rolling out release $RELEASE_VERSION"
