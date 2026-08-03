@@ -32,11 +32,11 @@ done
 sleep 10
 for service in api web backup maintenance; do
   container_id="$(compose ps -q "$service")"
-  [[ -n "$container_id" ]] || { echo "FAIL no container found: $service"; exit 1; }
+  [ -n "$container_id" ] || { echo "FAIL no container found: $service"; exit 1; }
   status="$(docker inspect --format '{{.State.Status}}' "$container_id")"
   restarts="$(docker inspect --format '{{.RestartCount}}' "$container_id")"
-  [[ "$status" == "running" ]] || { echo "FAIL service is not stable: $service ($status)"; exit 1; }
-  [[ "$restarts" == "0" ]] || { echo "FAIL service restarted during rollout: $service ($restarts)"; exit 1; }
+  [ "$status" = "running" ] || { echo "FAIL service is not stable: $service ($status)"; exit 1; }
+  [ "$restarts" = "0" ] || { echo "FAIL service restarted during rollout: $service ($restarts)"; exit 1; }
   echo "OK   service stable: $service"
 done
 
