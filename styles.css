@@ -2154,7 +2154,6 @@ textarea {
     text-align: center;
   }
 }
-
 /* Knowledge graph studio: clustered topic map with real cross-column links. */
 .graph-view {
   --graph-accent: #149a73;
@@ -2637,7 +2636,6 @@ textarea {
   .graph-recommendation-list { grid-template-columns: 1fr; }
   .graph-recommendation-head { align-items: start; flex-direction: column; }
 }
-
 /* Writing columns: overview -> compact article list -> article detail. */
 .view[data-view="posts"].is-active {
   grid-template-columns: minmax(0, 1fr) 270px;
@@ -3205,7 +3203,6 @@ textarea {
   .graph-canvas-panel { min-height: 460px; }
   .graph-canvas-hint { left: 12px; right: auto; }
 }
-
 /* Clean portfolio layout inspired by the provided reference. */
 :root {
   --bg: #f7f4ef;
@@ -3755,7 +3752,6 @@ body {
     grid-template-columns: 1fr;
   }
 }
-
 /* Reference v2: clean six-page portfolio shell. */
 :root {
   --bg: #f8f5ee;
@@ -4773,7 +4769,6 @@ body {
 
 .graph-fallback { display: grid; align-content: start; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 18px; }
 .graph-fallback a { padding: 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--text); text-decoration: none; }
-
 @media (max-width: 760px) {
   .knowledge-node-grid { grid-template-columns: 1fr; }
   .normalized-node-card { min-height: 0; }
@@ -5605,7 +5600,6 @@ body {
 .detail-panel {
   margin-top: 24px;
 }
-
 @media (max-width: 1050px) {
   .profile-hero,
   .view[data-view="posts"].is-active,
@@ -5725,7 +5719,6 @@ body {
     justify-self: start;
   }
 }
-
 /* Final cascade for the writing experience. */
 .view[data-view="posts"].is-active {
   grid-template-columns: minmax(0, 1fr) 270px;
@@ -6060,7 +6053,6 @@ body {
     max-height: 170px;
   }
 }
-
 /* Knowledge library: columns -> contained nodes -> node detail. */
 .view[data-view="knowledge"].is-active {
   display: grid;
@@ -6462,7 +6454,6 @@ body {
     grid-template-columns: 1fr;
   }
 }
-
 /* AI Lab product workspace. */
 .view.ai-lab-view.is-active {
   display: block;
@@ -7462,7 +7453,6 @@ body {
     grid-template-columns: 1fr;
   }
 }
-
 /* About dashboard. */
 .view.about-dashboard-view.is-active {
   display: block;

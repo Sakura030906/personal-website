@@ -1500,7 +1500,6 @@ async function restoreTrashItem(value) {
   await loadKnowledgeGraphData();
   await loadDocuments();
 }
-
 function renderAdminDashboard() {
   const statsTarget = document.querySelector("[data-admin-dashboard-stats]");
   if (!statsTarget || !state) return;
@@ -2024,7 +2023,6 @@ async function deleteKnowledgeRelation() {
   showToast("节点关系已删除");
   await loadKnowledgeGraphData();
 }
-
 function renderAiRunStats(stats = {}) {
   const target = document.querySelector("[data-ai-run-stats]");
   if (!target) return;
@@ -2607,7 +2605,6 @@ function renderAiFeedback(payload = aiFeedback) {
         .join("")
     : `<p class="empty success">暂时没有 AI 反馈改进项。</p>`;
 }
-
 function renderProactiveDashboard(payload = proactiveDashboard) {
   const statsTarget = document.querySelector("[data-proactive-stats]");
   const taskTarget = document.querySelector("[data-proactive-tasks]");
@@ -2974,7 +2971,6 @@ function renderPublishWorkflow(payload = publishWorkflow) {
     })
     .join("");
 }
-
 function showToast(message) {
   const toast = document.querySelector("[data-toast]");
   toast.textContent = message;
@@ -4554,7 +4550,6 @@ async function deleteDocument() {
   showToast("文档已移至回收站");
   await loadDocuments();
 }
-
 function formatAccountRole(role) {
   return { admin: "管理员", editor: "编辑者", viewer: "只读用户" }[role] || role;
 }

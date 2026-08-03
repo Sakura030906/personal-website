@@ -550,7 +550,6 @@ function renderProjectDetail(content, slug) {
     </div>
   `;
 }
-
 function publishedPosts(content) {
   return (content.posts || []).filter((post) => post.status !== "draft");
 }
@@ -843,7 +842,6 @@ function renderArticle(content, slug) {
   }
   setupArticleInteractions(article);
 }
-
 function renderKnowledgeColumns(content) {
   const target = document.querySelector("[data-knowledge-columns]");
   if (!target) return;
@@ -1207,7 +1205,6 @@ function renderKnowledgeNetwork(content) {
     </div>
   `;
 }
-
 function graphNodeColor(type) {
   return {
     column: "#2f6fec",
@@ -2130,7 +2127,6 @@ function renderTimeline(selector, items) {
     )
     .join("");
 }
-
 function aiScopeCatalogKey(type) {
   return { column: "columns", node: "nodes", article: "articles", document: "documents" }[type] || "";
 }
@@ -2753,7 +2749,6 @@ function renderChangelog(content) {
         .join("")
     : `<div class="empty-state"><strong>还没有更新日志</strong><p>后续每次重要迭代会记录在这里。</p></div>`;
 }
-
 function flattenSearchContent(content) {
   const entries = [];
 

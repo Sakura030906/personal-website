@@ -2197,7 +2197,6 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
-
 /* Multi-page CMS shell. */
 :root {
   --bg: #f7f9f7;
@@ -3398,7 +3397,6 @@ select:focus {
   color: var(--accent);
   font-size: 8px;
 }
-
 .review-search-results > button {
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr) auto;
@@ -3899,7 +3897,6 @@ select:focus {
 .maintenance-focus-card article span { display: grid; gap: 2px; }
 .maintenance-focus-card article strong { overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
 .maintenance-focus-card article small { color: #849088; font-size: 7px; }
-
 @media (max-width: 900px) {
   .workspace-split {
     grid-template-columns: 1fr;
