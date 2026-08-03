@@ -260,6 +260,12 @@ jobs:
         with:
           name: release-${{ inputs.version }}
           path: release-output
+      - name: Create versioned deployment bundle
+        run: |
+          mkdir -p deployment-output
+          bash ops/deploy/create-bundle.sh deployment-output/deploy-bundle.tar.gz
+          cd deployment-output
+          sha256sum deploy-bundle.tar.gz > deploy-bundle.tar.gz.sha256
       - name: Validate production configuration
         env:
           DEPLOY_CONFIRMATION: ${{ inputs.confirmation }}
@@ -315,20 +321,24 @@ jobs:
           SERVER_DEPLOY_PATH: ${{ vars.SERVER_DEPLOY_PATH }}
           PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL }}
         run: |
-          remote_release="$SERVER_DEPLOY_PATH/ops/deploy/incoming-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.env"
+          remote_stage="$SERVER_DEPLOY_PATH/.deploy-incoming-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           ssh_options=(
             -i "$HOME/.ssh/deploy_key"
             -o IdentitiesOnly=yes
             -o StrictHostKeyChecking=yes
           )
+          printf -v stage_q '%q' "$remote_stage"
+          ssh "${ssh_options[@]}" "$SERVER_USER@$SERVER_HOST" \
+            "umask 077; mkdir -p $stage_q"
           scp "${ssh_options[@]}" \
             release-output/release.env \
-            "$SERVER_USER@$SERVER_HOST:$remote_release"
+            deployment-output/deploy-bundle.tar.gz \
+            deployment-output/deploy-bundle.tar.gz.sha256 \
+            "$SERVER_USER@$SERVER_HOST:$remote_stage/"
 
           printf -v project_q '%q' "$SERVER_DEPLOY_PATH"
-          printf -v release_q '%q' "$remote_release"
           printf -v base_url_q '%q' "$PUBLIC_BASE_URL"
-          remote_command="set -Eeuo pipefail; cd $project_q; trap 'rm -f $release_q' EXIT; bash ops/deploy/release.sh $release_q $base_url_q"
+          remote_command="set -Eeuo pipefail; cd $project_q; trap 'rm -rf $stage_q' EXIT; cd $stage_q; sha256sum -c deploy-bundle.tar.gz.sha256; cd $project_q; mkdir -p .deploy-state; tar -czf .deploy-state/config-before-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.tar.gz docker-compose.prod.yml docker-compose.acr.yml ops/deploy ops/nginx 2>/dev/null || true; tar --no-same-owner -xzf $stage_q/deploy-bundle.tar.gz -C $project_q; bash ops/deploy/release.sh $stage_q/release.env $base_url_q"
           ssh "${ssh_options[@]}" "$SERVER_USER@$SERVER_HOST" "$remote_command"
       - name: Verify public site
         env:

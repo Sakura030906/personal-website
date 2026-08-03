@@ -56,11 +56,11 @@ compose pull api web backup maintenance
 
 echo "Preparing persistent volume ownership for non-root services"
 compose run --rm --no-deps --user 0:0 api \
-  sh -c 'chown -R 10001:10001 /app/uploads'
+  sh -c 'chown -R 10001:10001 /app/uploads && test "$(stat -c %u:%g /app/uploads)" = 10001:10001'
 compose run --rm --no-deps --user 0:0 maintenance \
-  sh -c 'chown -R 10001:10001 /app/maintenance-state'
+  sh -c 'chown -R 10001:10001 /app/maintenance-state && test "$(stat -c %u:%g /app/maintenance-state)" = 10001:10001'
 compose run --rm --no-deps --user 0:0 backup \
-  sh -c 'chown -R 10002:10002 /backups'
+  sh -c 'chown -R 10002:10002 /backups && test "$(stat -c %u:%g /backups)" = 10002:10002'
 
 ROLLBACK_ARMED=true
 echo "Rolling out release $RELEASE_VERSION"

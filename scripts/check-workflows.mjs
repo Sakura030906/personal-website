@@ -50,6 +50,8 @@ const requiredReleaseMarkers = [
   "confirmation:",
   '"DEPLOY"',
   "release.sh",
+  "deploy-bundle.tar.gz",
+  "sha256sum -c",
   "SERVER_SSH_KNOWN_HOSTS",
   "tailscale/github-action@",
   "aquasecurity/trivy-action@",
