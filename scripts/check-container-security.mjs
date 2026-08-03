@@ -29,4 +29,17 @@ for (const ownership of ["10001:10001", "10002:10002"]) {
   }
 }
 
+const runtimeNginx = await readFile("ops/nginx/runtime/http.conf", "utf8");
+const cloudflareNginx = await readFile("ops/nginx/cloudflare-http.conf", "utf8");
+if (runtimeNginx !== cloudflareNginx) {
+  throw new Error(
+    "Production Nginx runtime must use the Cloudflare HTTP origin configuration.",
+  );
+}
+if (/return\s+30[1278]\s+https:\/\//.test(runtimeNginx)) {
+  throw new Error(
+    "Cloudflare HTTP origin configuration must not redirect back to HTTPS.",
+  );
+}
+
 console.log("Container security policy check passed (3 images).");
