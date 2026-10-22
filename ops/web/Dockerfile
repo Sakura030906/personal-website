@@ -1,5 +1,5 @@
 ARG NODE_IMAGE=node:22-alpine
-ARG NGINX_IMAGE=public.ecr.aws/nginx/nginx:1.29-alpine@sha256:72c9b856fee09b02f9e5ee29ab2b55ae9a3c3b59cf094baef1d05f5914d8cb17
+ARG NGINX_IMAGE=nginx:1.29-alpine@sha256:5616878291a2eed594aee8db4dade5878cf7edcb475e59193904b198d9b830de
 
 FROM ${NODE_IMAGE} AS build
 
@@ -10,10 +10,7 @@ COPY . .
 RUN npm run build
 
 FROM ${NGINX_IMAGE}
-RUN sed -i \
-        's#https://dl-cdn.alpinelinux.org/alpine#https://mirrors.aliyun.com/alpine#g' \
-        /etc/apk/repositories \
-    && apk upgrade --no-cache \
+RUN apk upgrade --no-cache \
     && rm -f /etc/nginx/conf.d/default.conf \
     && mkdir -p /var/cache/nginx /run /var/www/certbot \
     && chown -R nginx:nginx \
