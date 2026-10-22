@@ -104,6 +104,8 @@ jobs:
           file: ops/web/Dockerfile
           platforms: linux/amd64
           push: true
+          provenance: false
+          sbom: false
           tags: |
             ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:${{ inputs.version }}
             ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:sha-${{ github.sha }}
@@ -117,6 +119,8 @@ jobs:
           file: backend/Dockerfile
           platforms: linux/amd64
           push: true
+          provenance: false
+          sbom: false
           tags: |
             ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:${{ inputs.version }}
             ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:sha-${{ github.sha }}
@@ -130,6 +134,8 @@ jobs:
           file: ops/backup/Dockerfile
           platforms: linux/amd64
           push: true
+          provenance: false
+          sbom: false
           tags: |
             ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backup:${{ inputs.version }}
             ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backup:sha-${{ github.sha }}
