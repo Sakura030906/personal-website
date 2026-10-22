@@ -3705,17 +3705,36 @@ async function loadContent() {
     const published = await response.json();
     return {
       ...localContent,
-      posts: Array.isArray(published.posts) && published.posts.length ? published.posts : localContent.posts,
+      posts: Array.isArray(published.posts) ? published.posts : localContent.posts,
       projects: Array.isArray(published.projects) ? published.projects : localContent.projects,
-      knowledgeBase: Array.isArray(published.knowledgeBase) && published.knowledgeBase.length ? published.knowledgeBase : localContent.knowledgeBase,
-      knowledgeColumns: Array.isArray(published.knowledgeColumns) && published.knowledgeColumns.length ? published.knowledgeColumns : (localContent.knowledgeColumns || []),
-      knowledgeNodes: Array.isArray(published.knowledgeNodes) && published.knowledgeNodes.length ? published.knowledgeNodes : (localContent.knowledgeNodes || []),
-      knowledgeGraph: published.knowledgeGraph && typeof published.knowledgeGraph === "object" && Array.isArray(published.knowledgeGraph.nodes) && published.knowledgeGraph.nodes.length ? published.knowledgeGraph : (localContent.knowledgeGraph || { nodes: [], edges: [], stats: {} }),
+      knowledgeBase: Array.isArray(published.knowledgeBase) ? published.knowledgeBase : localContent.knowledgeBase,
+      knowledgeColumns: Array.isArray(published.knowledgeColumns) ? published.knowledgeColumns : (localContent.knowledgeColumns || []),
+      knowledgeNodes: Array.isArray(published.knowledgeNodes) ? published.knowledgeNodes : (localContent.knowledgeNodes || []),
+      knowledgeGraph: published.knowledgeGraph && typeof published.knowledgeGraph === "object" && Array.isArray(published.knowledgeGraph.nodes) ? published.knowledgeGraph : (localContent.knowledgeGraph || { nodes: [], edges: [], stats: {} }),
     };
   } catch (error) {
     console.warn(error);
+  }
+
+  // Keep the public site database-backed even when one aggregate response is unhealthy.
+  const routes = ["articles", "columns", "nodes", "knowledge-graph"];
+  const responses = await Promise.allSettled(routes.map(async (route) => {
+    const response = await fetch(`${portfolioApiUrl}/content/${route}`, { cache: "no-store", signal: AbortSignal.timeout(1800) });
+    if (!response.ok) throw new Error(`Public ${route} request failed: ${response.status}`);
+    return response.json();
+  }));
+  const [articles, columns, nodes, graph] = responses.map((result) => result.status === "fulfilled" ? result.value : null);
+  if (responses.every((result) => result.status === "rejected")) {
+    responses.forEach((result) => console.warn(result.reason));
     return localContent;
   }
+  return {
+    ...localContent,
+    posts: Array.isArray(articles?.items) ? articles.items : localContent.posts,
+    knowledgeColumns: Array.isArray(columns) ? columns : (localContent.knowledgeColumns || []),
+    knowledgeNodes: Array.isArray(nodes?.items) ? nodes.items : (localContent.knowledgeNodes || []),
+    knowledgeGraph: graph && typeof graph === "object" && Array.isArray(graph.nodes) ? graph : (localContent.knowledgeGraph || { nodes: [], edges: [], stats: {} }),
+  };
 }
 
 loadContent().then(render);

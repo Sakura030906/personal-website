@@ -641,6 +641,7 @@ async function init() {
   try {
     await loadCurrentAccount();
     cmsToken = "cookie";
+    setCmsStatus("已连接 CMS");
   } catch (error) {
     if (error?.status !== 401) console.warn("Unable to restore CMS session", error);
   }
